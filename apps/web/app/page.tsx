@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { UploadCloud, FileText, Settings, CreditCard, Menu, User, CheckCircle, ChevronDown, Repeat } from "lucide-react";
 
 export default function Dashboard() {
@@ -9,13 +9,53 @@ export default function Dashboard() {
   const [selectedStore, setSelectedStore] = useState<string | null>(null);
   const [isColor, setIsColor] = useState(false);
   const [isTwoSided, setIsTwoSided] = useState(false);
-  const [fileAttached, setFileAttached] = useState(false);
+  
+  const [file, setFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [orderPin, setOrderPin] = useState<string>("");
   
   // Dummy data
   const basePrice = selectedStore === "library" ? 0.3 : 0.5;
   const colorMultiplier = isColor ? 3 : 1;
   const sidedMultiplier = isTwoSided ? 0.8 : 1;
-  const total = fileAttached ? (basePrice * colorMultiplier * sidedMultiplier).toFixed(2) : "0.00";
+  const total = file ? (basePrice * colorMultiplier * sidedMultiplier).toFixed(2) : "0.00";
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const handlePayAndPrint = async () => {
+    if (!file || !selectedStore) return;
+    setIsUploading(true);
+
+    const formData = new FormData();
+    formData.append("document", file);
+    formData.append("storeId", selectedStore);
+    formData.append("totalPages", "10"); // Dummy for now
+    formData.append("colorPages", isColor ? "1,2,3,4,5,6,7,8,9,10" : "");
+    formData.append("bwPages", isColor ? "" : "1,2,3,4,5,6,7,8,9,10");
+    formData.append("totalPrice", total);
+
+    try {
+      const response = await fetch("http://localhost:3000/orders", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Upload failed");
+
+      // Generate random PIN
+      setOrderPin(Math.floor(1000 + Math.random() * 9000).toString());
+      setStep("success");
+    } catch (error) {
+      alert("Error uploading document: " + error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans pb-24 lg:pb-0">
@@ -114,23 +154,30 @@ export default function Dashboard() {
               {/* Upload Zone */}
               <section>
                 <h1 className="text-2xl font-bold mb-4">Start a new print job</h1>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                  accept="application/pdf" 
+                  className="hidden" 
+                />
                 <div 
                   className={`border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center text-center transition-colors cursor-pointer min-h-[200px]
-                    ${fileAttached ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white hover:border-blue-400 hover:bg-gray-50'}`}
-                  onClick={() => setFileAttached(!fileAttached)}
+                    ${file ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white hover:border-blue-400 hover:bg-gray-50'}`}
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                  {fileAttached ? (
+                  {file ? (
                     <>
                       <FileText size={48} className="text-blue-600 mb-4" />
-                      <h3 className="font-bold text-lg text-gray-900">document_final.pdf</h3>
-                      <p className="text-sm text-gray-500 mt-1">3 pages • 1.2 MB</p>
+                      <h3 className="font-bold text-lg text-gray-900">{file.name}</h3>
+                      <p className="text-sm text-gray-500 mt-1">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                       <button className="mt-4 text-sm text-blue-600 font-medium px-4 py-2 hover:bg-blue-100 rounded-lg transition-colors min-h-[44px]">Replace File</button>
                     </>
                   ) : (
                     <>
                       <UploadCloud size={48} className="text-gray-400 mb-4" />
                       <h3 className="font-bold text-lg text-gray-900">Tap or drag files here</h3>
-                      <p className="text-sm text-gray-500 mt-1">Supports PDF, DOCX, JPG up to 50MB</p>
+                      <p className="text-sm text-gray-500 mt-1">Supports PDF up to 50MB</p>
                       <button className="mt-6 bg-white border border-gray-200 shadow-sm text-gray-700 font-medium px-6 py-2.5 rounded-lg hover:bg-gray-50 transition-colors min-h-[44px]">
                         Browse Files
                       </button>
@@ -237,11 +284,11 @@ export default function Dashboard() {
                   <span className="text-2xl font-bold">${total}</span>
                 </div>
                 <button 
-                  disabled={!fileAttached}
-                  onClick={() => setStep("success")}
-                  className={`w-full py-3.5 rounded-xl font-bold text-lg min-h-[44px] transition-colors ${fileAttached ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+                  disabled={!file || isUploading}
+                  onClick={handlePayAndPrint}
+                  className={`w-full py-3.5 rounded-xl font-bold text-lg min-h-[44px] transition-colors ${file ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
                 >
-                  Pay & Print
+                  {isUploading ? "Processing..." : "Pay & Print"}
                 </button>
               </div>
 
@@ -263,7 +310,7 @@ export default function Dashboard() {
               <div className="text-center mb-6">
                 <p className="text-sm text-gray-500 uppercase tracking-wider font-semibold mb-1">Order PIN</p>
                 <div className="text-4xl font-mono font-bold tracking-widest text-gray-900">
-                  4829
+                  {orderPin}
                 </div>
               </div>
 
@@ -289,7 +336,7 @@ export default function Dashboard() {
               )}
 
               <button 
-                onClick={() => { setStep("setup"); setFileAttached(false); }}
+                onClick={() => { setStep("store-selection"); setFile(null); }}
                 className="text-gray-500 font-medium hover:text-gray-900 min-h-[44px] px-4"
               >
                 Start another print
@@ -308,11 +355,11 @@ export default function Dashboard() {
             <span className="text-xl font-bold">${total}</span>
           </div>
           <button 
-            disabled={!fileAttached}
-            onClick={() => setStep("success")}
-            className={`w-full py-3.5 rounded-xl font-bold text-lg min-h-[44px] transition-colors ${fileAttached ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-400'}`}
+            disabled={!file || isUploading}
+            onClick={handlePayAndPrint}
+            className={`w-full py-3.5 rounded-xl font-bold text-lg min-h-[44px] transition-colors ${file ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-400'}`}
           >
-            Pay & Print
+            {isUploading ? "Processing..." : "Pay & Print"}
           </button>
         </div>
       )}
