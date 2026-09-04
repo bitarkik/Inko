@@ -13,7 +13,7 @@ export default function PartnerDashboard() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res = await fetch(`http://localhost:3000/stores/${DOWNTOWN_STORE_ID}/dashboard`);
+        const res = await fetch(`http://localhost:3001/stores/${DOWNTOWN_STORE_ID}/dashboard`);
         if (res.ok) {
           const json = await res.json();
           setData(json);
@@ -88,7 +88,7 @@ export default function PartnerDashboard() {
           <div className="grid grid-cols-3 gap-6 mb-8">
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
               <div className="text-sm font-medium text-gray-500 mb-1">Total Revenue</div>
-              <div className="text-3xl font-bold text-gray-900">${data?.analytics?.totalRevenue?.toFixed(2) || "0.00"}</div>
+              <div className="text-3xl font-bold text-gray-900">${Number(data?.analytics?.totalRevenue || 0).toFixed(2)}</div>
             </div>
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
               <div className="text-sm font-medium text-gray-500 mb-1">Completed Jobs</div>
@@ -136,7 +136,7 @@ export default function PartnerDashboard() {
                       <td className="px-6 py-4 font-mono text-gray-900">#{order.id.slice(0,8)}</td>
                       <td className="px-6 py-4">{new Date(order.createdAt).toLocaleTimeString()}</td>
                       <td className="px-6 py-4 font-medium text-gray-900 line-clamp-1">{order.fileUrl ? order.fileUrl.split('/').pop() : "Document"}</td>
-                      <td className="px-6 py-4 font-medium text-gray-900">${order.totalPrice?.toFixed(2) || "0.00"}</td>
+                      <td className="px-6 py-4 font-medium text-gray-900">${Number(order.totalPrice || 0).toFixed(2)}</td>
                       <td className="px-6 py-4">
                         {order.status === 'QUEUED' && (
                           <span className="flex items-center text-yellow-600 bg-yellow-50 px-2 py-1 rounded-md text-xs font-medium w-max">
