@@ -40,7 +40,7 @@ export default function Dashboard() {
     formData.append("totalPrice", total);
 
     try {
-      const response = await fetch("http://localhost:3000/orders", {
+      const response = await fetch("http://localhost:3001/orders", {
         method: "POST",
         body: formData,
       });
