@@ -40,4 +40,14 @@ export class StoresService {
       },
     };
   }
+
+  async findAll() {
+    return this.prisma.store.findMany();
+  }
+
+  async create(data: { id: string; name: string; address: string; basePrice: number }) {
+    return this.prisma.store.create({
+      data,
+    });
+  }
 }

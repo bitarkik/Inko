@@ -1,9 +1,19 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { StoresService } from './stores.service';
 
 @Controller('stores')
 export class StoresController {
   constructor(private readonly storesService: StoresService) {}
+
+  @Get()
+  findAll() {
+    return this.storesService.findAll();
+  }
+
+  @Post()
+  create(@Body() data: { id: string; name: string; address: string; basePrice: number }) {
+    return this.storesService.create(data);
+  }
 
   @Get(':storeId/dashboard')
   getDashboardData(@Param('storeId') storeId: string) {

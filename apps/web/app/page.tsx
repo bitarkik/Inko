@@ -1,12 +1,21 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { UploadCloud, FileText, Settings, CreditCard, Menu, User, CheckCircle, ChevronDown, Repeat } from "lucide-react";
+
+interface Store {
+  id: string;
+  name: string;
+  address: string;
+  basePrice: number;
+}
 
 export default function Dashboard() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [step, setStep] = useState<"store-selection" | "setup" | "success">("store-selection");
-  const [selectedStore, setSelectedStore] = useState<string | null>(null);
+  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  const [stores, setStores] = useState<Store[]>([]);
+  const [isLoadingStores, setIsLoadingStores] = useState(true);
   const [isColor, setIsColor] = useState(false);
   const [isTwoSided, setIsTwoSided] = useState(false);
   
@@ -14,9 +23,25 @@ export default function Dashboard() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [orderPin, setOrderPin] = useState<string>("");
+
+  useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+        const res = await fetch(`${apiUrl}/stores`);
+        const data = await res.json();
+        setStores(data);
+      } catch (e) {
+        console.error("Failed to load stores", e);
+      } finally {
+        setIsLoadingStores(false);
+      }
+    };
+    fetchStores();
+  }, []);
   
   // Dummy data
-  const basePrice = selectedStore === "library" ? 0.3 : 0.5;
+  const basePrice = selectedStore ? selectedStore.basePrice : 0;
   const colorMultiplier = isColor ? 3 : 1;
   const sidedMultiplier = isTwoSided ? 0.8 : 1;
   const total = file ? (basePrice * colorMultiplier * sidedMultiplier).toFixed(2) : "0.00";
@@ -33,7 +58,7 @@ export default function Dashboard() {
 
     const formData = new FormData();
     formData.append("document", file);
-    formData.append("storeId", selectedStore);
+    formData.append("storeId", selectedStore.id);
     formData.append("totalPages", "10"); // Dummy for now
     formData.append("colorPages", isColor ? "1,2,3,4,5,6,7,8,9,10" : "");
     formData.append("bwPages", isColor ? "" : "1,2,3,4,5,6,7,8,9,10");
@@ -117,31 +142,27 @@ export default function Dashboard() {
             </div>
             
             <div className="flex flex-col gap-4">
-              <div 
-                className="bg-white border-2 border-gray-200 hover:border-blue-500 rounded-2xl p-6 cursor-pointer transition-all flex items-center justify-between group shadow-sm hover:shadow-md"
-                onClick={() => { setSelectedStore("downtown"); setStep("setup"); }}
-              >
-                <div>
-                  <h3 className="font-bold text-lg group-hover:text-blue-700">Downtown Tech Hub</h3>
-                  <p className="text-sm text-gray-500 mt-1">1.2 miles away • Premium Quality</p>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-gray-900">$0.50<span className="text-sm font-normal text-gray-500">/pg</span></div>
-                </div>
-              </div>
-
-              <div 
-                className="bg-white border-2 border-gray-200 hover:border-blue-500 rounded-2xl p-6 cursor-pointer transition-all flex items-center justify-between group shadow-sm hover:shadow-md"
-                onClick={() => { setSelectedStore("library"); setStep("setup"); }}
-              >
-                <div>
-                  <h3 className="font-bold text-lg group-hover:text-blue-700">University Library Shop</h3>
-                  <p className="text-sm text-gray-500 mt-1">3.5 miles away • Student Discount</p>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-gray-900">$0.30<span className="text-sm font-normal text-gray-500">/pg</span></div>
-                </div>
-              </div>
+              {isLoadingStores ? (
+                <div className="text-center p-8 text-gray-500">Loading nearby stores...</div>
+              ) : stores.length === 0 ? (
+                <div className="text-center p-8 text-gray-500">No stores available yet.</div>
+              ) : (
+                stores.map((store) => (
+                  <div 
+                    key={store.id}
+                    className="bg-white border-2 border-gray-200 hover:border-blue-500 rounded-2xl p-6 cursor-pointer transition-all flex items-center justify-between group shadow-sm hover:shadow-md"
+                    onClick={() => { setSelectedStore(store); setStep("setup"); }}
+                  >
+                    <div>
+                      <h3 className="font-bold text-lg group-hover:text-blue-700">{store.name}</h3>
+                      <p className="text-sm text-gray-500 mt-1">{store.address}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-gray-900">${store.basePrice.toFixed(2)}<span className="text-sm font-normal text-gray-500">/pg</span></div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}
