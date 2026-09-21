@@ -23,7 +23,7 @@ let win: BrowserWindow | null
 let storeId: string | null = null;
 let isPolling = false;
 let pollTimeout: NodeJS.Timeout | null = null;
-const API_URL = 'http://localhost:3001'; // Match NestJS backend port
+const API_URL = 'https://printpanda-api.onrender.com'; // Production NestJS backend port
 const POLL_INTERVAL_MS = 5000;
 const TEMP_DIR = path.join(app.getPath('userData'), 'temp-prints');
 
