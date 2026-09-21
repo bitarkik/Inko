@@ -40,7 +40,8 @@ export default function Dashboard() {
     formData.append("totalPrice", total);
 
     try {
-      const response = await fetch("http://localhost:3001/orders", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const response = await fetch(`${apiUrl}/orders`, {
         method: "POST",
         body: formData,
       });
