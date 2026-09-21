@@ -41,7 +41,7 @@ export default function Dashboard() {
   }, []);
   
   // Dummy data
-  const basePrice = selectedStore ? selectedStore.basePrice : 0;
+  const basePrice = selectedStore ? Number(selectedStore.basePrice) : 0;
   const colorMultiplier = isColor ? 3 : 1;
   const sidedMultiplier = isTwoSided ? 0.8 : 1;
   const total = file ? (basePrice * colorMultiplier * sidedMultiplier).toFixed(2) : "0.00";
@@ -158,7 +158,7 @@ export default function Dashboard() {
                       <p className="text-sm text-gray-500 mt-1">{store.address}</p>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-gray-900">${store.basePrice.toFixed(2)}<span className="text-sm font-normal text-gray-500">/pg</span></div>
+                      <div className="font-bold text-gray-900">${Number(store.basePrice).toFixed(2)}<span className="text-sm font-normal text-gray-500">/pg</span></div>
                     </div>
                   </div>
                 ))
