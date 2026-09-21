@@ -34,11 +34,11 @@ export class OrdersController {
   }
 
   @Get('ready-to-print')
-  getReadyToPrintOrder(@Query('storeId') storeId: string) {
+  getReadyToPrintOrders(@Query('storeId') storeId: string) {
     if (!storeId) {
       throw new BadRequestException('storeId query parameter is required');
     }
-    return this.ordersService.getReadyToPrintOrder(storeId);
+    return this.ordersService.getReadyToPrintOrders(storeId);
   }
 
   @Get(':id')

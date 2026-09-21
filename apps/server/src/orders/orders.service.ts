@@ -43,8 +43,8 @@ export class OrdersService {
     return this.prisma.order.findMany();
   }
 
-  async getReadyToPrintOrder(storeId: string) {
-    return this.prisma.order.findFirst({
+  async getReadyToPrintOrders(storeId: string) {
+    return this.prisma.order.findMany({
       where: { 
         status: 'READY_TO_PRINT',
         storeId 
