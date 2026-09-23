@@ -130,7 +130,7 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [setupStep, setSetupStep] = useState(1);
   const [toast, setToast] = useState({ show: false, text: '' });
-  const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(false);
+  const [updateState, setUpdateState] = useState<{ status: 'none' | 'downloading' | 'ready', progress: number, version: string, force: boolean }>({ status: 'none', progress: 0, version: '', force: false });
 
   const audioCtxRef = useRef<any>(null);
 
@@ -186,7 +186,6 @@ export default function App() {
         }
       });
 
-      // API might just give basic fields. Let's map them to have our extended UI fields.
       const mapped = updatedOrders.map((o: any, idx: number) => ({
         ...o,
         name: o.customerName || `Customer #${o.id.substring(0,4)}`,
@@ -219,15 +218,25 @@ export default function App() {
       showToast(`Order #${o.id.substring(0,6)} printed!`);
     };
 
+    const handleUpdateAvailable = (_e: any, info: any) => setUpdateState(p => ({ ...p, status: 'downloading', version: info.version }));
+    const handleUpdateProgress = (_e: any, percent: number) => setUpdateState(p => ({ ...p, progress: percent }));
+    const handleUpdateDownloaded = (_e: any, data: any) => setUpdateState({ status: 'ready', progress: 100, version: data.version, force: data.force });
+
     window.ipcRenderer.on('agent-log', handleAgentLog);
     window.ipcRenderer.on('orders-updated', handleOrdersUpdated);
     window.ipcRenderer.on('order-completed', handleOrderCompleted);
+    window.ipcRenderer.on('update-available', handleUpdateAvailable);
+    window.ipcRenderer.on('update-progress', handleUpdateProgress);
+    window.ipcRenderer.on('update-downloaded', handleUpdateDownloaded);
 
     return () => {
       clearInterval(interval);
       window.ipcRenderer.off('agent-log', handleAgentLog);
       window.ipcRenderer.off('orders-updated', handleOrdersUpdated);
       window.ipcRenderer.off('order-completed', handleOrderCompleted);
+      window.ipcRenderer.off('update-available', handleUpdateAvailable);
+      window.ipcRenderer.off('update-progress', handleUpdateProgress);
+      window.ipcRenderer.off('update-downloaded', handleUpdateDownloaded);
     };
   }, []); // Run once on mount
 
@@ -468,6 +477,35 @@ export default function App() {
 
         <main className="main" style={{ WebkitAppRegion: 'no-drag' } as any}>
           <header className="app-header">
+            {updateState.status === 'downloading' && (
+              <div className="update-banner downloading">
+                <span className="mini-spinner"></span>
+                <span>Downloading Update v{updateState.version}... {Math.round(updateState.progress)}%</span>
+              </div>
+            )}
+            
+            {updateState.status === 'ready' && !updateState.force && (
+              <div className={`update-banner ready ${orders.length === 0 ? 'urgent' : ''}`}>
+                <div className="update-text">
+                  <strong>Update v{updateState.version} Ready!</strong>
+                  {orders.length === 0 ? 
+                    <span> Queue is clear. This is the perfect time to update!</span> : 
+                    <span> Please install when the queue is clear to avoid interrupting orders.</span>
+                  }
+                </div>
+                <button className="primary-btn install-btn" onClick={() => window.ipcRenderer.invoke('install-update')}>
+                  Install Now
+                </button>
+              </div>
+            )}
+
+            {updateState.status === 'ready' && updateState.force && (
+              <div className="update-banner ready urgent">
+                <span className="mini-spinner" style={{borderColor: 'white', borderTopColor: 'transparent'}}></span>
+                <strong>CRITICAL UPDATE: Installing automatically...</strong>
+              </div>
+            )}
+
             <div className="heading-wrap">
               <div className="mobile-brand">{t.brand} console</div>
               <h1>{currentView === 'queue' ? t.ordersQueue : currentView === 'completed' ? t.completed : currentView === 'activity' ? t.activity : t.settings}</h1>

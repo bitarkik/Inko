@@ -327,16 +327,37 @@ app.on('activate', () => {
 app.whenReady().then(() => {
   createWindow();
 
+  autoUpdater.autoDownload = true;
   autoUpdater.checkForUpdatesAndNotify();
 
-  autoUpdater.on('update-available', () => {
-    sendLog('[System] A new update is available. Downloading now...');
+  autoUpdater.on('update-available', (info) => {
+    sendLog(`[System] Update v${info.version} is available. Downloading...`);
+    win?.webContents.send('update-available', info);
   });
 
-  autoUpdater.on('update-downloaded', () => {
-    sendLog('[System] Update downloaded. Restarting the application to apply the update...');
-    setTimeout(() => {
-      autoUpdater.quitAndInstall();
-    }, 3000);
+  autoUpdater.on('download-progress', (progressObj) => {
+    win?.webContents.send('update-progress', progressObj.percent);
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    sendLog(`[System] Update v${info.version} downloaded.`);
+    
+    // Check if the developer put [FORCE_UPDATE] in the github release notes
+    const releaseNotes = (info.releaseNotes || '').toString().toUpperCase();
+    const isForceUpdate = releaseNotes.includes('[FORCE_UPDATE]');
+    
+    win?.webContents.send('update-downloaded', { version: info.version, force: isForceUpdate });
+
+    if (isForceUpdate) {
+      sendLog('[System] FORCE UPDATE detected. Installing in 5 seconds...');
+      setTimeout(() => {
+        autoUpdater.quitAndInstall();
+      }, 5000);
+    }
   });
 })
+
+ipcMain.handle('install-update', () => {
+  sendLog('[System] User initiated update install.');
+  autoUpdater.quitAndInstall();
+});
