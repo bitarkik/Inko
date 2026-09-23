@@ -19856,19 +19856,42 @@ var Pl = y.dirname(v(import.meta.url));
 process.env.APP_ROOT = y.join(Pl, "..");
 var Fl = process.env.VITE_DEV_SERVER_URL, Il = y.join(process.env.APP_ROOT, "dist-electron"), Ll = y.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = Fl ? y.join(process.env.APP_ROOT, "public") : Ll;
-var Rl, zl = null, Bl = !1, Vl = !1, Hl = null, Ul = "https://printpanda-api.onrender.com", Wl = 5e3, Gl = y.join(n.getPath("userData"), "temp-prints");
-i.existsSync(Gl) || i.mkdirSync(Gl, { recursive: !0 });
+var Rl, zl = "https://printpanda-api.onrender.com", Bl = 5e3, Vl = y.join(n.getPath("userData"), "temp-prints"), Hl = y.join(n.getPath("userData"), "printpanda-config.json");
+i.existsSync(Vl) || i.mkdirSync(Vl, { recursive: !0 });
+function Ul() {
+	try {
+		if (i.existsSync(Hl)) return JSON.parse(i.readFileSync(Hl, "utf-8"));
+	} catch (e) {
+		console.error("Failed to load config", e);
+	}
+	return {
+		storeId: "",
+		isAutoPrintEnabled: !1
+	};
+}
+function Wl(e) {
+	try {
+		let t = Ul();
+		i.writeFileSync(Hl, JSON.stringify({
+			...t,
+			...e
+		}, null, 2));
+	} catch (e) {
+		console.error("Failed to save config", e);
+	}
+}
+var Gl = Ul(), Kl = Gl.storeId || null, ql = !1, Jl = Gl.isAutoPrintEnabled || !1, Yl = null;
 function $(e) {
 	console.log(e), Rl?.webContents.send("agent-log", e);
 }
-async function Kl(e, t) {
+async function Xl(e, t) {
 	try {
-		await Q.patch(`${Ul}/orders/${e}/status`, { status: t }), $(`[Status] Order ${e} updated to ${t}`);
+		await Q.patch(`${zl}/orders/${e}/status`, { status: t }), $(`[Status] Order ${e} updated to ${t}`);
 	} catch (n) {
 		$(`[Error] Failed to update order ${e} to ${t}: ${n.message}`);
 	}
 }
-async function ql(e, t = !1) {
+async function Zl(e, t = !1) {
 	return new Promise((n, r) => {
 		let i = "";
 		i = t ? `notepad /p "${e}"` : `powershell.exe -Command "Start-Process -FilePath '${e}' -Verb Print -PassThru | %{sleep 30;$_} | kill"`, l(i, (t, i, a) => {
@@ -19877,15 +19900,15 @@ async function ql(e, t = !1) {
 		});
 	});
 }
-async function Jl(e, t) {
+async function Ql(e, t) {
 	let { id: n } = e;
-	$(`[Agent] Processing order: ${n}`), await Kl(n, "PRINTING");
-	let r = y.join(Gl, `order-${n}.pdf`);
+	$(`[Agent] Processing order: ${n}`), await Xl(n, "PRINTING");
+	let r = y.join(Vl, `order-${n}.pdf`);
 	$(`[Agent] Downloading PDF for order ${n}...`);
 	try {
 		let e = await Q({
 			method: "GET",
-			url: `${Ul}/orders/${n}/download`,
+			url: `${zl}/orders/${n}/download`,
 			responseType: "stream"
 		}), t = i.createWriteStream(r);
 		e.data.pipe(t), await new Promise((e, n) => {
@@ -19897,49 +19920,65 @@ async function Jl(e, t) {
 	}
 	if (t) {
 		$(`[Print Spooler] Printing cover page for order ${n}...`);
-		let t = y.join(Gl, `cover-${n}.txt`), r = `PRINTPANDA AUTOMATED ORDER\n\nOrder ID: ${n}\nPages: ${e.totalPages}\nPrice: BDT ${e.totalPrice}\n\n======================\nEnd of Cover Page\n`;
+		let t = y.join(Vl, `cover-${n}.txt`), r = `PRINTPANDA AUTOMATED ORDER\n\nOrder ID: ${n}\nPages: ${e.totalPages}\nPrice: BDT ${e.totalPrice}\n\n======================\nEnd of Cover Page\n`;
 		i.writeFileSync(t, r);
 		try {
-			await ql(t, !0), i.unlinkSync(t);
+			await Zl(t, !0), i.unlinkSync(t);
 		} catch {
 			$("[Error] Failed to print cover page.");
 		}
 	}
 	$(`[Print Spooler] Sending job to Windows Print Spooler: ${r}`);
 	try {
-		await ql(r, !1);
+		await Zl(r, !1);
 	} catch {}
-	await Kl(n, "READY_TO_PICKUP");
+	await Xl(n, "READY_TO_PICKUP");
 	try {
 		i.unlinkSync(r), $("[Agent] Cleaned up temporary file");
 	} catch (e) {
 		$(`[Error] Failed to delete file ${r}: ${e.message}`);
 	}
-	$(`[Agent] Finished processing order: ${n}`), Rl?.webContents.send("order-completed", e), Yl();
+	$(`[Agent] Finished processing order: ${n}`), Rl?.webContents.send("order-completed", e), $l();
 }
-async function Yl() {
-	if (zl) try {
-		let e = (await Q.get(`${Ul}/orders/ready-to-print?storeId=${zl}`)).data;
+async function $l() {
+	if (Kl) try {
+		let e = (await Q.get(`${zl}/orders/ready-to-print?storeId=${Kl}`)).data;
 		Rl?.webContents.send("orders-updated", e);
 	} catch {}
 }
-async function Xl() {
-	if (Bl && zl) try {
-		let e = (await Q.get(`${Ul}/orders/ready-to-print?storeId=${zl}`)).data;
-		Rl?.webContents.send("orders-updated", e), e && e.length > 0 && Vl && ($("[Auto-Print] Processing oldest order in queue..."), await Jl(e[0], !0));
+async function eu() {
+	if (ql && Kl) try {
+		let e = (await Q.get(`${zl}/orders/ready-to-print?storeId=${Kl}`)).data;
+		Rl?.webContents.send("orders-updated", e), e && e.length > 0 && Jl && ($("[Auto-Print] Processing oldest order in queue..."), await Ql(e[0], !0));
 	} catch (e) {
 		$(`[Error] Polling failed: ${e.message}`);
 	} finally {
-		Bl && (Hl = setTimeout(Xl, Wl));
+		ql && (Yl = setTimeout(eu, Bl));
 	}
 }
-r.handle("set-store-id", (e, t) => (zl = t, $(`[System] Store ID set to: ${zl}`), !0)), r.handle("start-polling", (e) => zl ? Bl ? {
+r.handle("get-config", () => ({
+	storeId: Kl,
+	isAutoPrintEnabled: Jl
+})), r.handle("validate-store", async (e, t) => {
+	try {
+		return !!(await Q.get(`${zl}/stores/${t}/dashboard`)).data.store;
+	} catch {
+		return !1;
+	}
+}), r.handle("set-store-id", (e, t) => (Kl = t, Wl({ storeId: Kl }), $(`[System] Store ID set to: ${Kl}`), !0)), r.handle("start-polling", (e) => Kl ? ql ? {
 	success: !0,
 	message: "Already polling"
-} : (Bl = !0, $(`[System] Started polling for Store: ${zl}`), Xl(), { success: !0 }) : {
+} : (ql = !0, $(`[System] Started polling for Store: ${Kl}`), eu(), { success: !0 }) : {
 	success: !1,
 	error: "Store ID not set"
-}), r.handle("stop-polling", (e) => (Bl = !1, Hl && clearTimeout(Hl), $("[System] Stopped polling."), { success: !0 })), r.handle("set-auto-print", (e, t) => (Vl = t, $(`[System] Auto-Print is now ${t ? "ENABLED" : "DISABLED"}`), !0)), r.handle("get-auto-print", () => Vl), r.handle("print-order", async (e, t) => ($(`[Manual Print] Staff triggered print for ${t.id}`), Jl(t, !1).catch((e) => console.error(e)), !0)), r.handle("refresh-orders", async () => (await Yl(), !0)), r.handle("get-printer-status", async () => new Promise((e) => {
+}), r.handle("stop-polling", (e) => (ql = !1, Yl && clearTimeout(Yl), $("[System] Stopped polling."), { success: !0 })), r.handle("set-auto-print", (e, t) => (Jl = t, Wl({ isAutoPrintEnabled: Jl }), $(`[System] Auto-Print is now ${t ? "ENABLED" : "DISABLED"}`), !0)), r.handle("get-auto-print", () => Jl), r.handle("print-order", async (e, t) => ($(`[Manual Print] Staff triggered print for ${t.id}`), Ql(t, !1).catch((e) => console.error(e)), !0)), r.handle("refresh-orders", async () => (await $l(), !0)), r.handle("get-history", async (e, t = 7) => {
+	if (!Kl) return [];
+	try {
+		return (await Q.get(`${zl}/orders/history?storeId=${Kl}&days=${t}`)).data;
+	} catch (e) {
+		return $(`[Error] Failed to fetch history: ${e.message}`), [];
+	}
+}), r.handle("get-printer-status", async () => new Promise((e) => {
 	l("powershell.exe -Command \"Get-Printer | Select-Object Name, PrinterStatus | ConvertTo-Json\"", (t, n) => {
 		if (t) {
 			e({
@@ -19971,7 +20010,7 @@ r.handle("set-store-id", (e, t) => (zl = t, $(`[System] Store ID set to: ${zl}`)
 		}
 	});
 }));
-function Zl() {
+function tu() {
 	Rl = new t({
 		width: 1200,
 		height: 800,
@@ -19986,15 +20025,24 @@ function Zl() {
 n.on("window-all-closed", () => {
 	process.platform !== "darwin" && (n.quit(), Rl = null);
 }), n.on("activate", () => {
-	t.getAllWindows().length === 0 && Zl();
+	t.getAllWindows().length === 0 && tu();
 }), n.whenReady().then(() => {
-	Zl(), Nl.autoUpdater.checkForUpdatesAndNotify(), Nl.autoUpdater.on("update-available", () => {
-		$("[System] A new update is available. Downloading now...");
-	}), Nl.autoUpdater.on("update-downloaded", () => {
-		$("[System] Update downloaded. Restarting the application to apply the update..."), setTimeout(() => {
+	tu(), Nl.autoUpdater.autoDownload = !0, Nl.autoUpdater.checkForUpdatesAndNotify(), Nl.autoUpdater.on("update-available", (e) => {
+		$(`[System] Update v${e.version} is available. Downloading...`), Rl?.webContents.send("update-available", e);
+	}), Nl.autoUpdater.on("download-progress", (e) => {
+		Rl?.webContents.send("update-progress", e.percent);
+	}), Nl.autoUpdater.on("update-downloaded", (e) => {
+		$(`[System] Update v${e.version} downloaded.`);
+		let t = (e.releaseNotes || "").toString().toUpperCase().includes("[FORCE_UPDATE]");
+		Rl?.webContents.send("update-downloaded", {
+			version: e.version,
+			force: t
+		}), t && ($("[System] FORCE UPDATE detected. Installing in 5 seconds..."), setTimeout(() => {
 			Nl.autoUpdater.quitAndInstall();
-		}, 3e3);
+		}, 5e3));
 	});
+}), r.handle("install-update", () => {
+	$("[System] User initiated update install."), Nl.autoUpdater.quitAndInstall();
 });
 //#endregion
 export { Il as MAIN_DIST, Ll as RENDERER_DIST, Fl as VITE_DEV_SERVER_URL };

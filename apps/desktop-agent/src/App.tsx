@@ -130,6 +130,7 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [setupStep, setSetupStep] = useState(1);
   const [toast, setToast] = useState({ show: false, text: '' });
+  const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(false);
   const [updateState, setUpdateState] = useState<{ status: 'none' | 'downloading' | 'ready', progress: number, version: string, force: boolean }>({ status: 'none', progress: 0, version: '', force: false });
 
   const audioCtxRef = useRef<any>(null);
