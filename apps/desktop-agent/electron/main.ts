@@ -244,7 +244,7 @@ ipcMain.handle('refresh-orders', async () => {
   return true;
 });
 
-ipcMain.handle('get-history', async (event, days: number = 30) => {
+ipcMain.handle('get-history', async (event, days: number = 7) => {
   if (!storeId) return [];
   try {
     const response = await axios.get(`${API_URL}/orders/history?storeId=${storeId}&days=${days}`);

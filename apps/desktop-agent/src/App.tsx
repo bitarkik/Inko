@@ -135,7 +135,7 @@ export default function App() {
   const audioCtxRef = useRef<any>(null);
 
   const fetchHistory = async () => {
-    const hist = await window.ipcRenderer.invoke('get-history', 30);
+    const hist = await window.ipcRenderer.invoke('get-history', 7);
     const mappedHist = hist.map((o: any) => ({
       id: o.id,
       name: o.customerName || `Customer #${o.id.substring(0,4)}`,

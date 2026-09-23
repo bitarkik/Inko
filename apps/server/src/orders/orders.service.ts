@@ -53,7 +53,7 @@ export class OrdersService {
     });
   }
 
-  async getHistory(storeId: string, days: number = 30) {
+  async getHistory(storeId: string, days: number = 7) {
     const date = new Date();
     date.setDate(date.getDate() - days);
     
