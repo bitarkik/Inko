@@ -1,12 +1,14 @@
 {
   "name": "desktop-agent",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.1",
   "type": "module",
   "main": "dist-electron/main.js",
+  "repository": "https://github.com/bitarkik/Inko",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build && electron-builder",
+    "build:publish": "tsc -b && vite build && electron-builder -p always",
     "lint": "oxlint",
     "preview": "vite preview"
   },
@@ -19,6 +21,13 @@
     "win": {
       "target": ["nsis"]
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "bitarkik",
+        "repo": "Inko"
+      }
+    ],
     "files": [
       "dist/**/*",
       "dist-electron/**/*"
