@@ -136,7 +136,18 @@ export default function App() {
 
   useEffect(() => {
     // Initial fetch of IPC states
-    window.ipcRenderer.invoke('get-auto-print').then(enabled => setIsAutoPrintEnabled(enabled));
+    window.ipcRenderer.invoke('get-config').then((config: any) => {
+      setSavedStoreId(config.storeId || '');
+      setStoreId(config.storeId || '');
+      setIsAutoPrintEnabled(config.isAutoPrintEnabled || false);
+      
+      // Auto-open modal if store is not connected
+      if (!config.storeId) {
+        setIsModalOpen(true);
+        setSetupStep(1);
+      }
+    });
+    
     checkPrinterStatus();
     const interval = setInterval(checkPrinterStatus, 10000); // Check printer every 10s
 

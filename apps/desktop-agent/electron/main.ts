@@ -20,18 +20,43 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 
 let win: BrowserWindow | null
 
-// PrintPanda Agent State
-let storeId: string | null = null;
-let isPolling = false;
-let isAutoPrintEnabled = false;
-let pollTimeout: NodeJS.Timeout | null = null;
 const API_URL = 'https://printpanda-api.onrender.com';
 const POLL_INTERVAL_MS = 5000;
 const TEMP_DIR = path.join(app.getPath('userData'), 'temp-prints');
+const CONFIG_PATH = path.join(app.getPath('userData'), 'printpanda-config.json');
 
 if (!fs.existsSync(TEMP_DIR)) {
   fs.mkdirSync(TEMP_DIR, { recursive: true });
 }
+
+// Config Management
+function loadConfig() {
+  try {
+    if (fs.existsSync(CONFIG_PATH)) {
+      return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+    }
+  } catch (e) {
+    console.error("Failed to load config", e);
+  }
+  return { storeId: '', isAutoPrintEnabled: false };
+}
+
+function saveConfig(data: any) {
+  try {
+    const current = loadConfig();
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify({ ...current, ...data }, null, 2));
+  } catch (e) {
+    console.error("Failed to save config", e);
+  }
+}
+
+// PrintPanda Agent State
+const initialConfig = loadConfig();
+let storeId: string | null = initialConfig.storeId || null;
+let isPolling = false;
+let isAutoPrintEnabled = initialConfig.isAutoPrintEnabled || false;
+let pollTimeout: NodeJS.Timeout | null = null;
+
 
 function sendLog(message: string) {
   console.log(message);
@@ -51,10 +76,8 @@ async function printFile(filePath: string, isTextFile = false) {
   return new Promise<void>((resolve, reject) => {
     let printCommand = "";
     if (isTextFile) {
-      // Use notepad for simple text receipts to avoid pdf application errors
       printCommand = `notepad /p "${filePath}"`;
     } else {
-      // Use powershell for PDF
       printCommand = `powershell.exe -Command "Start-Process -FilePath '${filePath}' -Verb Print -PassThru | %{sleep 30;$_} | kill"`;
     }
     
@@ -72,7 +95,6 @@ async function processOrder(order: any, isAuto: boolean) {
   const { id } = order;
   sendLog(`[Agent] Processing order: ${id}`);
   
-  // 1. Mark as printing so it gets removed from the queue
   await updateOrderStatus(id, 'PRINTING');
 
   const localFilePath = path.join(TEMP_DIR, `order-${id}.pdf`);
@@ -98,7 +120,6 @@ async function processOrder(order: any, isAuto: boolean) {
     return;
   }
 
-  // 2. Print Cover Page (only in Auto mode)
   if (isAuto) {
     sendLog(`[Print Spooler] Printing cover page for order ${id}...`);
     const coverPagePath = path.join(TEMP_DIR, `cover-${id}.txt`);
@@ -112,15 +133,12 @@ async function processOrder(order: any, isAuto: boolean) {
     }
   }
 
-  // 3. Print PDF
   sendLog(`[Print Spooler] Sending job to Windows Print Spooler: ${localFilePath}`);
   try {
     await printFile(localFilePath, false);
   } catch (error) {
-    // We already logged the error inside printFile
   }
 
-  // 4. Update status and cleanup
   await updateOrderStatus(id, 'READY_TO_PICKUP');
   
   try {
@@ -132,10 +150,8 @@ async function processOrder(order: any, isAuto: boolean) {
 
   sendLog(`[Agent] Finished processing order: ${id}`);
   
-  // Broadcast completed order to UI
   win?.webContents.send('order-completed', order);
   
-  // Refresh UI queue instantly
   triggerManualFetch();
 }
 
@@ -155,7 +171,6 @@ async function poll() {
     const response = await axios.get(`${API_URL}/orders/ready-to-print?storeId=${storeId}`);
     const orders = response.data;
     
-    // Broadcast to UI dashboard
     win?.webContents.send('orders-updated', orders);
 
     if (orders && orders.length > 0) {
@@ -175,9 +190,18 @@ async function poll() {
 
 // --- IPC Handlers ---
 
+ipcMain.handle('get-config', () => {
+  return { storeId, isAutoPrintEnabled };
+});
+
 ipcMain.handle('set-store-id', (event, newStoreId: string) => {
   storeId = newStoreId;
+  saveConfig({ storeId });
   sendLog(`[System] Store ID set to: ${storeId}`);
+  
+  // If we weren't polling but now we have an ID, start automatically polling? 
+  // Let's let the UI handle it or the user click 'Start Listening', 
+  // but if we are already polling, it'll use the new ID.
   return true;
 });
 
@@ -200,6 +224,7 @@ ipcMain.handle('stop-polling', (event) => {
 
 ipcMain.handle('set-auto-print', (event, enabled: boolean) => {
   isAutoPrintEnabled = enabled;
+  saveConfig({ isAutoPrintEnabled });
   sendLog(`[System] Auto-Print is now ${enabled ? 'ENABLED' : 'DISABLED'}`);
   return true;
 });
@@ -210,7 +235,6 @@ ipcMain.handle('get-auto-print', () => {
 
 ipcMain.handle('print-order', async (event, order: any) => {
   sendLog(`[Manual Print] Staff triggered print for ${order.id}`);
-  // Run processing in background so UI doesn't block IPC completely
   processOrder(order, false).catch(e => console.error(e));
   return true;
 });
@@ -230,10 +254,8 @@ ipcMain.handle('get-printer-status', async () => {
       try {
         let printers = JSON.parse(stdout);
         if (!Array.isArray(printers)) printers = [printers];
-        // Avoid virtual printers
         const printer = printers.find((p: any) => p.Name && !p.Name.includes('PDF') && !p.Name.includes('XPS') && !p.Name.includes('OneNote')) || printers[0];
         if (printer) {
-          // In PowerShell, PrinterStatus is often an integer or string. Normal is 3.
           const isConnected = printer.PrinterStatus === 'Normal' || printer.PrinterStatus === 3 || printer.PrinterStatus === 0;
           resolve({ connected: isConnected, name: printer.Name, status: printer.PrinterStatus });
         } else {
@@ -252,20 +274,18 @@ function createWindow() {
     height: 800,
     title: `PrintPanda Agent v${app.getVersion()}`,
     icon: path.join(process.env.VITE_PUBLIC, 'vite.svg'),
-    autoHideMenuBar: true, // Hide the default file/edit menu for a cleaner look
+    autoHideMenuBar: true, 
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
     },
   })
 
-  // To prevent title changing if HTML title is set
   win.on('page-title-updated', (evt) => {
     evt.preventDefault();
   });
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
-    // win.webContents.openDevTools()
   } else {
     win.loadFile(path.join(RENDERER_DIST, 'index.html'))
   }
