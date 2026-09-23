@@ -56,6 +56,12 @@ export class OrdersService {
   }
 
   async getReadyToPrintOrders(storeId: string) {
+    // Silently update the last ping timestamp for this store
+    await this.prisma.store.update({
+      where: { id: storeId },
+      data: { lastPingAt: new Date() },
+    });
+
     return this.prisma.order.findMany({
       where: { 
         status: 'READY_TO_PRINT',

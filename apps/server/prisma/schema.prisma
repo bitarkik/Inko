@@ -18,14 +18,15 @@ enum OrderStatus {
 }
 
 model Store {
-  id        String   @id @default(uuid())
-  name      String
-  address   String
-  basePrice         Decimal  @db.Decimal(10, 2)
-  isAcceptingOrders Boolean  @default(true)
+  id                String    @id @default(uuid())
+  name              String
+  address           String
+  basePrice         Decimal   @db.Decimal(10, 2)
+  isAcceptingOrders Boolean   @default(true)
+  lastPingAt        DateTime?
   orders            Order[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 model Order {
@@ -36,10 +37,10 @@ model Order {
   colorPages Int[]
   bwPages    Int[]
   totalPrice Decimal
-  
-  storeId    String
-  store      Store       @relation(fields: [storeId], references: [id])
-  
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+
+  storeId String
+  store   Store  @relation(fields: [storeId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

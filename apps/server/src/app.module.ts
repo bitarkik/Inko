@@ -6,6 +6,7 @@ import { OrdersModule } from './orders/orders.module';
 import { BullModule } from '@nestjs/bullmq';
 import { DocumentAnalysisModule } from './document-analysis/document-analysis.module';
 import { StoresModule } from './stores/stores.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { StoresModule } from './stores/stores.module';
     }),
     DocumentAnalysisModule,
     StoresModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
