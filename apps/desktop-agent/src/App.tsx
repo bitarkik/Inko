@@ -132,6 +132,7 @@ export default function App() {
   const [toast, setToast] = useState({ show: false, text: '' });
   const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(false);
   const [updateState, setUpdateState] = useState<{ status: 'none' | 'downloading' | 'ready', progress: number, version: string, force: boolean }>({ status: 'none', progress: 0, version: '', force: false });
+  const [isAcceptingOrders, setIsAcceptingOrders] = useState(true);
 
   const audioCtxRef = useRef<any>(null);
 
@@ -171,6 +172,11 @@ export default function App() {
         setSetupStep(1);
       } else {
         fetchHistory();
+        window.ipcRenderer.invoke('get-store-info').then((info: any) => {
+          if (info && info.isAcceptingOrders !== undefined) {
+            setIsAcceptingOrders(info.isAcceptingOrders);
+          }
+        });
       }
     });
     
@@ -627,6 +633,29 @@ export default function App() {
                         const val = e.target.checked;
                         await window.ipcRenderer.invoke('set-auto-print', val);
                         setIsAutoPrintEnabled(val);
+                      }} />
+                      <span className="track"></span>
+                    </label>
+                  </div>
+                </article>
+
+                <article className="setting-card wide">
+                  <div className="setting-head">
+                    <div className="setting-symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+                    <div>
+                      <h2>Accept Online Orders</h2>
+                      <p>Master switch to turn your shop ON or OFF for customers on the mobile app.</p>
+                    </div>
+                    <label className="switch" style={{marginLeft: 'auto'}}>
+                      <input type="checkbox" checked={isAcceptingOrders} onChange={async (e) => {
+                        const val = e.target.checked;
+                        const success = await window.ipcRenderer.invoke('toggle-accepting-orders', val);
+                        if (success) {
+                          setIsAcceptingOrders(val);
+                          showToast(val ? 'Store is now ONLINE' : 'Store is now OFFLINE');
+                        } else {
+                          showToast('Failed to update store status');
+                        }
                       }} />
                       <span className="track"></span>
                     </label>

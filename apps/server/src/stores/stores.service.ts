@@ -50,4 +50,11 @@ export class StoresService {
       data,
     });
   }
+
+  async toggleAcceptingOrders(storeId: string, isAccepting: boolean) {
+    return this.prisma.store.update({
+      where: { id: storeId },
+      data: { isAcceptingOrders: isAccepting },
+    });
+  }
 }

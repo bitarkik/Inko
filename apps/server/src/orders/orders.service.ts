@@ -13,6 +13,18 @@ export class OrdersService {
   ) {}
 
   async createOrder(createOrderDto: CreateOrderDto, fileUrl: string) {
+    const store = await this.prisma.store.findUnique({
+      where: { id: createOrderDto.storeId },
+    });
+    
+    if (!store) {
+      throw new NotFoundException(`Store with ID ${createOrderDto.storeId} not found`);
+    }
+    
+    if (!store.isAcceptingOrders) {
+      throw new Error('Sorry, this shop is not accepting orders right now.');
+    }
+
     const order = await this.prisma.order.create({
       data: {
         ...createOrderDto,

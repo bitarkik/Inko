@@ -21,8 +21,9 @@ model Store {
   id        String   @id @default(uuid())
   name      String
   address   String
-  basePrice Decimal  @db.Decimal(10, 2)
-  orders    Order[]
+  basePrice         Decimal  @db.Decimal(10, 2)
+  isAcceptingOrders Boolean  @default(true)
+  orders            Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

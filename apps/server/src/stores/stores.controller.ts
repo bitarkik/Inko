@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch } from '@nestjs/common';
 import { StoresService } from './stores.service';
 
 @Controller('stores')
@@ -18,5 +18,13 @@ export class StoresController {
   @Get(':storeId/dashboard')
   getDashboardData(@Param('storeId') storeId: string) {
     return this.storesService.getDashboardData(storeId);
+  }
+
+  @Patch(':storeId/accepting-orders')
+  toggleAcceptingOrders(
+    @Param('storeId') storeId: string, 
+    @Body('isAccepting') isAccepting: boolean
+  ) {
+    return this.storesService.toggleAcceptingOrders(storeId, isAccepting);
   }
 }

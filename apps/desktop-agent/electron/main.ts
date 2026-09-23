@@ -203,6 +203,26 @@ ipcMain.handle('validate-store', async (event, checkStoreId: string) => {
   }
 });
 
+ipcMain.handle('get-store-info', async () => {
+  if (!storeId) return null;
+  try {
+    const response = await axios.get(`${API_URL}/stores/${storeId}/dashboard`);
+    return response.data.store;
+  } catch (e) {
+    return null;
+  }
+});
+
+ipcMain.handle('toggle-accepting-orders', async (event, isAccepting: boolean) => {
+  if (!storeId) return false;
+  try {
+    await axios.patch(`${API_URL}/stores/${storeId}/accepting-orders`, { isAccepting });
+    return true;
+  } catch (e) {
+    return false;
+  }
+});
+
 ipcMain.handle('set-store-id', (event, newStoreId: string) => {
   storeId = newStoreId;
   saveConfig({ storeId });
