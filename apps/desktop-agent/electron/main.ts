@@ -244,6 +244,17 @@ ipcMain.handle('refresh-orders', async () => {
   return true;
 });
 
+ipcMain.handle('get-history', async (event, days: number = 30) => {
+  if (!storeId) return [];
+  try {
+    const response = await axios.get(`${API_URL}/orders/history?storeId=${storeId}&days=${days}`);
+    return response.data;
+  } catch (e: any) {
+    sendLog(`[Error] Failed to fetch history: ${e.message}`);
+    return [];
+  }
+});
+
 ipcMain.handle('get-printer-status', async () => {
   return new Promise((resolve) => {
     exec('powershell.exe -Command "Get-Printer | Select-Object Name, PrinterStatus | ConvertTo-Json"', (err, stdout) => {

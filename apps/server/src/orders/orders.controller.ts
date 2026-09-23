@@ -41,6 +41,15 @@ export class OrdersController {
     return this.ordersService.getReadyToPrintOrders(storeId);
   }
 
+  @Get('history')
+  getHistory(@Query('storeId') storeId: string, @Query('days') days?: string) {
+    if (!storeId) {
+      throw new BadRequestException('storeId query parameter is required');
+    }
+    const daysInt = days ? parseInt(days, 10) : 30;
+    return this.ordersService.getHistory(storeId, daysInt);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.ordersService.findOne(id);

@@ -134,6 +134,27 @@ export default function App() {
 
   const audioCtxRef = useRef<any>(null);
 
+  const fetchHistory = async () => {
+    const hist = await window.ipcRenderer.invoke('get-history', 30);
+    const mappedHist = hist.map((o: any) => ({
+      id: o.id,
+      name: o.customerName || `Customer #${o.id.substring(0,4)}`,
+      pages: o.totalPages || 0,
+      done: new Date(o.updatedAt || o.createdAt).toLocaleDateString() + ' ' + new Date(o.updatedAt || o.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+      price: o.totalPrice || 0
+    }));
+    setCompleted(mappedHist);
+    
+    const todayStr = new Date().toDateString();
+    const todaysOrders = hist.filter((o: any) => new Date(o.updatedAt || o.createdAt).toDateString() === todayStr);
+    
+    setMetrics({
+      jobs: todaysOrders.length,
+      pages: todaysOrders.reduce((sum: number, o: any) => sum + (o.totalPages || 0), 0),
+      revenue: todaysOrders.reduce((sum: number, o: any) => sum + (Number(o.totalPrice) || 0), 0)
+    });
+  };
+
   useEffect(() => {
     // Initial fetch of IPC states
     window.ipcRenderer.invoke('get-config').then((config: any) => {
@@ -145,6 +166,8 @@ export default function App() {
       if (!config.storeId) {
         setIsModalOpen(true);
         setSetupStep(1);
+      } else {
+        fetchHistory();
       }
     });
     
@@ -308,6 +331,7 @@ export default function App() {
     await window.ipcRenderer.invoke('set-store-id', storeId);
     setSavedStoreId(storeId);
     setSetupStep(2);
+    fetchHistory();
   };
 
   const formatMoney = (amount: number) => {

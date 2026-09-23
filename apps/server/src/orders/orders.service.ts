@@ -53,6 +53,20 @@ export class OrdersService {
     });
   }
 
+  async getHistory(storeId: string, days: number = 30) {
+    const date = new Date();
+    date.setDate(date.getDate() - days);
+    
+    return this.prisma.order.findMany({
+      where: {
+        storeId,
+        status: { in: ['READY_TO_PICKUP', 'COMPLETED'] },
+        createdAt: { gte: date }
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async findOne(id: string) {
     const order = await this.prisma.order.findUnique({ where: { id } });
     if (!order) {
