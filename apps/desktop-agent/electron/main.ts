@@ -102,7 +102,7 @@ async function processOrder(order: any, isAuto: boolean) {
   if (isAuto) {
     sendLog(`[Print Spooler] Printing cover page for order ${id}...`);
     const coverPagePath = path.join(TEMP_DIR, `cover-${id}.txt`);
-    const coverText = `PRINTPANDA AUTOMATED ORDER\n\nOrder ID: ${id}\nPages: ${order.totalPages}\nPrice: $${order.totalPrice}\n\n======================\nEnd of Cover Page\n`;
+    const coverText = `PRINTPANDA AUTOMATED ORDER\n\nOrder ID: ${id}\nPages: ${order.totalPages}\nPrice: BDT ${order.totalPrice}\n\n======================\nEnd of Cover Page\n`;
     fs.writeFileSync(coverPagePath, coverText);
     try {
       await printFile(coverPagePath, true);
@@ -131,6 +131,9 @@ async function processOrder(order: any, isAuto: boolean) {
   }
 
   sendLog(`[Agent] Finished processing order: ${id}`);
+  
+  // Broadcast completed order to UI
+  win?.webContents.send('order-completed', order);
   
   // Refresh UI queue instantly
   triggerManualFetch();
@@ -217,19 +220,52 @@ ipcMain.handle('refresh-orders', async () => {
   return true;
 });
 
+ipcMain.handle('get-printer-status', async () => {
+  return new Promise((resolve) => {
+    exec('powershell.exe -Command "Get-Printer | Select-Object Name, PrinterStatus | ConvertTo-Json"', (err, stdout) => {
+      if (err) {
+        resolve({ connected: false, name: 'Unknown', status: 'Error' });
+        return;
+      }
+      try {
+        let printers = JSON.parse(stdout);
+        if (!Array.isArray(printers)) printers = [printers];
+        // Avoid virtual printers
+        const printer = printers.find((p: any) => p.Name && !p.Name.includes('PDF') && !p.Name.includes('XPS') && !p.Name.includes('OneNote')) || printers[0];
+        if (printer) {
+          // In PowerShell, PrinterStatus is often an integer or string. Normal is 3.
+          const isConnected = printer.PrinterStatus === 'Normal' || printer.PrinterStatus === 3 || printer.PrinterStatus === 0;
+          resolve({ connected: isConnected, name: printer.Name, status: printer.PrinterStatus });
+        } else {
+          resolve({ connected: false, name: 'No Printer Found', status: 'Offline' });
+        }
+      } catch (e) {
+        resolve({ connected: false, name: 'Error Parsing', status: 'Unknown' });
+      }
+    });
+  });
+});
+
 function createWindow() {
   win = new BrowserWindow({
     width: 1200,
     height: 800,
+    title: `PrintPanda Agent v${app.getVersion()}`,
     icon: path.join(process.env.VITE_PUBLIC, 'vite.svg'),
+    autoHideMenuBar: true, // Hide the default file/edit menu for a cleaner look
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
     },
   })
 
+  // To prevent title changing if HTML title is set
+  win.on('page-title-updated', (evt) => {
+    evt.preventDefault();
+  });
+
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
-    win.webContents.openDevTools()
+    // win.webContents.openDevTools()
   } else {
     win.loadFile(path.join(RENDERER_DIST, 'index.html'))
   }
