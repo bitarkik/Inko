@@ -3,12 +3,14 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, Alert, 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { PDFDocument } from 'pdf-lib';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../theme';
 import { useI18n } from '../i18n';
 
 export default function ConfigScreen() {
   const router = useRouter();
   const { t } = useI18n();
+  const insets = useSafeAreaInsets();
   const { uri, name } = useLocalSearchParams();
   
   const [totalPages, setTotalPages] = useState(0);
@@ -134,7 +136,7 @@ export default function ConfigScreen() {
         </View>
       </ScrollView>
 
-      <View style={styles.bottomPrice}>
+      <View style={[styles.bottomPrice, { paddingBottom: Math.max(insets.bottom + 8, 16) }]}>
         <View>
           <Text style={styles.totalText}>Total: ৳{calcTotal()}</Text>
           <Text style={styles.totalSub}>{totalPages} pages × ৳{Math.round(colorRate * sidedRate * paperRate * 10) / 10}</Text>

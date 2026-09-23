@@ -1,0 +1,47 @@
+export const STORE_METADATA: Record<string, any> = {
+  'downtown': {
+    latitude: 23.7275,
+    longitude: 90.4106,
+    city: 'Dhaka',
+    area: 'Motijheel',
+    services: ['B&W Print', 'Color Print', 'Spiral Binding'],
+    openTime: '08:00 AM',
+    closeTime: '08:00 PM',
+  },
+  'library': {
+    latitude: 23.7330,
+    longitude: 90.3928,
+    city: 'Dhaka',
+    area: 'Nilkhet',
+    services: ['B&W Print', 'Thesis Binding', 'Lamination'],
+    openTime: '09:00 AM',
+    closeTime: '10:00 PM',
+  },
+  'abul-print-shop-899': {
+    latitude: 23.9999,
+    longitude: 90.4203,
+    city: 'Gazipur',
+    area: 'Tongi',
+    services: ['B&W Print', 'Color Print', 'Scanning'],
+    openTime: '10:00 AM',
+    closeTime: '09:00 PM',
+  },
+  'kuddus-print-shop-85': {
+    latitude: 24.0020,
+    longitude: 90.4250,
+    city: 'Gazipur',
+    area: 'Chourasta',
+    services: ['B&W Print', 'Poster Printing'],
+    openTime: '08:30 AM',
+    closeTime: '07:30 PM',
+  },
+  'tushar-print-shop-999': {
+    latitude: 23.7150,
+    longitude: 90.4130,
+    city: 'Dhaka',
+    area: 'Wari',
+    services: ['B&W Print', 'Color Print', 'Passport Photos'],
+    openTime: '09:00 AM',
+    closeTime: '11:00 PM',
+  }
+};

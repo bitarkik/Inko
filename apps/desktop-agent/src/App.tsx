@@ -621,6 +621,18 @@ export default function App() {
                       <p>Store ID: {savedStoreId || 'Not Connected'}</p>
                       {savedStoreId && <div className="connected-text">{t.shopConnected}</div>}
                     </div>
+                    {savedStoreId && (
+                      <button className="secondary-btn" style={{marginLeft: 'auto', color: '#ff4d4d', borderColor: '#ff4d4d'}} onClick={async () => {
+                        await window.ipcRenderer.invoke('clear-store-id');
+                        setSavedStoreId('');
+                        setStoreId('');
+                        setIsModalOpen(true);
+                        setSetupStep(1);
+                        showToast('Store Disconnected');
+                      }}>
+                        Disconnect
+                      </button>
+                    )}
                   </div>
                 </article>
                 

@@ -234,6 +234,13 @@ ipcMain.handle('set-store-id', (event, newStoreId: string) => {
   return true;
 });
 
+ipcMain.handle('clear-store-id', () => {
+  storeId = '';
+  saveConfig({ storeId: '' });
+  sendLog(`[System] Store ID cleared`);
+  return true;
+});
+
 ipcMain.handle('start-polling', (event) => {
   if (!storeId) return { success: false, error: 'Store ID not set' };
   if (isPolling) return { success: true, message: 'Already polling' };

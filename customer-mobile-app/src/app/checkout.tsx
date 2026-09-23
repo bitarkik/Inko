@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../theme';
 import { useI18n } from '../i18n';
 import { apiClient } from '../api/client';
@@ -9,6 +10,7 @@ import { apiClient } from '../api/client';
 export default function CheckoutScreen() {
   const router = useRouter();
   const { t } = useI18n();
+  const insets = useSafeAreaInsets();
   const { uri, name, totalPages, totalPrice, colorMode, sidedMode, copies } = useLocalSearchParams();
   
   const [stores, setStores] = useState<any[]>([]);
@@ -51,14 +53,24 @@ export default function CheckoutScreen() {
       formData.append('totalPages', totalPages as string);
       formData.append('totalPrice', totalPrice as string);
       
+      const tPages = parseInt(totalPages as string, 10) || 1;
+      const colorPagesArray = colorMode === 'Color' ? Array.from({ length: tPages }, (_, i) => i + 1) : [];
+      const bwPagesArray = colorMode === 'B&W' ? Array.from({ length: tPages }, (_, i) => i + 1) : [];
+      
+      formData.append('colorPages', colorPagesArray.join(','));
+      formData.append('bwPages', bwPagesArray.join(','));
+      
       const response = await apiClient.post('/orders', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      // Navigate to tracker screen with the new order ID
-      router.replace(`/order/${response.data.id}`);
+      // Navigate to tracker screen with the new order ID and payment method
+      router.replace({
+        pathname: `/order/${response.data.id}`,
+        params: { payment }
+      });
     } catch (error: any) {
       console.error(error);
       Alert.alert('Error', error.response?.data?.message || 'Failed to place order');
@@ -149,7 +161,7 @@ export default function CheckoutScreen() {
 
       </ScrollView>
 
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom + 8, 16) }]}>
         <TouchableOpacity style={styles.fullBtn} onPress={placeOrder} disabled={loading}>
           {loading ? (
             <ActivityIndicator color="white" />
