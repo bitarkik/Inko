@@ -155,6 +155,8 @@ export default function App() {
     });
   };
 
+  const seenOrdersRef = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     // Initial fetch of IPC states
     window.ipcRenderer.invoke('get-config').then((config: any) => {
@@ -176,6 +178,14 @@ export default function App() {
 
     const handleAgentLog = (_e: any, msg: string) => addLog('info', msg);
     const handleOrdersUpdated = (_e: any, updatedOrders: any[]) => {
+      let hasNew = false;
+      updatedOrders.forEach(o => {
+        if (!seenOrdersRef.current.has(o.id)) {
+          hasNew = true;
+          seenOrdersRef.current.add(o.id);
+        }
+      });
+
       // API might just give basic fields. Let's map them to have our extended UI fields.
       const mapped = updatedOrders.map((o: any, idx: number) => ({
         ...o,
@@ -188,9 +198,11 @@ export default function App() {
         status: o.status === 'PRINTING' ? 'printing' : 'new',
         fresh: true
       }));
-      if (mapped.length > 0 && mapped.length > orders.length) playChime();
+      
+      if (hasNew) playChime();
       setOrders(mapped);
     };
+    
     const handleOrderCompleted = (_e: any, o: any) => {
       setCompleted(prev => [{
         id: o.id,
@@ -217,7 +229,7 @@ export default function App() {
       window.ipcRenderer.off('orders-updated', handleOrdersUpdated);
       window.ipcRenderer.off('order-completed', handleOrderCompleted);
     };
-  }, [orders.length]); // depend on orders.length to know when to chime
+  }, []); // Run once on mount
 
   const checkPrinterStatus = async () => {
     try {
@@ -328,6 +340,12 @@ export default function App() {
 
   const connectShop = async () => {
     if (!storeId) return showToast('Enter Store ID');
+    
+    const isValid = await window.ipcRenderer.invoke('validate-store', storeId);
+    if (!isValid) {
+      return showToast('Invalid Store ID. Store not found.');
+    }
+
     await window.ipcRenderer.invoke('set-store-id', storeId);
     setSavedStoreId(storeId);
     setSetupStep(2);
