@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LayoutDashboard, Users, TrendingUp, Clock, FileText } from 'lucide-react';
 
 interface StoreStat {
