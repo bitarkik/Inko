@@ -65,7 +65,7 @@ export default function StudioPage() {
         canvas.height = scaledViewport.height;
         canvas.width = scaledViewport.width;
 
-        const renderContext = {
+        const renderContext: any = {
           canvasContext: context,
           viewport: scaledViewport,
         };
