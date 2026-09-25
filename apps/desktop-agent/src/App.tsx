@@ -133,6 +133,8 @@ export default function App() {
   const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(false);
   const [updateState, setUpdateState] = useState<{ status: 'none' | 'downloading' | 'ready', progress: number, version: string, force: boolean }>({ status: 'none', progress: 0, version: '', force: false });
   const [isAcceptingOrders, setIsAcceptingOrders] = useState(true);
+  const [isRevenueHidden, setIsRevenueHidden] = useState(true);
+  const [disconnectStep, setDisconnectStep] = useState(0);
 
   const audioCtxRef = useRef<any>(null);
 
@@ -153,7 +155,7 @@ export default function App() {
     setMetrics({
       jobs: todaysOrders.length,
       pages: todaysOrders.reduce((sum: number, o: any) => sum + (o.totalPages || 0), 0),
-      revenue: todaysOrders.reduce((sum: number, o: any) => sum + (Number(o.totalPrice) || 0), 0)
+      revenue: todaysOrders.reduce((sum: number, o: any) => sum + Number(o.totalPrice || 0), 0)
     });
   };
 
@@ -220,7 +222,7 @@ export default function App() {
       setMetrics(prev => ({
         jobs: prev.jobs + 1,
         pages: prev.pages + (o.totalPages || 0),
-        revenue: prev.revenue + (o.totalPrice || 0)
+        revenue: prev.revenue + Number(o.totalPrice || 0)
       }));
       showToast(`Order #${o.id.substring(0,6)} printed!`);
     };
@@ -365,7 +367,6 @@ export default function App() {
     await window.ipcRenderer.invoke('set-store-id', storeId);
     setSavedStoreId(storeId);
     setSetupStep(2);
-    fetchHistory();
   };
 
   const formatMoney = (amount: number) => {
@@ -392,8 +393,12 @@ export default function App() {
               <div className="doc-line w92"></div>
               <div className="doc-line w85"></div>
               <div className="doc-line w72"></div>
-              <div className="doc-image">
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.7"><path d="M4 19 9 10l4 6 2-3 5 6Z" stroke="currentColor"/><circle cx="16" cy="7" r="2" stroke="currentColor"/></svg>
+              <div className="doc-image" style={{ width: '100%', height: '100%', overflow: 'hidden', padding: 0, margin: 0, display: 'flex' }}>
+                {order.fileUrl ? (
+                  <iframe src={`${order.fileUrl}#toolbar=0&navpanes=0&scrollbar=0`} style={{width: '100%', height: '220px', border: 'none', background: 'white'}} title="Order Preview" />
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.7" style={{margin: 'auto'}}><path d="M4 19 9 10l4 6 2-3 5 6Z" stroke="currentColor"/><circle cx="16" cy="7" r="2" stroke="currentColor"/></svg>
+                )}
               </div>
               <div className="doc-line w92"></div>
               <div className="doc-line w64"></div>
@@ -479,7 +484,15 @@ export default function App() {
         <div className="ribbon" style={{ WebkitAppRegion: 'drag' } as any}>
           <div className="metric"><div className="metric-label">{t.todaysJobs}</div><div className="metric-value">{metrics.jobs}</div></div>
           <div className="metric"><div className="metric-label">{t.pagesPrinted}</div><div className="metric-value">{metrics.pages}</div></div>
-          <div className="metric"><div className="metric-label">{t.todaysRevenue}</div><div className="metric-value">{formatMoney(metrics.revenue)}</div></div>
+          <div className="metric">
+            <div className="metric-label" style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+              {t.todaysRevenue}
+              <button onClick={() => setIsRevenueHidden(!isRevenueHidden)} style={{WebkitAppRegion: 'no-drag', background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'inherit', opacity: 0.7}} as any>
+                {isRevenueHidden ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61M2 2l20 20"/></svg> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>}
+              </button>
+            </div>
+            <div className="metric-value">{isRevenueHidden ? '৳***' : formatMoney(metrics.revenue)}</div>
+          </div>
         </div>
 
         <main className="main" style={{ WebkitAppRegion: 'no-drag' } as any}>
@@ -622,13 +635,8 @@ export default function App() {
                       {savedStoreId && <div className="connected-text">{t.shopConnected}</div>}
                     </div>
                     {savedStoreId && (
-                      <button className="secondary-btn" style={{marginLeft: 'auto', color: '#ff4d4d', borderColor: '#ff4d4d'}} onClick={async () => {
-                        await window.ipcRenderer.invoke('clear-store-id');
-                        setSavedStoreId('');
-                        setStoreId('');
-                        setIsModalOpen(true);
-                        setSetupStep(1);
-                        showToast('Store Disconnected');
+                      <button className="secondary-btn" style={{marginLeft: 'auto', color: '#ff4d4d', borderColor: '#ff4d4d'}} onClick={() => {
+                        setDisconnectStep(1);
                       }}>
                         Disconnect
                       </button>
@@ -704,13 +712,13 @@ export default function App() {
       {isModalOpen && (
         <div className="modal-backdrop open" onClick={(e) => { if ((e.target as any).className === 'modal-backdrop open') setIsModalOpen(false) }}>
           <div className="modal">
-            {setupStep === 1 ? (
+            {setupStep === 1 && (
               <div id="setupFormState">
                 <div className="modal-top">
                   <div><h2>{t.connectShop}</h2><p>Enter the store ID from your PrintPanda merchant dashboard.</p></div>
                   <button className="close-btn" onClick={() => setIsModalOpen(false)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
                 </div>
-                <div className="setup-steps"><span className="active"></span><span></span></div>
+                <div className="setup-steps"><span className="active"></span><span></span><span></span></div>
                 <div className="field">
                   <label>{t.storeIdText}</label>
                   <input value={storeId} onChange={e => setStoreId(e.target.value)} placeholder="e.g. PP-DHK-118" />
@@ -720,15 +728,75 @@ export default function App() {
                   <button className="primary-btn" onClick={connectShop}>{t.connectShop}</button>
                 </div>
               </div>
-            ) : (
+            )}
+            
+            {setupStep === 2 && (
+              <div id="setupFormState">
+                <div className="modal-top">
+                  <div><h2>Accept Online Orders?</h2><p>Do you want to turn on receiving online orders right now?</p></div>
+                </div>
+                <div className="setup-steps"><span className="active"></span><span className="active"></span><span></span></div>
+                <div className="modal-actions" style={{marginTop: '20px'}}>
+                  <button className="ghost-btn" onClick={async () => {
+                    await window.ipcRenderer.invoke('toggle-accepting-orders', false);
+                    setIsAcceptingOrders(false);
+                    setSetupStep(3);
+                    fetchHistory();
+                  }}>No, keep OFF</button>
+                  <button className="primary-btn" onClick={async () => {
+                    await window.ipcRenderer.invoke('toggle-accepting-orders', true);
+                    setIsAcceptingOrders(true);
+                    setSetupStep(3);
+                    fetchHistory();
+                  }}>Yes, turn ON</button>
+                </div>
+              </div>
+            )}
+
+            {setupStep === 3 && (
               <div className="connected-state">
                 <div className="check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 4 4L19 6"/></svg></div>
                 <h2>{t.shopConnected}</h2>
-                <p>Ready to receive online print orders.</p>
-                <div className="setup-steps"><span className="active"></span><span className="active"></span></div>
+                <p>Store successfully configured.</p>
+                <div className="setup-steps"><span className="active"></span><span className="active"></span><span className="active"></span></div>
                 <button className="primary-btn" onClick={() => setIsModalOpen(false)}>{t.continueOrders}</button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {disconnectStep === 1 && (
+        <div className="modal-backdrop open" onClick={(e) => { if ((e.target as any).className === 'modal-backdrop open') setDisconnectStep(0) }}>
+          <div className="modal" style={{maxWidth: '420px'}}>
+            <div className="modal-top">
+              <div><h2>Keep Store Open?</h2><p>You are disconnecting this computer. Do you still want to keep receiving online orders in the background?</p></div>
+              <button className="close-btn" onClick={() => setDisconnectStep(0)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+            </div>
+            <div className="modal-actions" style={{marginTop: '24px'}}>
+              <button className="ghost-btn" style={{color: '#ff4d4d'}} onClick={async () => {
+                await window.ipcRenderer.invoke('toggle-accepting-orders', false);
+                setIsAcceptingOrders(false);
+                await window.ipcRenderer.invoke('clear-store-id');
+                setSavedStoreId('');
+                setStoreId('');
+                setDisconnectStep(0);
+                setIsModalOpen(true);
+                setSetupStep(1);
+                showToast('Store Disconnected & Closed');
+              }}>Turn OFF Store</button>
+              <button className="primary-btn" onClick={async () => {
+                await window.ipcRenderer.invoke('toggle-accepting-orders', true);
+                setIsAcceptingOrders(true);
+                await window.ipcRenderer.invoke('clear-store-id');
+                setSavedStoreId('');
+                setStoreId('');
+                setDisconnectStep(0);
+                setIsModalOpen(true);
+                setSetupStep(1);
+                showToast('Store Disconnected (Still accepting orders)');
+              }}>Keep ON</button>
+            </div>
           </div>
         </div>
       )}

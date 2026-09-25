@@ -1,7 +1,7 @@
 {
   "name": "desktop-agent",
   "private": true,
-  "version": "2.0.5",
+  "version": "2.1.0",
   "type": "module",
   "main": "dist-electron/main.js",
   "repository": "https://github.com/bitarkik/Inko",
