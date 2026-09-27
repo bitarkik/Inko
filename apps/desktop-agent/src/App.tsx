@@ -135,6 +135,7 @@ export default function App() {
   const [isAcceptingOrders, setIsAcceptingOrders] = useState(true);
   const [isRevenueHidden, setIsRevenueHidden] = useState(true);
   const [disconnectStep, setDisconnectStep] = useState(0);
+  const [apiUrl, setApiUrl] = useState('http://localhost:10000');
 
   const audioCtxRef = useRef<any>(null);
 
@@ -163,6 +164,7 @@ export default function App() {
 
   useEffect(() => {
     // Initial fetch of IPC states
+    window.ipcRenderer.invoke('get-api-url').then(setApiUrl);
     window.ipcRenderer.invoke('get-config').then((config: any) => {
       setSavedStoreId(config.storeId || '');
       setStoreId(config.storeId || '');
@@ -395,7 +397,7 @@ export default function App() {
               <div className="doc-line w72"></div>
               <div className="doc-image" style={{ width: '100%', height: '100%', overflow: 'hidden', padding: 0, margin: 0, display: 'flex' }}>
                 {order.fileUrl ? (
-                  <iframe src={`${order.fileUrl}#toolbar=0&navpanes=0&scrollbar=0`} style={{width: '100%', height: '220px', border: 'none', background: 'white'}} title="Order Preview" />
+                  <iframe src={`${apiUrl}/orders/${order.id}/download#toolbar=0&navpanes=0&scrollbar=0`} style={{width: '100%', height: '220px', border: 'none', background: 'white'}} title="Order Preview" />
                 ) : (
                   <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.7" style={{margin: 'auto'}}><path d="M4 19 9 10l4 6 2-3 5 6Z" stroke="currentColor"/><circle cx="16" cy="7" r="2" stroke="currentColor"/></svg>
                 )}

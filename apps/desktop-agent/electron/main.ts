@@ -194,6 +194,10 @@ ipcMain.handle('get-config', () => {
   return { storeId, isAutoPrintEnabled };
 });
 
+ipcMain.handle('get-api-url', () => {
+  return API_URL;
+});
+
 ipcMain.handle('validate-store', async (event, checkStoreId: string) => {
   try {
     const response = await axios.get(`${API_URL}/stores/${checkStoreId}/dashboard`);
