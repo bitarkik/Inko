@@ -390,21 +390,15 @@ export default function App() {
           {order.status === 'printing' ? <span className="status printing"><span className="mini-spinner"></span>{t.printing}</span> : <span className="status new">{t.new}</span>}
         </div>
         <div className="detail-body">
-          <div className="preview-stage">
-            <div className="doc">
-              <div className="doc-rule"></div>
-              <div className="doc-line w92"></div>
-              <div className="doc-line w85"></div>
-              <div className="doc-line w72"></div>
-              <div className="doc-image" style={{ width: '100%', height: '100%', overflow: 'hidden', padding: 0, margin: 0, display: 'flex' }}>
-                {order.fileUrl ? (
-                  <iframe src={`${apiUrl}/orders/${order.id}/download#toolbar=0&navpanes=0&scrollbar=0`} style={{width: '100%', height: '220px', border: 'none', background: 'white'}} title="Order Preview" />
-                ) : (
-                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.7" style={{margin: 'auto'}}><path d="M4 19 9 10l4 6 2-3 5 6Z" stroke="currentColor"/><circle cx="16" cy="7" r="2" stroke="currentColor"/></svg>
-                )}
-              </div>
-              <div className="doc-line w92"></div>
-              <div className="doc-line w64"></div>
+          <div className="preview-stage" style={{ padding: 0, overflow: 'hidden' }}>
+            <div className="doc" style={{ padding: 0, border: 'none', height: '100%', display: 'flex', flexDirection: 'column' }}>
+              {order.fileUrl ? (
+                <iframe src={`${apiUrl}/orders/${order.id}/download#toolbar=0&navpanes=0&scrollbar=0`} style={{width: '100%', flex: 1, minHeight: '300px', border: 'none', background: 'white'}} title="Order Preview" />
+              ) : (
+                <div style={{ margin: 'auto', padding: '40px', color: 'var(--mute)' }}>
+                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.7" style={{width: '40px'}}><path d="M4 19 9 10l4 6 2-3 5 6Z" stroke="currentColor"/><circle cx="16" cy="7" r="2" stroke="currentColor"/></svg>
+                </div>
+              )}
             </div>
             <span className="page-badge">1 / {order.totalPages || order.pages}</span>
           </div>
