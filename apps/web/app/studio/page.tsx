@@ -226,7 +226,7 @@ export default function StudioPage() {
                 )}
               </div>
               <button 
-                disabled={selectedStore && !selectedStore.isAcceptingOrders}
+                disabled={Boolean(selectedStore && !selectedStore.isAcceptingOrders)}
                 onClick={() => {
                   setPrintSettings({ pages: numPages || 1, mode: modeLabel, finish: finishLabel, total });
                   router.push("/checkout");
