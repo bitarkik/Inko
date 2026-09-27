@@ -58,7 +58,7 @@ export default function CheckoutScreen() {
       } as any);
       
       formData.append('storeId', selectedStore);
-      formData.append('userId', user.id);
+      if (user && user.id) { formData.append('userId', user.id); }
       formData.append('paymentMethod', payment);
       formData.append('totalPages', totalPages as string);
       formData.append('totalPrice', totalPrice as string);
@@ -184,6 +184,7 @@ export default function CheckoutScreen() {
       </ScrollView>
 
       <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom + 8, 16) }]}>
+        {!user && <TouchableOpacity onPress={() => router.push('/(auth)/login')}><Text style={{ textAlign: 'center', color: '#6366f1', fontSize: 12, marginBottom: 12, fontWeight: '600' }}>Tip: Log in to save your order history!</Text></TouchableOpacity>}
         <TouchableOpacity style={styles.fullBtn} onPress={placeOrder} disabled={loading}>
           {loading ? (
             <ActivityIndicator color="white" />

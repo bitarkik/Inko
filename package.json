@@ -1,0 +1,25 @@
+{
+  "name": "scratch",
+  "version": "1.0.0",
+  "description": "> A Multi-Tenant, Print-on-Demand Marketplace Platform",
+  "main": "test-prod-order.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bitarkik/Inko.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/bitarkik/Inko/issues"
+  },
+  "homepage": "https://github.com/bitarkik/Inko#readme",
+  "dependencies": {
+    "axios": "^1.20.0",
+    "form-data": "^4.0.6"
+  }
+}
