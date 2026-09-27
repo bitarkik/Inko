@@ -74,7 +74,7 @@ export default function CheckoutScreen() {
       });
 
       // Navigate to tracker screen with the new order ID and payment method
-      router.replace({
+      router.dismissAll(); router.push({
         pathname: `/order/${response.data.id}`,
         params: { payment }
       });

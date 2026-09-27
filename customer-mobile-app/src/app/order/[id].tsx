@@ -77,7 +77,7 @@ export default function OrderTrackerScreen() {
       <View style={[styles.container, styles.centered]}>
         <Ionicons name="close-circle" size={64} color={theme.colors.red} />
         <Text style={[styles.headerTitle, { marginTop: 16 }]}>Order Cancelled</Text>
-        <TouchableOpacity style={[styles.actionBtn, { marginTop: 24 }]} onPress={() => router.replace('/(tabs)')}>
+        <TouchableOpacity style={[styles.actionBtn, { marginTop: 24 }]} onPress={() => router.navigate('/(tabs)')}>
           <Text style={styles.actionBtnText}>Back to Home</Text>
         </TouchableOpacity>
       </View>
@@ -101,7 +101,7 @@ export default function OrderTrackerScreen() {
   return (
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 16) }]}>
       <View style={[styles.header, { paddingTop: Platform.OS === 'android' ? insets.top + 10 : 50 }]}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/(tabs)/orders')}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.navigate('/(tabs)/orders')}>
           <Ionicons name="arrow-back" size={20} color={theme.colors.text} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
@@ -173,10 +173,10 @@ export default function OrderTrackerScreen() {
 
         {/* Post Order Actions */}
         <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.primaryBtn} onPress={() => router.replace('/(tabs)')}>
+          <TouchableOpacity style={styles.primaryBtn} onPress={() => router.navigate('/(tabs)')}>
             <Text style={styles.primaryBtnText}>Done</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.replace('/(tabs)/orders')}>
+          <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.navigate('/(tabs)/orders')}>
             <Text style={styles.secondaryBtnText}>See Order History</Text>
           </TouchableOpacity>
         </View>
