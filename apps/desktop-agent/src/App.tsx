@@ -142,7 +142,7 @@ export default function App() {
     const hist = await window.ipcRenderer.invoke('get-history', 7);
     const mappedHist = hist.map((o: any) => ({
       id: o.id,
-      name: o.customerName || `Customer #${o.id.substring(0,4)}`,
+      name: o.customerName || `Customer #${o.id.slice(-4).toUpperCase()}`,
       pages: o.totalPages || 0,
       done: new Date(o.updatedAt || o.createdAt).toLocaleDateString() + ' ' + new Date(o.updatedAt || o.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
       price: o.totalPrice || 0
@@ -197,7 +197,7 @@ export default function App() {
 
       const mapped = updatedOrders.map((o: any, idx: number) => ({
         ...o,
-        name: o.customerName || `Customer #${o.id.substring(0,4)}`,
+        name: o.customerName || `Customer #${o.id.slice(-4).toUpperCase()}`,
         paper: o.paperSize || 'A4',
         color: o.colorMode || (idx % 2 === 0 ? 'Color' : 'B&W'),
         side: o.sides || 'Single side',
@@ -214,7 +214,7 @@ export default function App() {
     const handleOrderCompleted = (_e: any, o: any) => {
       setCompleted(prev => [{
         id: o.id,
-        name: o.name || `Customer #${o.id.substring(0,4)}`,
+        name: o.name || `Customer #${o.id.slice(-4).toUpperCase()}`,
         pages: o.totalPages || 0,
         done: new Date().toLocaleTimeString(),
         price: o.totalPrice || 0
@@ -224,7 +224,7 @@ export default function App() {
         pages: prev.pages + (o.totalPages || 0),
         revenue: prev.revenue + Number(o.totalPrice || 0)
       }));
-      showToast(`Order #${o.id.substring(0,6)} printed!`);
+      showToast(`Order #${o.id.slice(-4).toUpperCase()} printed!`);
     };
 
     const handleUpdateAvailable = (_e: any, info: any) => setUpdateState(p => ({ ...p, status: 'downloading', version: info.version }));
@@ -381,7 +381,7 @@ export default function App() {
       <article className="detail-card">
         <div className="detail-head">
           <div>
-            <div className="detail-title">Order #{order.id.split('-')[0]}...</div>
+            <div className="detail-title">Token #{order.id.slice(-4).toUpperCase()}</div>
             <div className="detail-meta">{order.name} · {t.pdfDocument}</div>
           </div>
           {order.status === 'printing' ? <span className="status printing"><span className="mini-spinner"></span>{t.printing}</span> : <span className="status new">{t.new}</span>}
@@ -570,7 +570,7 @@ export default function App() {
                           onClick={() => { setSelected(i); setIsMobileDetailOpen(true); }}
                         >
                           <div className="order-top">
-                            <span className="order-num">#{o.id.substring(0,8)}</span>
+                            <span className="order-num">#{o.id.slice(-4).toUpperCase()}</span>
                             {o.status === 'printing' ? <span className="status printing"><span className="mini-spinner"></span>{t.printing}</span> : <span className="status new">{t.new}</span>}
                           </div>
                           <div className="customer">{o.name}</div>
@@ -596,7 +596,7 @@ export default function App() {
                   <article key={i} className="completed-card">
                     <div className="ready-row">
                       <div className="check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 4 4L19 6"/></svg></div>
-                      <div><div className="order-num">#{o.id.substring(0,8)}</div><p>{o.name} · {o.pages} {t.pages}</p></div>
+                      <div><div className="order-num">#{o.id.slice(-4).toUpperCase()}</div><p>{o.name} · {o.pages} {t.pages}</p></div>
                       <span className="status ready">{t.ready}</span>
                     </div>
                     <div className="completed-foot">

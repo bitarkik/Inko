@@ -228,10 +228,17 @@ export default function HomeScreen() {
                       <Text style={styles.price}>৳{store.basePrice}/page</Text>
                     </View>
                   </View>
-                  <View style={[styles.queue, styles.queueGreen]}>
-                    <View style={styles.queueDot} />
-                    <Text style={styles.queueText}>Idle</Text>
-                  </View>
+                  {store.isAcceptingOrders !== false ? (
+                    <View style={[styles.queue, styles.queueGreen]}>
+                      <View style={styles.queueDot} />
+                      <Text style={styles.queueText}>Online</Text>
+                    </View>
+                  ) : (
+                    <View style={[styles.queue, { backgroundColor: '#fee2e2' }]}>
+                      <View style={[styles.queueDot, { backgroundColor: '#dc2626' }]} />
+                      <Text style={[styles.queueText, { color: '#dc2626' }]}>Offline</Text>
+                    </View>
+                  )}
                 </View>
               </TouchableOpacity>
             ))}

@@ -221,13 +221,17 @@ export default function StudioPage() {
                 <strong className="text-[var(--ink)] font-bold text-sm">
                   {selectedStore ? selectedStore.name : "Dhaka University / TSC"}
                 </strong>
+                {selectedStore && !selectedStore.isAcceptingOrders && (
+                  <div className="text-red-600 font-bold mt-1 bg-red-50 px-2 py-1 rounded-md inline-block">Temporarily Closed for Orders</div>
+                )}
               </div>
               <button 
+                disabled={selectedStore && !selectedStore.isAcceptingOrders}
                 onClick={() => {
                   setPrintSettings({ pages: numPages || 1, mode: modeLabel, finish: finishLabel, total });
                   router.push("/checkout");
                 }}
-                className="bg-[var(--green)] text-white border-0 rounded-xl px-5 py-3.5 font-extrabold shadow-[0_7px_18px_color-mix(in_srgb,var(--green)_22%,transparent)] hover:bg-[var(--green-2)] transition-colors w-full sm:w-auto cursor-pointer">
+                className={`text-white border-0 rounded-xl px-5 py-3.5 font-extrabold shadow-[0_7px_18px_color-mix(in_srgb,var(--green)_22%,transparent)] transition-colors w-full sm:w-auto ${selectedStore && !selectedStore.isAcceptingOrders ? 'bg-gray-400 cursor-not-allowed shadow-none' : 'bg-[var(--green)] hover:bg-[var(--green-2)] cursor-pointer'}`}>
                 Continue · ৳{total.toFixed(2)}
               </button>
             </div>

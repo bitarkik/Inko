@@ -188,13 +188,16 @@ export default function CheckoutPage() {
                 <div>
                   <div className="text-[10px] uppercase font-bold text-[var(--green)] tracking-wider">Pickup Location</div>
                   <div className="text-[13px] font-bold text-[var(--green-2)] leading-tight mt-0.5">{storeName}</div>
+                  {selectedStore && !selectedStore.isAcceptingOrders && (
+                    <div className="text-red-600 font-bold mt-1 text-xs">Not Accepting Orders</div>
+                  )}
                 </div>
               </div>
 
               <button 
                 onClick={handleConfirm}
-                disabled={isSubmitting}
-                className="w-full bg-[var(--green)] text-white border-0 rounded-xl px-5 py-3.5 font-extrabold shadow-[0_7px_18px_color-mix(in_srgb,var(--green)_22%,transparent)] hover:bg-[var(--green-2)] transition-colors cursor-pointer flex justify-center items-center gap-2 disabled:opacity-70"
+                disabled={isSubmitting || (selectedStore && !selectedStore.isAcceptingOrders) || false}
+                className={`w-full text-white border-0 rounded-xl px-5 py-3.5 font-extrabold transition-colors flex justify-center items-center gap-2 ${isSubmitting || (selectedStore && !selectedStore.isAcceptingOrders) ? 'bg-gray-400 cursor-not-allowed opacity-70' : 'bg-[var(--green)] shadow-[0_7px_18px_color-mix(in_srgb,var(--green)_22%,transparent)] hover:bg-[var(--green-2)] cursor-pointer'}`}
               >
                 {isSubmitting ? "Processing..." : (
                   <>Confirm & get token <CheckCircle2 size={18} /></>

@@ -26,8 +26,9 @@ export default function CheckoutScreen() {
     try {
       const response = await apiClient.get('/stores');
       setStores(response.data);
-      if (response.data.length > 0) {
-        setSelectedStore(response.data[0].id);
+      const firstOnlineStore = response.data.find((s: any) => s.isAcceptingOrders !== false);
+      if (firstOnlineStore) {
+        setSelectedStore(firstOnlineStore.id);
       }
     } catch (error) {
       console.error('Failed to fetch stores:', error);
@@ -99,15 +100,27 @@ export default function CheckoutScreen() {
         {stores.map(store => (
           <TouchableOpacity 
             key={store.id} 
-            style={[styles.shopCard, selectedStore === store.id && styles.shopCardSelected]}
+            disabled={store.isAcceptingOrders === false}
+            style={[
+              styles.shopCard, 
+              selectedStore === store.id && styles.shopCardSelected,
+              store.isAcceptingOrders === false && { opacity: 0.6 }
+            ]}
             onPress={() => setSelectedStore(store.id)}
           >
             <View style={styles.shopRow}>
               <View>
                 <Text style={styles.shopName}>{store.name} <Text style={styles.rating}>4.9 ★</Text></Text>
                 <Text style={styles.metaText}>{store.address}</Text>
+                {store.isAcceptingOrders === false && (
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#dc2626', marginTop: 4 }}>Not Accepting Orders</Text>
+                )}
               </View>
-              <View style={[styles.radio, selectedStore === store.id && styles.radioSelected]}>
+              <View style={[
+                styles.radio, 
+                selectedStore === store.id && styles.radioSelected,
+                store.isAcceptingOrders === false && { borderColor: theme.colors.border }
+              ]}>
                 {selectedStore === store.id && <View style={styles.radioDot} />}
               </View>
             </View>
