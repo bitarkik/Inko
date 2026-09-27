@@ -38,10 +38,7 @@ export default function CheckoutScreen() {
   };
 
   const placeOrder = async () => {
-    if (!user) {
-      router.push('/(auth)/login');
-      return;
-    }
+
 
     if (!selectedStore) {
       Alert.alert('Error', 'Please select a shop first.');
