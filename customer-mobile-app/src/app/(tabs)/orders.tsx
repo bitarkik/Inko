@@ -64,6 +64,19 @@ export default function OrdersScreen() {
     );
   }
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'PENDING_PAYMENT': return 'Awaiting Payment';
+      case 'PROCESSING': return 'Processing Document';
+      case 'READY_TO_PRINT': return 'Order Received';
+      case 'PRINTING': return 'Printing';
+      case 'READY_TO_PICKUP': return 'Ready for Pickup';
+      case 'COMPLETED': return 'Completed';
+      case 'CANCELLED': return 'Cancelled';
+      default: return status.replace(/_/g, ' ');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: Platform.OS === 'android' ? insets.top + 10 : 50 }]}>
@@ -94,7 +107,7 @@ export default function OrdersScreen() {
                 <Text style={styles.storeName}>{order.store?.name || 'PrintPanda Shop'}</Text>
                 <View style={[styles.statusBadge, order.status === 'CANCELLED' && { backgroundColor: theme.colors.redBg }]}>
                   <Text style={[styles.statusText, order.status === 'CANCELLED' && { color: theme.colors.red }]}>
-                    {order.status.replace(/_/g, ' ')}
+                    {getStatusText(order.status)}
                   </Text>
                 </View>
               </View>
