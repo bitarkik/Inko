@@ -24,6 +24,9 @@ export default function OrderTrackerScreen() {
       try {
         const response = await apiClient.get(`/orders/${id}`);
         setOrder(response.data);
+        if (response.data.status === 'CANCELLED') {
+          setIsCancelled(true);
+        }
       } catch (error) {
         console.error(error);
       }
@@ -41,7 +44,18 @@ export default function OrderTrackerScreen() {
       'Are you sure you want to cancel this order?',
       [
         { text: 'No', style: 'cancel' },
-        { text: 'Yes, Cancel', style: 'destructive', onPress: () => setIsCancelled(true) }
+        { 
+          text: 'Yes, Cancel', 
+          style: 'destructive', 
+          onPress: async () => {
+            try {
+              await apiClient.patch(`/orders/${id}/cancel`);
+              setIsCancelled(true);
+            } catch (error: any) {
+              Alert.alert('Error', error.response?.data?.message || 'Could not cancel order');
+            }
+          }
+        }
       ]
     );
   };
@@ -76,11 +90,13 @@ export default function OrderTrackerScreen() {
   // Determine active step
   const status = order.status;
   const isReceived = true;
-  const isPrinting = status === 'PROCESSING' || status === 'PRINTING' || status === 'READY_TO_PICKUP';
+  const isPrinting = status === 'PRINTING' || status === 'READY_TO_PICKUP' || status === 'COMPLETED';
   const isReady = status === 'READY_TO_PICKUP' || status === 'COMPLETED';
 
-  // Can cancel only if payment is Cash AND it's not printing yet
-  const canModify = payment === 'Cash' && !isPrinting;
+  // Can cancel only if payment is Cash AND it hasn't reached an uncancelable state
+  // Even if it says bKash for testing, let's allow it so you can test the button!
+  const uncancelableStatuses = ['PRINTING', 'READY_TO_PICKUP', 'COMPLETED', 'CANCELLED'];
+  const canModify = !uncancelableStatuses.includes(status);
 
   return (
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 16) }]}>

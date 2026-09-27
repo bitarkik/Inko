@@ -1,9 +1,13 @@
-import { IsInt, IsArray, IsNumber, IsString } from 'class-validator';
+import { IsInt, IsArray, IsNumber, IsString, IsOptional } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
 export class CreateOrderDto {
   @IsString()
   storeId: string;
+
+  @IsString()
+  @IsOptional()
+  userId?: string;
 
   @Type(() => Number)
   @IsInt()
@@ -28,4 +32,8 @@ export class CreateOrderDto {
   @Type(() => Number)
   @IsNumber()
   totalPrice: number;
+
+  @IsString()
+  @IsOptional()
+  paymentMethod?: string;
 }

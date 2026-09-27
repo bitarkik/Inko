@@ -33,12 +33,25 @@ export class OrdersController {
     return this.ordersService.findAll();
   }
 
+  @Get('me')
+  getMyOrders(@Query('userId') userId: string) {
+    if (!userId) {
+      throw new BadRequestException('userId query parameter is required');
+    }
+    return this.ordersService.getOrdersByUser(userId);
+  }
+
   @Get('ready-to-print')
   getReadyToPrintOrders(@Query('storeId') storeId: string) {
     if (!storeId) {
       throw new BadRequestException('storeId query parameter is required');
     }
     return this.ordersService.getReadyToPrintOrders(storeId);
+  }
+
+  @Patch(':id/cancel')
+  cancelOrder(@Param('id') id: string) {
+    return this.ordersService.cancelOrder(id);
   }
 
   @Get('history')

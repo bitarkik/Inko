@@ -121,7 +121,7 @@ export default function HomeScreen() {
 
   // Keep top 5 if no filters applied, otherwise show all matching
   if (!searchQuery && !selectedCity && !selectedArea) {
-    displayedStores = displayedStores.slice(0, 5);
+    // displayedStores = displayedStores.slice(0, 5);
   }
 
   return (

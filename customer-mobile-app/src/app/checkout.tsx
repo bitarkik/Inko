@@ -6,11 +6,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../theme';
 import { useI18n } from '../i18n';
 import { apiClient } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 
 export default function CheckoutScreen() {
   const router = useRouter();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
   const { uri, name, totalPages, totalPrice, colorMode, sidedMode, copies } = useLocalSearchParams();
   
   const [stores, setStores] = useState<any[]>([]);
@@ -36,6 +38,11 @@ export default function CheckoutScreen() {
   };
 
   const placeOrder = async () => {
+    if (!user) {
+      router.push('/(auth)/login');
+      return;
+    }
+
     if (!selectedStore) {
       Alert.alert('Error', 'Please select a shop first.');
       return;
@@ -51,6 +58,8 @@ export default function CheckoutScreen() {
       } as any);
       
       formData.append('storeId', selectedStore);
+      formData.append('userId', user.id);
+      formData.append('paymentMethod', payment);
       formData.append('totalPages', totalPages as string);
       formData.append('totalPrice', totalPrice as string);
       

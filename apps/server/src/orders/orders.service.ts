@@ -55,6 +55,32 @@ export class OrdersService {
     return this.prisma.order.findMany();
   }
 
+  async getOrdersByUser(userId: string) {
+    return this.prisma.order.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      include: { store: true },
+    });
+  }
+
+  async cancelOrder(id: string) {
+    const order = await this.prisma.order.findUnique({ where: { id } });
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${id} not found`);
+    }
+
+    // Only allow cancellation if not yet printing
+    const uncancelableStatuses = ['PRINTING', 'READY_TO_PICKUP', 'COMPLETED', 'CANCELLED'];
+    if (uncancelableStatuses.includes(order.status)) {
+      throw new Error(`Order cannot be cancelled in status ${order.status}`);
+    }
+
+    return this.prisma.order.update({
+      where: { id },
+      data: { status: 'CANCELLED' },
+    });
+  }
+
   async getReadyToPrintOrders(storeId: string) {
     // Silently update the last ping timestamp for this store
     await this.prisma.store.update({

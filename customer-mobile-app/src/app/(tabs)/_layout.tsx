@@ -39,10 +39,10 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="saved"
+        name="profile"
         options={{
-          title: t('savedNav'),
-          tabBarIcon: ({ color }) => <Ionicons name="bookmark" size={24} color={color} />,
+          title: 'Profile',
+          tabBarIcon: ({ color }) => <Ionicons name="person" size={24} color={color} />,
         }}
       />
     </Tabs>

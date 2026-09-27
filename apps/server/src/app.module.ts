@@ -7,6 +7,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { DocumentAnalysisModule } from './document-analysis/document-analysis.module';
 import { StoresModule } from './stores/stores.module';
 import { AdminModule } from './admin/admin.module';
+import { AuthController } from './auth/auth.controller';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { AdminModule } from './admin/admin.module';
     StoresModule,
     AdminModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, AuthController],
   providers: [AppService],
 })
 export class AppModule {}

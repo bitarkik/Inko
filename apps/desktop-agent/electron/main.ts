@@ -160,7 +160,7 @@ async function triggerManualFetch() {
   try {
     const response = await axios.get(`${API_URL}/orders/ready-to-print?storeId=${storeId}`);
     const orders = response.data;
-    win?.webContents.send('orders-updated', orders);
+    sendLog("[Diagnostic] Fetched $($orders.length) ready-to-print orders!"); win?.webContents.send('orders-updated', orders);
   } catch (e) {}
 }
 
@@ -171,7 +171,7 @@ async function poll() {
     const response = await axios.get(`${API_URL}/orders/ready-to-print?storeId=${storeId}`);
     const orders = response.data;
     
-    win?.webContents.send('orders-updated', orders);
+    sendLog("[Diagnostic] Fetched $($orders.length) ready-to-print orders!"); win?.webContents.send('orders-updated', orders);
 
     if (orders && orders.length > 0) {
       if (isAutoPrintEnabled) {
