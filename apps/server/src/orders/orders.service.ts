@@ -93,6 +93,7 @@ export class OrdersService {
         status: 'READY_TO_PRINT',
         storeId 
       },
+      include: { user: true },
       orderBy: { createdAt: 'asc' },
     });
   }
@@ -107,6 +108,7 @@ export class OrdersService {
         status: { in: ['READY_TO_PICKUP', 'COMPLETED'] },
         createdAt: { gte: date }
       },
+      include: { user: true },
       orderBy: { createdAt: 'desc' },
     });
   }

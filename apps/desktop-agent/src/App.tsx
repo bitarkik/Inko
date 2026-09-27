@@ -143,7 +143,7 @@ export default function App() {
     const hist = await window.ipcRenderer.invoke('get-history', 7);
     const mappedHist = hist.map((o: any) => ({
       id: o.id,
-      name: o.customerName || `Customer #${o.id.slice(-4).toUpperCase()}`,
+      name: o.user?.name || o.customerName || `Customer #${o.id.slice(-4).toUpperCase()}`,
       pages: o.totalPages || 0,
       done: new Date(o.updatedAt || o.createdAt).toLocaleDateString() + ' ' + new Date(o.updatedAt || o.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
       price: o.totalPrice || 0
@@ -199,7 +199,7 @@ export default function App() {
 
       const mapped = updatedOrders.map((o: any, idx: number) => ({
         ...o,
-        name: o.customerName || `Customer #${o.id.slice(-4).toUpperCase()}`,
+        name: o.user?.name || o.customerName || `Customer #${o.id.slice(-4).toUpperCase()}`,
         paper: o.paperSize || 'A4',
         color: o.colorMode || (idx % 2 === 0 ? 'Color' : 'B&W'),
         side: o.sides || 'Single side',
@@ -572,10 +572,10 @@ export default function App() {
                           onClick={() => { setSelected(i); setIsMobileDetailOpen(true); }}
                         >
                           <div className="order-top">
-                            <span className="order-num">#{o.id.slice(-4).toUpperCase()}</span>
+                            <span className="customer" style={{ fontWeight: 'bold' }}>{o.name}</span>
                             {o.status === 'printing' ? <span className="status printing"><span className="mini-spinner"></span>{t.printing}</span> : <span className="status new">{t.new}</span>}
                           </div>
-                          <div className="customer">{o.name}</div>
+                          <div className="order-num" style={{ fontSize: 12, color: '#9ca3af', marginBottom: 8 }}>#{o.id.slice(-4).toUpperCase()}</div>
                           <div className="order-bottom">
                             <span>{o.ago}</span><span className="sep"></span><span>{o.totalPages || o.pages} {t.pages}</span><span className="sep"></span><span>{o.paper}</span>
                           </div>
