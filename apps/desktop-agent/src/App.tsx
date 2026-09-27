@@ -136,6 +136,7 @@ export default function App() {
   const [isRevenueHidden, setIsRevenueHidden] = useState(true);
   const [disconnectStep, setDisconnectStep] = useState(0);
   const [apiUrl, setApiUrl] = useState('http://localhost:10000');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const audioCtxRef = useRef<any>(null);
 
@@ -593,12 +594,24 @@ export default function App() {
 
           {currentView === 'completed' && (
             <section className="view active">
+              <div style={{padding: '16px', paddingBottom: 0}}>
+                <input 
+                  type="text" 
+                  placeholder="Search by token or customer name..." 
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  style={{width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--ink)'}}
+                />
+              </div>
               <div className="completed-list">
-                {completed.map((o, i) => (
+                {completed.filter(o => 
+                  o.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                  o.name.toLowerCase().includes(searchQuery.toLowerCase())
+                ).map((o, i) => (
                   <article key={i} className="completed-card">
                     <div className="ready-row">
                       <div className="check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 4 4L19 6"/></svg></div>
-                      <div><div className="order-num">#{o.id.slice(-4).toUpperCase()}</div><p>{o.name} · {o.pages} {t.pages}</p></div>
+                      <div><div className="order-num">#{o.id.slice(-4).toUpperCase()}</div><p>{o.name} &bull; {o.pages} {t.pages}</p></div>
                       <span className="status ready">{t.ready}</span>
                     </div>
                     <div className="completed-foot">

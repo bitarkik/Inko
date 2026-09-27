@@ -78,7 +78,7 @@ export class OrdersController {
     const file = createReadStream(join(process.cwd(), order.fileUrl));
     res.set({
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="order-${id}.pdf"`,
+      'Content-Disposition': `inline; filename="order-${id}.pdf"`,
     });
     return new StreamableFile(file);
   }
