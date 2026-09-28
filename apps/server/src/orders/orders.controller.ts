@@ -6,18 +6,42 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import type { Response } from 'express';
 import { createReadStream } from 'fs';
 import { join } from 'path';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import multerS3 from 'multer-s3';
+
+// Initialize S3 client for Cloudflare R2
+const s3 = new S3Client({
+  region: 'auto',
+  endpoint: process.env.R2_ENDPOINT,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+  },
+});
 
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('document', { dest: './uploads' }))
+  @UseInterceptors(FileInterceptor('document', {
+    storage: multerS3({
+      s3: s3,
+      bucket: process.env.R2_BUCKET_NAME || 'printpanda-uploads',
+      acl: 'private',
+      key: function (req: any, file: any, cb: any) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'orders/' + uniqueSuffix + '-' + file.originalname);
+      }
+    })
+  }))
   createOrder(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: any,
     @Body() createOrderDto: CreateOrderDto,
   ) {
-    return this.ordersService.createOrder(createOrderDto, file.path);
+    // Save the R2 object key instead of the local path
+    return this.ordersService.createOrder(createOrderDto, file.key);
   }
 
   @Patch(':id/status')
@@ -69,17 +93,36 @@ export class OrdersController {
   }
 
   @Get(':id/download')
-  async downloadOrderFile(@Param('id') id: string, @Res({ passthrough: true }) res: Response) {
+  async downloadOrderFile(@Param('id') id: string, @Res() res: Response) {
     const order = await this.ordersService.findOne(id);
     if (!order || !order.fileUrl) {
       throw new NotFoundException('File not found for this order');
     }
 
-    const file = createReadStream(join(process.cwd(), order.fileUrl));
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `inline; filename="order-${id}.pdf"`,
-    });
-    return new StreamableFile(file);
+    if (order.fileUrl.startsWith('orders/')) {
+       // It's an R2 key, generate a short-lived presigned URL
+       const command = new GetObjectCommand({
+         Bucket: process.env.R2_BUCKET_NAME || 'printpanda-uploads',
+         Key: order.fileUrl,
+         ResponseContentDisposition: `inline; filename="order-${id}.pdf"`,
+         ResponseContentType: 'application/pdf',
+       });
+       
+       try {
+         const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+         return res.redirect(url);
+       } catch (error) {
+         console.error('Error generating presigned URL:', error);
+         throw new BadRequestException('Could not access document file');
+       }
+    } else {
+       // Legacy local files (if any still exist)
+       const file = createReadStream(join(process.cwd(), order.fileUrl));
+       res.set({
+         'Content-Type': 'application/pdf',
+         'Content-Disposition': `inline; filename="order-${id}.pdf"`,
+       });
+       file.pipe(res);
+    }
   }
 }
