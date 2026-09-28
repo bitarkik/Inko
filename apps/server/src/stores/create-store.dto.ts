@@ -42,4 +42,12 @@ export class CreateStoreDto {
   @IsOptional()
   @IsString()
   closeTime?: string;
+
+  @IsOptional()
+  @IsString()
+  ownerName?: string;
+
+  @IsOptional()
+  @IsString()
+  contactNumber?: string;
 }

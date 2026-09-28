@@ -40,6 +40,8 @@ model Store {
   services          String[]
   openTime          String?
   closeTime         String?
+  ownerName         String?
+  contactNumber     String?
   isAcceptingOrders Boolean   @default(true)
   lastPingAt        DateTime?
   orders            Order[]
