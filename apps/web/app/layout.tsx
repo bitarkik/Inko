@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Manrope, DM_Mono } from "next/font/google";
 import "./globals.css";
 import { FileProvider } from "../context/FileContext";
+import { Analytics } from "@vercel/analytics/next";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -28,6 +29,7 @@ export default function RootLayout({
     <html lang="en" className={`${manrope.variable} ${dmMono.variable}`}>
       <body>
         <FileProvider>{children}</FileProvider>
+        <Analytics />
       </body>
     </html>
   );
