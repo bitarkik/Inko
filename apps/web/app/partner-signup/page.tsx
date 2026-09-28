@@ -5,6 +5,9 @@ import { Store, MapPin, Banknote, CheckCircle, Clock, List, Map, Download, Copy,
 import dynamic from "next/dynamic";
 import { OpenLocationCode } from 'open-location-code';
 
+// @ts-ignore - The @types package wrongly declares methods as static, bypassing TS here
+const olc = new OpenLocationCode();
+
 const MapPicker = dynamic(() => import("../components/MapPicker"), {
   ssr: false,
   loading: () => <div className="h-64 w-full bg-gray-100 animate-pulse rounded-lg flex items-center justify-center text-gray-500">Loading map...</div>
@@ -37,7 +40,7 @@ export default function PartnerSignup() {
   const [showDropdown, setShowDropdown] = useState(false);
   const skipSearchRef = useRef(false);
 
-  const plusCode = location ? OpenLocationCode.encode(location.lat, location.lng) : null;
+  const plusCode = location ? olc.encode(location.lat, location.lng) : null;
 
   const handleCopy = () => {
     if (successId) {
