@@ -1,4 +1,9 @@
-import { Controller, Post, Body, Param, Patch, Get, UseInterceptors, UploadedFile, Res, StreamableFile, NotFoundException, Query, BadRequestException } from '@nestjs/common';
+import re
+
+with open('apps/server/src/orders/orders.controller.ts', 'r', encoding='utf-8') as f:
+    code = f.read()
+
+imports = """import { Controller, Post, Body, Param, Patch, Get, UseInterceptors, UploadedFile, Res, StreamableFile, NotFoundException, Query, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -8,7 +13,7 @@ import { createReadStream } from 'fs';
 import { join } from 'path';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import multerS3 from 'multer-s3';
+import * as multerS3 from 'multer-s3';
 
 // Initialize S3 client for Cloudflare R2
 const s3 = new S3Client({
@@ -19,17 +24,22 @@ const s3 = new S3Client({
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
   },
 });
+"""
 
-@Controller('orders')
-export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+# Replace all imports up to @Controller
+pattern_imports = r"import \{ Controller.*?from 'path';\n"
+code = re.sub(pattern_imports, imports, code, flags=re.DOTALL)
 
-  @Post()
-  @UseInterceptors(FileInterceptor('document', {
+
+# Replace createOrder
+pattern_create = r"  @UseInterceptors\(FileInterceptor\('document', \{ dest: './uploads' \}\)\)\n  createOrder\(\n    @UploadedFile\(\) file: Express\.Multer\.File,\n    @Body\(\) createOrderDto: CreateOrderDto,\n  \) \{\n    return this\.ordersService\.createOrder\(createOrderDto, file\.path\);\n  \}"
+
+new_create = """  @UseInterceptors(FileInterceptor('document', {
     storage: multerS3({
       s3: s3,
       bucket: process.env.R2_BUCKET_NAME || 'printpanda-uploads',
-      key: function (req: any, file: any, cb: any) {
+      acl: 'private',
+      key: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, 'orders/' + uniqueSuffix + '-' + file.originalname);
       }
@@ -41,57 +51,15 @@ export class OrdersController {
   ) {
     // Save the R2 object key instead of the local path
     return this.ordersService.createOrder(createOrderDto, file.key);
-  }
+  }"""
 
-  @Patch(':id/status')
-  updatePrintingStatus(
-    @Param('id') id: string,
-    @Body() updateOrderStatusDto: UpdateOrderStatusDto,
-  ) {
-    return this.ordersService.updatePrintingStatus(id, updateOrderStatusDto);
-  }
+code = re.sub(pattern_create, new_create, code)
 
-  @Get()
-  findAll() {
-    return this.ordersService.findAll();
-  }
 
-  @Get('me')
-  getMyOrders(@Query('userId') userId: string) {
-    if (!userId) {
-      throw new BadRequestException('userId query parameter is required');
-    }
-    return this.ordersService.getOrdersByUser(userId);
-  }
+# Replace download
+pattern_download = r"  @Get\(':id/download'\).*?return new StreamableFile\(file\);\n  \}"
 
-  @Get('ready-to-print')
-  getReadyToPrintOrders(@Query('storeId') storeId: string) {
-    if (!storeId) {
-      throw new BadRequestException('storeId query parameter is required');
-    }
-    return this.ordersService.getReadyToPrintOrders(storeId);
-  }
-
-  @Patch(':id/cancel')
-  cancelOrder(@Param('id') id: string) {
-    return this.ordersService.cancelOrder(id);
-  }
-
-  @Get('history')
-  getHistory(@Query('storeId') storeId: string, @Query('days') days?: string) {
-    if (!storeId) {
-      throw new BadRequestException('storeId query parameter is required');
-    }
-    const daysInt = days ? parseInt(days, 10) : 30;
-    return this.ordersService.getHistory(storeId, daysInt);
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ordersService.findOne(id);
-  }
-
-  @Get(':id/download')
+new_download = """  @Get(':id/download')
   async downloadOrderFile(@Param('id') id: string, @Res() res: Response) {
     const order = await this.ordersService.findOne(id);
     if (!order || !order.fileUrl) {
@@ -123,5 +91,11 @@ export class OrdersController {
        });
        file.pipe(res);
     }
-  }
-}
+  }"""
+
+code = re.sub(pattern_download, new_download, code, flags=re.DOTALL)
+
+with open('apps/server/src/orders/orders.controller.ts', 'w', encoding='utf-8') as f:
+    f.write(code)
+
+print("Done")
