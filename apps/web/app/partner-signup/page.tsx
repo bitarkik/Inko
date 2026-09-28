@@ -1,14 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { Store, MapPin, DollarSign, CheckCircle } from "lucide-react";
+import { Store, MapPin, Banknote, CheckCircle, Clock, List, Map } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const MapPicker = dynamic(() => import("../components/MapPicker"), {
+  ssr: false,
+  loading: () => <div className="h-64 w-full bg-gray-100 animate-pulse rounded-lg flex items-center justify-center text-gray-500">Loading map...</div>
+});
 
 export default function PartnerSignup() {
   const [formData, setFormData] = useState({
     name: "",
     address: "",
-    basePrice: "0.50",
+    city: "",
+    area: "",
+    basePrice: "2",
+    openTime: "09:00 AM",
+    closeTime: "06:00 PM",
+    services: "B&W Print, Color Print",
   });
+  
+  const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successId, setSuccessId] = useState<string | null>(null);
 
@@ -28,6 +41,13 @@ export default function PartnerSignup() {
           id: generatedId,
           name: formData.name,
           address: formData.address,
+          city: formData.city,
+          area: formData.area,
+          latitude: location?.lat,
+          longitude: location?.lng,
+          openTime: formData.openTime,
+          closeTime: formData.closeTime,
+          services: formData.services.split(',').map(s => s.trim()),
           basePrice: parseFloat(formData.basePrice)
         })
       });
@@ -42,8 +62,8 @@ export default function PartnerSignup() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 py-12">
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8">
         
         {successId ? (
           <div className="text-center">
@@ -63,10 +83,10 @@ export default function PartnerSignup() {
             </div>
             
             <button 
-              onClick={() => window.location.href = '/'}
+              onClick={() => window.location.href = '/partner'}
               className="w-full bg-gray-900 text-white font-medium py-3 rounded-xl hover:bg-gray-800 transition-colors"
             >
-              Go to Customer Homepage
+              Go to Partner Dashboard
             </button>
           </div>
         ) : (
@@ -79,66 +99,170 @@ export default function PartnerSignup() {
               <p className="text-gray-500 mt-1">Register your print shop on the PrintPanda network.</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Store Name</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Store size={18} className="text-gray-400" />
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="space-y-5">
+                <h3 className="font-semibold text-lg text-gray-900 border-b pb-2">1. Basic Info</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Store Name</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Store size={18} className="text-gray-400" />
+                      </div>
+                      <input
+                        required
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        placeholder="e.g. Mike's Print Shop"
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
                   </div>
-                  <input
-                    required
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    placeholder="e.g. Mike's Print Shop"
-                    className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Starting Price (BDT)</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Banknote size={18} className="text-gray-400" />
+                      </div>
+                      <input
+                        required
+                        type="number"
+                        step="1"
+                        min="1"
+                        value={formData.basePrice}
+                        onChange={(e) => setFormData({...formData, basePrice: e.target.value})}
+                        placeholder="e.g. 2"
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Services (comma separated)</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <List size={18} className="text-gray-400" />
+                      </div>
+                      <input
+                        required
+                        type="text"
+                        value={formData.services}
+                        onChange={(e) => setFormData({...formData, services: e.target.value})}
+                        placeholder="B&W Print, Color Print"
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Open Time</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Clock size={18} className="text-gray-400" />
+                        </div>
+                        <input
+                          required
+                          type="text"
+                          value={formData.openTime}
+                          onChange={(e) => setFormData({...formData, openTime: e.target.value})}
+                          placeholder="09:00 AM"
+                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Close Time</label>
+                      <input
+                        required
+                        type="text"
+                        value={formData.closeTime}
+                        onChange={(e) => setFormData({...formData, closeTime: e.target.value})}
+                        placeholder="06:00 PM"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin size={18} className="text-gray-400" />
+              <div className="space-y-5">
+                <h3 className="font-semibold text-lg text-gray-900 border-b pb-2">2. Location</h3>
+                <p className="text-sm text-gray-500">Provide the manual address and pinpoint your exact shop location on the map.</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Full Address (Manual)</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <MapPin size={18} className="text-gray-400" />
+                        </div>
+                        <input
+                          required
+                          type="text"
+                          value={formData.address}
+                          onChange={(e) => setFormData({...formData, address: e.target.value})}
+                          placeholder="e.g. 123 Main St, Dhaka"
+                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                        <input
+                          required
+                          type="text"
+                          value={formData.city}
+                          onChange={(e) => setFormData({...formData, city: e.target.value})}
+                          placeholder="City"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Area</label>
+                        <input
+                          required
+                          type="text"
+                          value={formData.area}
+                          onChange={(e) => setFormData({...formData, area: e.target.value})}
+                          placeholder="Area"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <input
-                    required
-                    type="text"
-                    value={formData.address}
-                    onChange={(e) => setFormData({...formData, address: e.target.value})}
-                    placeholder="e.g. 123 Main St, New York, NY"
-                    className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                      <Map size={16} className="mr-1 text-gray-500" />
+                      GPS Map Location
+                    </label>
+                    <MapPicker onLocationSelect={(lat, lng) => setLocation({lat, lng})} />
+                    {location && (
+                      <p className="text-xs text-green-600 mt-2 font-mono bg-green-50 p-2 rounded border border-green-100">
+                        GPS Captured: {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Price Per Page ($)</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <DollarSign size={18} className="text-gray-400" />
-                  </div>
-                  <input
-                    required
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    value={formData.basePrice}
-                    onChange={(e) => setFormData({...formData, basePrice: e.target.value})}
-                    className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+              <div className="pt-4 border-t border-gray-100">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`w-full font-bold py-3.5 rounded-xl transition-colors text-lg ${isSubmitting ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'}`}
+                >
+                  {isSubmitting ? "Creating Store..." : "Register Store"}
+                </button>
               </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`w-full font-bold py-3 rounded-xl transition-colors ${isSubmitting ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-              >
-                {isSubmitting ? "Creating Store..." : "Register Store"}
-              </button>
             </form>
           </>
         )}
