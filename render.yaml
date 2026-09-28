@@ -22,6 +22,14 @@ services:
           type: redis
           name: printpanda-redis
           property: connectionString
+      - key: R2_ENDPOINT
+        value: "https://d3bdc781bc361c5db39d126fa1c49f50.r2.cloudflarestorage.com"
+      - key: R2_ACCESS_KEY_ID
+        value: "c05ebbb14421e03c048d5e59e48936ea"
+      - key: R2_SECRET_ACCESS_KEY
+        value: "dd39f4ada66944ed22b43100931eac77ecb3e364510fe9ca42aa135563a2abb5"
+      - key: R2_BUCKET_NAME
+        value: "printpanda-uploads"
 
   # 2. Redis Queue (for BullMQ Background Jobs)
   - type: redis
