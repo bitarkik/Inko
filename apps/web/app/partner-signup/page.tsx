@@ -136,7 +136,7 @@ export default function PartnerSignup() {
             
             <div className="flex flex-col gap-3">
               <a 
-                href="https://github.com/bitarkik/Inko/releases/latest"
+                href="https://drive.google.com/uc?export=download&id=1fGAjHYW6nFvy0URsQeTQzPJsDghDVPyY"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center"
