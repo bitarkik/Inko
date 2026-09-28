@@ -42,13 +42,17 @@ export const DetailPane = React.memo(({ order, apiUrl, t, formatMoney, printSele
 
           const scale = Math.min(1.5, 380 / viewport.width);
           const scaledViewport = page.getViewport({ scale });
+          const pixelRatio = window.devicePixelRatio || 1;
 
-          canvas.height = scaledViewport.height;
-          canvas.width = scaledViewport.width;
+          canvas.height = scaledViewport.height * pixelRatio;
+          canvas.width = scaledViewport.width * pixelRatio;
+          canvas.style.height = `${scaledViewport.height}px`;
+          canvas.style.width = `${scaledViewport.width}px`;
 
           const renderContext: any = {
             canvasContext: context,
             viewport: scaledViewport,
+            transform: [pixelRatio, 0, 0, pixelRatio, 0, 0]
           };
           
           renderTask = page.render(renderContext);
@@ -77,7 +81,7 @@ export const DetailPane = React.memo(({ order, apiUrl, t, formatMoney, printSele
         {order.status === 'printing' ? <span className="status printing"><span className="mini-spinner"></span>{t.printing}</span> : <span className="status new">{t.new}</span>}
       </div>
       <div className="detail-body">
-        <div className="preview-stage" style={{ padding: 0, overflow: 'hidden', background: '#e5e7eb' }}>
+        <div className="preview-stage" style={{ padding: 0, overflow: 'hidden', background: '#e5e7eb', position: 'relative' }}>
           <div className="doc" style={{ padding: 0, border: 'none', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             {pdfDoc ? (
               <div style={{boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', background: 'white'}}>
@@ -89,7 +93,25 @@ export const DetailPane = React.memo(({ order, apiUrl, t, formatMoney, printSele
               </div>
             )}
           </div>
-          {numPages > 0 && <span className="page-badge">{currentPage} / {numPages}</span>}
+          {numPages > 0 && (
+            <div className="page-badge" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                disabled={currentPage === 1}
+                style={{ background: 'transparent', border: 'none', color: currentPage === 1 ? 'rgba(255,255,255,0.4)' : 'white', cursor: currentPage === 1 ? 'default' : 'pointer', padding: '0 4px' }}
+              >
+                &lt;
+              </button>
+              {currentPage} / {numPages}
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(numPages, p + 1))} 
+                disabled={currentPage === numPages}
+                style={{ background: 'transparent', border: 'none', color: currentPage === numPages ? 'rgba(255,255,255,0.4)' : 'white', cursor: currentPage === numPages ? 'default' : 'pointer', padding: '0 4px' }}
+              >
+                &gt;
+              </button>
+            </div>
+          )}
         </div>
         <div className="specs">
           <h2>{t.printSpecs}</h2>
@@ -118,7 +140,7 @@ export const DetailPane = React.memo(({ order, apiUrl, t, formatMoney, printSele
             {order.status === 'printing' ? (
               <><span className="btn-spinner"></span>{t.printing}...</>
             ) : (
-              <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg> Print <span>Space</span></>
+              <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg> Print</>
             )}
           </button>
         </div>

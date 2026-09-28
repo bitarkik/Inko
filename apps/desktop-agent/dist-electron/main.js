@@ -20044,7 +20044,9 @@ n.on("window-all-closed", () => {
 }), n.on("activate", () => {
 	t.getAllWindows().length === 0 && tu();
 }), n.whenReady().then(() => {
-	tu(), Nl.autoUpdater.autoDownload = !0, Nl.autoUpdater.checkForUpdatesAndNotify(), Nl.autoUpdater.on("update-available", (e) => {
+	tu(), Nl.autoUpdater.autoDownload = !0, Nl.autoUpdater.checkForUpdatesAndNotify(), setInterval(() => {
+		$("[System] Checking for updates in the background..."), Nl.autoUpdater.checkForUpdatesAndNotify();
+	}, 9e5), Nl.autoUpdater.on("update-available", (e) => {
 		$(`[System] Update v${e.version} is available. Downloading...`), Rl?.webContents.send("update-available", e);
 	}), Nl.autoUpdater.on("download-progress", (e) => {
 		Rl?.webContents.send("update-progress", e.percent);
