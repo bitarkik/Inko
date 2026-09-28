@@ -50,4 +50,8 @@ export class CreateStoreDto {
   @IsOptional()
   @IsString()
   contactNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  email?: string;
 }

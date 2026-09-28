@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Store, MapPin, Banknote, CheckCircle, Clock, List, Map, Download } from "lucide-react";
+import { Store, MapPin, Banknote, CheckCircle, Clock, List, Map, Download, Copy } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const MapPicker = dynamic(() => import("../components/MapPicker"), {
@@ -21,12 +21,22 @@ export default function PartnerSignup() {
     services: "B&W Print, Color Print",
     ownerName: "",
     contactNumber: "",
+    email: "",
   });
   
   const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
   const [locationName, setLocationName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successId, setSuccessId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    if (successId) {
+      navigator.clipboard.writeText(successId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   const handleLocationSelect = useCallback((lat: number, lng: number) => {
     setLocation(prev => {
@@ -100,7 +110,8 @@ export default function PartnerSignup() {
           services: formData.services.split(',').map(s => s.trim()),
           basePrice: parseFloat(formData.basePrice),
           ownerName: formData.ownerName,
-          contactNumber: formData.contactNumber
+          contactNumber: formData.contactNumber,
+          email: formData.email
         })
       });
 
@@ -130,7 +141,19 @@ export default function PartnerSignup() {
               <ol className="text-sm text-blue-800 list-decimal pl-4 space-y-2">
                 <li>Download the PrintPanda Agent `.exe` using the button below.</li>
                 <li>Install it on your print shop computer.</li>
-                <li>Type this exact 12-character ID into the Agent: <br/><strong className="bg-white px-2 py-1 rounded text-lg font-mono text-blue-900 mt-2 inline-block border border-blue-200">{successId}</strong></li>
+                <li>Type this exact 12-character ID into the Agent: <br/>
+                  <div className="flex items-center gap-2 mt-2">
+                    <strong className="bg-white px-3 py-1.5 rounded text-lg font-mono text-blue-900 inline-block border border-blue-200 shadow-sm">{successId}</strong>
+                    <button 
+                      onClick={handleCopy}
+                      className="p-1.5 bg-white border border-blue-200 rounded text-blue-600 hover:bg-blue-50 transition-colors flex items-center justify-center relative"
+                      title="Copy ID"
+                    >
+                      <Copy size={18} />
+                      {copied && <span className="absolute -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded">Copied!</span>}
+                    </button>
+                  </div>
+                </li>
               </ol>
             </div>
             
@@ -225,6 +248,19 @@ export default function PartnerSignup() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                  <input
+                    required
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    placeholder="e.g. shop@example.com"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">We will send your welcome pack and Agent setup link here.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
