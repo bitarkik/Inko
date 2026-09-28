@@ -58,4 +58,12 @@ export class CreateStoreDto {
   @IsOptional()
   @IsString()
   plusCode?: string;
+
+  @IsOptional()
+  @IsString()
+  payoutMethod?: string;
+
+  @IsOptional()
+  @IsString()
+  payoutAccount?: string;
 }

@@ -44,6 +44,8 @@ model Store {
   contactNumber     String?
   email             String?
   plusCode          String?
+  payoutMethod      String?
+  payoutAccount     String?
   isAcceptingOrders Boolean   @default(true)
   lastPingAt        DateTime?
   orders            Order[]
