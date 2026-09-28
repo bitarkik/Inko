@@ -40,7 +40,7 @@ export default function PartnerSignup() {
   const [showDropdown, setShowDropdown] = useState(false);
   const skipSearchRef = useRef(false);
 
-  const plusCode = location ? olc.encode(location.lat, location.lng) : null;
+  const plusCode = location ? (olc as any).encode(location.lat, location.lng) : null;
 
   const handleCopy = () => {
     if (successId) {
