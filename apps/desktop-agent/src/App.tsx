@@ -1,3 +1,4 @@
+import { DetailPane } from './DetailPane';
 import { useState, useEffect, useRef } from 'react'
 import './index.css'
 
@@ -378,65 +379,6 @@ export default function App() {
 
   const currentOrder = orders[selected];
 
-  const DetailPane = ({ order }: { order: any }) => {
-    if (!order) return null;
-    return (
-      <article className="detail-card">
-        <div className="detail-head">
-          <div>
-            <div className="detail-title">Token #{order.id.slice(-4).toUpperCase()}</div>
-            <div className="detail-meta">{order.name} · {t.pdfDocument}</div>
-          </div>
-          {order.status === 'printing' ? <span className="status printing"><span className="mini-spinner"></span>{t.printing}</span> : <span className="status new">{t.new}</span>}
-        </div>
-        <div className="detail-body">
-          <div className="preview-stage" style={{ padding: 0, overflow: 'hidden' }}>
-            <div className="doc" style={{ padding: 0, border: 'none', height: '100%', display: 'flex', flexDirection: 'column' }}>
-              {order.fileUrl ? (
-                <iframe src={`${apiUrl}/orders/${order.id}/download#toolbar=0&navpanes=0&scrollbar=0`} style={{width: '100%', flex: 1, minHeight: '300px', border: 'none', background: 'white'}} title="Order Preview" />
-              ) : (
-                <div style={{ margin: 'auto', padding: '40px', color: 'var(--mute)' }}>
-                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.7" style={{width: '40px'}}><path d="M4 19 9 10l4 6 2-3 5 6Z" stroke="currentColor"/><circle cx="16" cy="7" r="2" stroke="currentColor"/></svg>
-                </div>
-              )}
-            </div>
-            <span className="page-badge">1 / {order.totalPages || order.pages}</span>
-          </div>
-          <div className="specs">
-            <h2>{t.printSpecs}</h2>
-            <div className="spec-row">
-              <div className="spec-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v4h4"/></svg></div>
-              <div><div className="spec-label">{t.paperSize}</div><div className="spec-value">{order.paper}</div></div>
-            </div>
-            <div className="spec-row">
-              <div className="spec-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9"/><path d="M8 10h.01M12 7h.01M16 10h.01M9 15h.01"/></svg></div>
-              <div><div className="spec-label">{t.printColor}</div><div className="spec-value">{order.color}</div></div>
-            </div>
-            <div className="spec-row">
-              <div className="spec-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></svg></div>
-              <div><div className="spec-label">{t.sides}</div><div className="spec-value">{order.side}</div></div>
-            </div>
-            
-            <div className="price-row">
-              <span>{t.orderTotal}</span>
-              <strong>{formatMoney(order.totalPrice || order.price || 0)}</strong>
-            </div>
-            <button 
-              className="print-btn" 
-              onClick={printSelected} 
-              disabled={order.status === 'printing'}
-            >
-              {order.status === 'printing' ? (
-                <><span className="btn-spinner"></span>{t.printing}…</>
-              ) : (
-                <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 15h12v7H6z"/></svg>{t.printJob} <span className="shortcut" style={{color: 'rgba(255,255,255,0.7)', marginLeft: '4px'}}>Space</span></>
-              )}
-            </button>
-          </div>
-        </div>
-      </article>
-    );
-  };
 
   return (
     <div className="app">
@@ -580,7 +522,7 @@ export default function App() {
                   </div>
                 </div>
                 <aside className="detail-pane" id="desktopDetail">
-                  {orders.length > 0 && <DetailPane order={currentOrder} />}
+                  {orders.length > 0 && <DetailPane order={currentOrder} apiUrl={apiUrl} t={t} formatMoney={formatMoney} printSelected={printSelected} />}
                 </aside>
               </div>
             </section>
@@ -815,7 +757,7 @@ export default function App() {
         <div className="mobile-detail open" hidden={false}>
           <button className="secondary-btn mobile-back" onClick={() => setIsMobileDetailOpen(false)}>← Back</button>
           <aside className="detail-pane" style={{display: 'block'}}>
-            {orders.length > 0 && <DetailPane order={currentOrder} />}
+            {orders.length > 0 && <DetailPane order={currentOrder} apiUrl={apiUrl} t={t} formatMoney={formatMoney} printSelected={printSelected} />}
           </aside>
         </div>
       )}
