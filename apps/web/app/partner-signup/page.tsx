@@ -109,10 +109,25 @@ export default function PartnerSignup() {
     setIsSearching(true);
     setShowDropdown(true);
     const timer = setTimeout(() => {
-      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.address)}&countrycodes=bd&limit=5&addressdetails=1&email=hello@printpanda.app`)
+      fetch(`https://places.googleapis.com/v1/places:autocomplete`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY || "",
+        },
+        body: JSON.stringify({
+          input: formData.address,
+          includedRegionCodes: ["BD"],
+          languageCode: "en"
+        })
+      })
         .then(res => res.json())
         .then(data => {
-          setSearchResults(data || []);
+          const results = data.suggestions ? data.suggestions.map((s: any) => ({
+            placeId: s.placePrediction.placeId,
+            display_name: s.placePrediction.text.text
+          })) : [];
+          setSearchResults(results);
           setIsSearching(false);
         })
         .catch(err => {
@@ -137,7 +152,19 @@ export default function PartnerSignup() {
     setFormData(prev => ({...prev, address: item.display_name}));
     setSearchResults([]);
     setShowDropdown(false);
-    setMapTarget({ lat: parseFloat(item.lat), lng: parseFloat(item.lon) });
+    
+    fetch(`https://places.googleapis.com/v1/places/${item.placeId}?fields=location,formattedAddress`, {
+      headers: {
+        "X-Goog-Api-Key": process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY || ""
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.location) {
+          setMapTarget({ lat: data.location.latitude, lng: data.location.longitude });
+        }
+      })
+      .catch(err => console.error("Place details error:", err));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
