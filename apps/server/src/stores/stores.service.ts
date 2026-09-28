@@ -45,7 +45,7 @@ export class StoresService {
     return this.prisma.store.findMany();
   }
 
-  async create(data: { id: string; name: string; address: string; basePrice: number }) {
+  async create(data: any) {
     return this.prisma.store.create({
       data,
     });

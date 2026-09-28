@@ -29,8 +29,12 @@ export default function PartnerSignup() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Generate a simple unique ID from the store name
-    const generatedId = formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.floor(Math.random() * 1000);
+    // Generate exactly 12 characters store ID
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let generatedId = '';
+    for (let i = 0; i < 12; i++) {
+      generatedId += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
     
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -54,6 +58,14 @@ export default function PartnerSignup() {
 
       if (!response.ok) throw new Error("Failed to create store");
       setSuccessId(generatedId);
+      
+      // Auto prompt to download the desktop agent
+      const link = document.createElement("a");
+      link.href = "/PrintPanda-Agent-Setup.exe"; // Placeholder path
+      link.download = "PrintPanda-Agent-Setup.exe";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (err) {
       alert("Error creating store: " + err);
     } finally {
@@ -71,14 +83,14 @@ export default function PartnerSignup() {
               <CheckCircle size={32} />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Store Created!</h2>
-            <p className="text-gray-600 mb-6">Your store is now live on the customer map.</p>
+            <p className="text-gray-600 mb-6">Your store is now live on the network.</p>
             
             <div className="bg-blue-50 p-4 rounded-xl text-left border border-blue-100 mb-6">
               <p className="text-sm text-blue-900 font-semibold mb-2">Next Steps:</p>
               <ol className="text-sm text-blue-800 list-decimal pl-4 space-y-2">
-                <li>Download the PrintPanda Agent `.exe`</li>
+                <li>We've automatically started downloading the PrintPanda Agent `.exe`</li>
                 <li>Install it on your print shop computer</li>
-                <li>Type this exact ID into the Agent: <br/><strong className="bg-white px-2 py-1 rounded text-lg font-mono text-blue-900 mt-2 inline-block border border-blue-200">{successId}</strong></li>
+                <li>Type this exact 12-character ID into the Agent: <br/><strong className="bg-white px-2 py-1 rounded text-lg font-mono text-blue-900 mt-2 inline-block border border-blue-200">{successId}</strong></li>
               </ol>
             </div>
             

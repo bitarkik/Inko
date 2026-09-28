@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Param, Patch } from '@nestjs/common';
 import { StoresService } from './stores.service';
+import { CreateStoreDto } from './create-store.dto';
 
 @Controller('stores')
 export class StoresController {
@@ -11,7 +12,7 @@ export class StoresController {
   }
 
   @Post()
-  create(@Body() data: { id: string; name: string; address: string; basePrice: number }) {
+  create(@Body() data: CreateStoreDto) {
     return this.storesService.create(data);
   }
 

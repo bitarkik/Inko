@@ -5,18 +5,37 @@ import { LayoutDashboard, Settings, FileText, Printer, CheckCircle, Clock, Alert
 
 export default function PartnerDashboard() {
   const [data, setData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // We mock the login by hardcoding the downtown store ID for the demo
-  const DOWNTOWN_STORE_ID = "downtown";
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [storeIdInput, setStoreIdInput] = useState("");
+  const [activeStoreId, setActiveStoreId] = useState("");
+  const [error, setError] = useState("");
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (storeIdInput.trim().length !== 12) {
+      setError("Store ID must be exactly 12 characters long.");
+      return;
+    }
+    setError("");
+    setActiveStoreId(storeIdInput.trim());
+    setIsLoggedIn(true);
+  };
 
   useEffect(() => {
+    if (!isLoggedIn || !activeStoreId) return;
+
+    setIsLoading(true);
     const fetchDashboard = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/stores/${DOWNTOWN_STORE_ID}/dashboard`);
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+        const res = await fetch(`${apiUrl}/stores/${activeStoreId}/dashboard`);
         if (res.ok) {
           const json = await res.json();
           setData(json);
+        } else {
+          setIsLoggedIn(false);
+          alert("Invalid Store ID. Please try again.");
         }
       } catch (e) {
         console.error(e);
@@ -29,9 +48,45 @@ export default function PartnerDashboard() {
     // Refresh every 10 seconds to show live orders
     const interval = setInterval(fetchDashboard, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isLoggedIn, activeStoreId]);
 
-  if (isLoading) {
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8">
+          <div className="text-center mb-8">
+            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <Printer size={24} />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900">Partner Login</h1>
+            <p className="text-gray-500 mt-1">Enter your 12-character Store ID to view your dashboard.</p>
+          </div>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Store ID</label>
+              <input
+                type="text"
+                maxLength={12}
+                value={storeIdInput}
+                onChange={(e) => setStoreIdInput(e.target.value)}
+                placeholder="e.g. ABC123XYZ789"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase"
+              />
+              {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+            </div>
+            <button
+              type="submit"
+              className="w-full font-bold py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors"
+            >
+              Access Dashboard
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading && !data) {
     return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500 font-medium">Loading Dashboard...</div>;
   }
 
