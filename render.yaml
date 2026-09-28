@@ -23,7 +23,7 @@ services:
           name: printpanda-redis
           property: connectionString
       - key: R2_ENDPOINT
-        value: "https://d3bdc781bc361c5db39d126fa1c49f50.r2.cloudflarestorage.com"
+        value: "https://d3bde781be361e5db39d126fa1e49f50.r2.cloudflarestorage.com"
       - key: R2_ACCESS_KEY_ID
         sync: false
       - key: R2_SECRET_ACCESS_KEY
