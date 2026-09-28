@@ -39,6 +39,8 @@ export default function PartnerSignup() {
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const skipSearchRef = useRef(false);
+  const skipReverseAddressRef = useRef(false);
+  const googleAddressRef = useRef("");
 
   const plusCode = location ? (olc as any).encode(location.lat, location.lng) : null;
 
@@ -63,6 +65,9 @@ export default function PartnerSignup() {
 
     setLocationName("Loading precise address...");
     
+    const skipAddress = skipReverseAddressRef.current;
+    skipReverseAddressRef.current = false;
+    
     // We use a 1.5 second debounce to prevent spamming the Nominatim API
     const timeoutId = setTimeout(() => {
       // Added zoom=18 for street level precision and email parameter to comply with openstreetmap rate limits
@@ -73,13 +78,23 @@ export default function PartnerSignup() {
         })
         .then(data => {
           if (data && data.address) {
-            setLocationName(data.display_name || "");
-            setFormData(prev => ({
-              ...prev,
-              address: data.display_name || prev.address,
-              city: data.address.city || data.address.town || data.address.state || prev.city,
-              area: data.address.suburb || data.address.neighbourhood || data.address.county || prev.area
-            }));
+            if (skipAddress) {
+              setLocationName(googleAddressRef.current || data.display_name || "");
+              setFormData(prev => ({
+                ...prev,
+                city: data.address.city || data.address.town || data.address.state || prev.city,
+                area: data.address.suburb || data.address.neighbourhood || data.address.county || prev.area
+              }));
+              googleAddressRef.current = "";
+            } else {
+              setLocationName(data.display_name || "");
+              setFormData(prev => ({
+                ...prev,
+                address: data.display_name || prev.address,
+                city: data.address.city || data.address.town || data.address.state || prev.city,
+                area: data.address.suburb || data.address.neighbourhood || data.address.county || prev.area
+              }));
+            }
           } else {
             throw new Error("Invalid address format returned");
           }
@@ -161,6 +176,8 @@ export default function PartnerSignup() {
       .then(res => res.json())
       .then(data => {
         if (data.location) {
+          skipReverseAddressRef.current = true;
+          googleAddressRef.current = data.formattedAddress || item.display_name;
           setMapTarget({ lat: data.location.latitude, lng: data.location.longitude });
         }
       })
