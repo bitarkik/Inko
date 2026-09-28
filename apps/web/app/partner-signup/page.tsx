@@ -65,7 +65,6 @@ export default function PartnerSignup() {
     });
   }, []);
 
-  // Reverse geocode when map pin changes (Debounced to prevent API rate limits)
   useEffect(() => {
     if (!location) return;
 
@@ -112,7 +111,6 @@ export default function PartnerSignup() {
     return () => clearTimeout(timeoutId);
   }, [location]);
 
-  // Forward Search Geocoding (Debounced)
   useEffect(() => {
     if (skipSearchRef.current) {
       skipSearchRef.current = false;
@@ -161,12 +159,12 @@ export default function PartnerSignup() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setShowDropdown(false);
-        setShowCompletion(false);
+        if (!successId) setShowCompletion(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [successId]);
 
   const handleResultSelect = (item: any) => {
     skipSearchRef.current = true;
@@ -227,7 +225,6 @@ export default function PartnerSignup() {
 
       if (!response.ok) throw new Error("Failed to create store");
       setSuccessId(generatedId);
-      setShowCompletion(false);
     } catch (err) {
       alert("Error creating store: " + err);
     } finally {
@@ -281,8 +278,19 @@ export default function PartnerSignup() {
       locationTitle:'Place the pin at your shop door.', locationIntro:'Search anywhere in Bangladesh, then drag the pin for a precise pickup point.', address:'Shop address', mapHint:'Tap the map to place your pin', city:'City', area:'Area',
       capTitle:'What can your shop handle?', capIntro:'These choices help route the right orders to you.', printers:'Printer setup', chooseAll:'Choose all that apply', bwLaser:'B&W Laser', colorInk:'Color Inkjet', colorLaser:'Color Laser', services:'Paper & finishing', chooseAll2:'Choose all that apply', spiral:'Spiral binding', lamination:'Lamination', basePrice:'B&W price per A4 page', payout:'Preferred payout', bank:'Bank', review:'You’ll review payout details and verify your phone before the shop goes live.', payoutAcc: 'Account Number',
       back:'Back', continue:'Continue', preview:'Preview finish', microcopy:'You can review everything before registering.',
-      completeTitle:'This is the handoff moment.', completeText:'In the live flow, registration creates a store key and starts the desktop-agent download.', storeKey:'STORE KEY PREVIEW', close:'Back to mockup',
-      progress:['Your shop profile','Your pickup location','Equipment & payout'], count:'Step {n} of 3'
+      progress:['Your shop profile','Your pickup location','Equipment & payout'], count:'Step {n} of 3',
+      
+      confirmTitle: 'Ready to register?',
+      confirmText: 'Click below to finalize your shop registration and generate your unique Store Key.',
+      storeKeyPreview: 'STORE KEY PREVIEW',
+      registerBtn: 'Register & Download Desktop Agent',
+      registering: 'Registering...',
+      close: 'Back to wizard',
+      successTitle: 'Store Created!',
+      successText: 'Your store is now live on the network. Install the agent and use this Store Key to pair it.',
+      yourStoreKey: 'YOUR STORE KEY',
+      downloadAgent: 'Download PrintPanda Agent (.exe)',
+      goToDashboard: 'Go to Partner Dashboard'
     },
     bn: {
       network:'ইনকো পার্টনার নেটওয়ার্ক', headline:'আপনার প্রিন্ট শপকে অনলাইন অর্ডার হাবে পরিণত করুন।', lead:'দোকানের তথ্য, লোকেশন, মেশিন ও পেমেন্ট — কয়েকটি সহজ ধাপে সব সেটআপ করুন।',
@@ -292,10 +300,21 @@ export default function PartnerSignup() {
       step1small:'ধাপ ১', step1:'দোকান', step2small:'ধাপ ২', step2:'লোকেশন', step3small:'ধাপ ৩', step3:'সুবিধাসমূহ',
       shopTitle:'প্রথমে আপনার দোকানের তথ্য দিন।', shopIntro:'ক্রেতা ও পার্টনার টিমের প্রয়োজনীয় তথ্যই শুধু।', shopName:'দোকানের নাম', ownerName:'মালিক / ম্যানেজারের নাম', phone:'মোবাইল বা হোয়াটসঅ্যাপ নম্বর', phoneHint:'ওটিপি লগইন ও জরুরি অর্ডার আপডেটের জন্য।', email:'ইমেইল ঠিকানা', emailHint:'অ্যাকাউন্ট আপডেট ও সহায়তার জন্য।', hours:'সাধারণ খোলার সময়',
       locationTitle:'দোকানের দরজায় পিন বসান।', locationIntro:'বাংলাদেশের যেকোনো ঠিকানা খুঁজে সঠিক পিকআপ পয়েন্টে পিন টানুন।', address:'দোকানের ঠিকানা', mapHint:'পিন বসাতে ম্যাপে ট্যাপ করুন', city:'শহর', area:'এলাকা',
-      capTitle:'আপনার দোকানে কী কী করা যায়?', capIntro:'এই তথ্য সঠিক অর্ডার আপনার দোকানে পাঠাতে সাহায্য করবে।', printers:'প্রিন্টার সেটআপ', chooseAll:'যা যা প্রযোজ্য বেছে নিন', bwLaser:'সাদা-কালো লেজার', colorInk:'কালার ইঙ্কজেট', colorLaser:'কালার লেজার', services:'কা কাগজ ও ফিনিশিং', chooseAll2:'যা যা প্রযোজ্য বেছে নিন', spiral:'স্পাইরাল বাইন্ডিং', lamination:'লেমিনেশন', basePrice:'প্রতি A4 সাদা-কালো পাতার দাম', payout:'পছন্দের পেমেন্ট', bank:'ব্যাংক', review:'দোকান লাইভ হওয়ার আগে পেমেন্টের তথ্য ও ফোন নম্বর যাচাই করা হবে।', payoutAcc: 'অ্যাকাউন্ট নম্বর',
+      capTitle:'আপনার দোকানে কী কী করা যায়?', capIntro:'এই তথ্য সঠিক অর্ডার আপনার দোকানে পাঠাতে সাহায্য করবে।', printers:'প্রিন্টার সেটআপ', chooseAll:'যা যা প্রযোজ্য বেছে নিন', bwLaser:'সাদা-কালো লেজার', colorInk:'কালার ইঙ্কজেট', colorLaser:'কালার লেজার', services:'কাগজ ও ফিনিশিং', chooseAll2:'যা যা প্রযোজ্য বেছে নিন', spiral:'স্পাইরাল বাইন্ডিং', lamination:'লেমিনেশন', basePrice:'প্রতি A4 সাদা-কালো পাতার দাম', payout:'পছন্দের পেমেন্ট', bank:'ব্যাংক', review:'দোকান লাইভ হওয়ার আগে পেমেন্টের তথ্য ও ফোন নম্বর যাচাই করা হবে।', payoutAcc: 'অ্যাকাউন্ট নম্বর',
       back:'পেছনে', continue:'এগিয়ে যান', preview:'শেষ ধাপ দেখুন', microcopy:'রেজিস্টার করার আগে সব তথ্য দেখে নিতে পারবেন।',
-      completeTitle:'এখানেই সেটআপের পরের ধাপ।', completeText:'লাইভ ফ্লোতে রেজিস্ট্রেশনের পর স্টোর কী তৈরি হবে এবং ডেস্কটপ এজেন্ট ডাউনলোড শুরু হবে।', storeKey:'স্টোর কী প্রিভিউ', close:'মকআপে ফিরে যান',
-      progress:['আপনার দোকানের তথ্য','আপনার পিকআপ লোকেশন','মেশিন ও পেমেন্ট'], count:'৩টির মধ্যে ধাপ {n}'
+      progress:['আপনার দোকানের তথ্য','আপনার পিকআপ লোকেশন','মেশিন ও পেমেন্ট'], count:'৩টির মধ্যে ধাপ {n}',
+
+      confirmTitle: 'রেজিস্টার করতে প্রস্তুত?',
+      confirmText: 'নিচে ক্লিক করে আপনার দোকানের রেজিস্ট্রেশন সম্পন্ন করুন এবং স্টোর কী তৈরি করুন।',
+      storeKeyPreview: 'স্টোর কী প্রিভিউ',
+      registerBtn: 'রেজিস্টার ও ডেস্কটপ এজেন্ট ডাউনলোড',
+      registering: 'রেজিস্টার হচ্ছে...',
+      close: 'উইজার্ডে ফিরে যান',
+      successTitle: 'স্টোর তৈরি হয়েছে!',
+      successText: 'আপনার দোকান এখন নেটওয়ার্কে লাইভ। এজেন্ট ইনস্টল করুন এবং পেয়ার করতে এই স্টোর কী ব্যবহার করুন।',
+      yourStoreKey: 'আপনার স্টোর কী',
+      downloadAgent: 'প্রিন্টপান্ডা এজেন্ট (.exe) ডাউনলোড',
+      goToDashboard: 'পার্টনার ড্যাশবোর্ডে যান'
     }
   };
   const t = copyMap[currentLang];
@@ -312,315 +331,307 @@ export default function PartnerSignup() {
   return (
     <>
       <main className="page" style={{ fontFamily: currentLang === 'bn' ? '"Noto Sans Bengali", "DM Sans", sans-serif' : '"DM Sans", "Noto Sans Bengali", sans-serif' }}>
-        {successId ? (
-          <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 py-12 absolute inset-0 z-50">
-            <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-[#dff4e9] text-[#0b7250] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="32" height="32"><path d="m5 12 4 4L19 6" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Store Created!</h2>
-                <p className="text-gray-600 mb-6">Your store is now live on the network.</p>
-                
-                <div className="bg-[#f4f8f5] p-4 rounded-xl text-left border border-[#d7e1da] mb-6">
-                  <p className="text-sm text-[#095f43] font-semibold mb-2">Next Steps:</p>
-                  <ol className="text-sm text-[#56645d] list-decimal pl-4 space-y-2">
-                    <li>Download the PrintPanda Agent `.exe` using the button below.</li>
-                    <li>Install it on your print shop computer.</li>
-                    <li>Type this exact 12-character ID into the Agent: <br/>
-                      <div className="flex items-center gap-2 mt-2">
-                        <strong className="bg-white px-3 py-1.5 rounded text-lg font-mono text-[#095f43] inline-block border border-[#d7e1da] shadow-sm">{successId}</strong>
-                        <button 
-                          onClick={handleCopy}
-                          className="p-1.5 bg-white border border-[#d7e1da] rounded text-[#0b7250] hover:bg-[#dff4e9] transition-colors flex items-center justify-center relative"
-                          title="Copy ID"
-                        >
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                          {copied && <span className="absolute -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded">Copied!</span>}
-                        </button>
-                      </div>
-                    </li>
-                    {plusCode && (
-                      <li className="mt-2">
-                        Share your Plus Code: <strong className="font-mono bg-white px-2 py-0.5 rounded border border-[#d7e1da]">{plusCode}</strong> so customers can find you easily.
-                      </li>
-                    )}
-                  </ol>
-                </div>
-                
-                <div className="flex flex-col gap-3">
-                  <a 
-                    href="https://github.com/bitarkik/Inko/releases/latest/download/PrintPanda-Agent-Setup.exe"
-                    className="w-full bg-[#0b7250] text-white font-bold py-3 rounded-xl hover:bg-[#095f43] transition-colors flex items-center justify-center"
-                  >
-                    <svg className="mr-2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    Download PrintPanda Agent (.exe)
-                  </a>
-                  <button 
-                    onClick={() => window.location.href = '/partner'}
-                    className="w-full bg-[#f4f8f5] text-gray-900 font-medium py-3 rounded-xl hover:bg-[#d7e1da] transition-colors border border-[#d7e1da]"
-                  >
-                    Go to Partner Dashboard
-                  </button>
-                </div>
-              </div>
-            </div>
+        <div className="utility" aria-label="Language selector">
+          <div className="lang-toggle">
+            <button type="button" onClick={() => setCurrentLang('en')} aria-pressed={currentLang === 'en'}>English</button>
+            <button type="button" onClick={() => setCurrentLang('bn')} aria-pressed={currentLang === 'bn'}>বাংলা</button>
           </div>
-        ) : (
-          <>
-            <div className="utility" aria-label="Language selector">
-              <div className="lang-toggle">
-                <button type="button" onClick={() => setCurrentLang('en')} aria-pressed={currentLang === 'en'}>English</button>
-                <button type="button" onClick={() => setCurrentLang('bn')} aria-pressed={currentLang === 'bn'}>বাংলা</button>
+        </div>
+
+        <div className="layout">
+          <aside className="story">
+            <div className="network-label">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+              <span>{t.network}</span>
+            </div>
+            <h1>{t.headline}</h1>
+            <p className="lead">{t.lead}</p>
+
+            <div className="proof">
+              <div className="proof-item">
+                <div className="proof-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9V4h12v5M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg></div>
+                <div><strong>{t.benefit1}</strong><span>{t.benefit1sub}</span></div>
+              </div>
+              <div className="proof-item">
+                <div className="proof-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s7-5.1 7-11a7 7 0 1 0-14 0c0 5.9 7 11 7 11Z" stroke="currentColor" strokeWidth="2"/><circle cx="12" cy="10" r="2.3" stroke="currentColor" strokeWidth="2"/></svg></div>
+                <div><strong>{t.benefit2}</strong><span>{t.benefit2sub}</span></div>
+              </div>
+              <div className="proof-item">
+                <div className="proof-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 7h18v11H3zM7 7V5h10v2M7 13h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
+                <div><strong>{t.benefit3}</strong><span>{t.benefit3sub}</span></div>
               </div>
             </div>
 
-            <div className="layout">
-              <aside className="story">
-                <div className="network-label">
-                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-                  <span>{t.network}</span>
-                </div>
-                <h1>{t.headline}</h1>
-                <p className="lead">{t.lead}</p>
+            <section className="earnings">
+              <div className="earnings-head">
+                <h2 className="earnings-title">{t.earningsTitle}</h2>
+                <span className="earnings-badge">{t.estimateBadge}</span>
+              </div>
+              <p className="earnings-copy">
+                {currentLang === 'bn' ? (
+                  <>ইনকোর মাধ্যমে প্রতিদিন <strong>{expectedPages.toLocaleString('bn-BD')} অতিরিক্ত পৃষ্ঠা</strong> প্রিন্ট করলে, আপনার আনুমানিক অতিরিক্ত মাসিক নিট লাভ <strong className="profit">৳ {monthlyProfit.toLocaleString('bn-BD')}।</strong></>
+                ) : (
+                  <>If you print <strong>{expectedPages.toLocaleString()} extra pages/day</strong> via Inko, your estimated additional monthly net profit is <strong className="profit">৳ {monthlyProfit.toLocaleString()}.</strong></>
+                )}
+              </p>
+              <label className="earnings-note" htmlFor="dailyVolume">{t.sliderLabel}</label>
+              <input className="earnings-slider" id="dailyVolume" type="range" min="25" max="300" step="25" value={expectedPages} onChange={(e) => setExpectedPages(Number(e.target.value))} />
+              <div className="earnings-scale" aria-hidden="true">
+                <span>25 pages</span><span>300 pages</span>
+              </div>
+              <p className="earnings-note">{t.estimateNote}</p>
+            </section>
 
-                <div className="proof">
-                  <div className="proof-item">
-                    <div className="proof-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9V4h12v5M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg></div>
-                    <div><strong>{t.benefit1}</strong><span>{t.benefit1sub}</span></div>
-                  </div>
-                  <div className="proof-item">
-                    <div className="proof-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s7-5.1 7-11a7 7 0 1 0-14 0c0 5.9 7 11 7 11Z" stroke="currentColor" strokeWidth="2"/><circle cx="12" cy="10" r="2.3" stroke="currentColor" strokeWidth="2"/></svg></div>
-                    <div><strong>{t.benefit2}</strong><span>{t.benefit2sub}</span></div>
-                  </div>
-                  <div className="proof-item">
-                    <div className="proof-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 7h18v11H3zM7 7V5h10v2M7 13h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
-                    <div><strong>{t.benefit3}</strong><span>{t.benefit3sub}</span></div>
-                  </div>
-                </div>
-
-                <section className="earnings">
-                  <div className="earnings-head">
-                    <h2 className="earnings-title">{t.earningsTitle}</h2>
-                    <span className="earnings-badge">{t.estimateBadge}</span>
-                  </div>
-                  <p className="earnings-copy">
-                    {currentLang === 'bn' ? (
-                      <>ইনকোর মাধ্যমে প্রতিদিন <strong>{expectedPages.toLocaleString('bn-BD')} অতিরিক্ত পৃষ্ঠা</strong> প্রিন্ট করলে, আপনার আনুমানিক অতিরিক্ত মাসিক নিট লাভ <strong className="profit">৳ {monthlyProfit.toLocaleString('bn-BD')}।</strong></>
-                    ) : (
-                      <>If you print <strong>{expectedPages.toLocaleString()} extra pages/day</strong> via Inko, your estimated additional monthly net profit is <strong className="profit">৳ {monthlyProfit.toLocaleString()}.</strong></>
-                    )}
-                  </p>
-                  <label className="earnings-note" htmlFor="dailyVolume">{t.sliderLabel}</label>
-                  <input className="earnings-slider" id="dailyVolume" type="range" min="25" max="300" step="25" value={expectedPages} onChange={(e) => setExpectedPages(Number(e.target.value))} />
-                  <div className="earnings-scale" aria-hidden="true">
-                    <span>25 pages</span><span>300 pages</span>
-                  </div>
-                  <p className="earnings-note">{t.estimateNote}</p>
-                </section>
-
-                <div className="journey">
-                  <div className="journey-title">{t.afterSignup}</div>
-                  <ol>
-                    <li><span className="num">1</span><span>{t.journey1}</span></li>
-                    <li><span className="num">2</span><span>{t.journey2}</span></li>
-                    <li><span className="num">3</span><span>{t.journey3}</span></li>
-                  </ol>
-                </div>
-              </aside>
-
-              <section className="form-shell">
-                <div className="progress-wrap">
-                  <div className="progress-head">
-                    <div className="progress-copy">{t.progress[currentStep]}</div>
-                    <div className="progress-count">{t.count.replace('{n}', String(currentStep + 1))}</div>
-                  </div>
-                  <div className="progress-line"><span style={{ width: `${(currentStep + 1) * 33.333}%` }}></span></div>
-                </div>
-
-                <nav className="steps">
-                  <button className={`step-tab ${currentStep === 0 ? 'active' : ''} ${currentStep > 0 ? 'complete' : ''}`} onClick={() => setCurrentStep(0)} type="button"><span>{t.step1small}</span><b>{t.step1}</b></button>
-                  <button className={`step-tab ${currentStep === 1 ? 'active' : ''} ${currentStep > 1 ? 'complete' : ''}`} onClick={() => setCurrentStep(1)} type="button"><span>{t.step2small}</span><b>{t.step2}</b></button>
-                  <button className={`step-tab ${currentStep === 2 ? 'active' : ''} ${currentStep > 2 ? 'complete' : ''}`} onClick={() => setCurrentStep(2)} type="button"><span>{t.step3small}</span><b>{t.step3}</b></button>
-                </nav>
-
-                <div className={`panel ${currentStep === 0 ? 'active' : ''}`}>
-                  <h2>{t.shopTitle}</h2>
-                  <p className="panel-intro">{t.shopIntro}</p>
-                  <div className="grid-2">
-                    <div className="field">
-                      <label htmlFor="shopName">{t.shopName}</label>
-                      <input id="shopName" type="text" placeholder={currentLang === 'bn' ? "যেমন: সিটি প্রিন্ট অ্যান্ড স্টেশনারি" : "e.g. City Print & Stationery"} value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
-                    </div>
-                    <div className="field">
-                      <label htmlFor="ownerName">{t.ownerName}</label>
-                      <input id="ownerName" type="text" placeholder={currentLang === 'bn' ? "পুরো নাম" : "Full name"} value={formData.ownerName} onChange={(e) => setFormData({...formData, ownerName: e.target.value})} required />
-                    </div>
-                  </div>
-                  <div className="grid-2">
-                    <div className="field">
-                      <label htmlFor="phone">{t.phone}</label>
-                      <div className="input-wrap">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8.5 3H6a2 2 0 0 0-2 2c0 8.28 6.72 15 15 15a2 2 0 0 0 2-2v-2.5l-4-1-1.2 2c-2.45-1.05-4.7-3.3-5.75-5.75l2-1.2L11 3.5 8.5 3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>
-                        <input id="phone" type="tel" placeholder="01XXXXXXXXX" value={formData.contactNumber} onChange={(e) => setFormData({...formData, contactNumber: e.target.value})} required />
-                      </div>
-                      <div className="hint">{t.phoneHint}</div>
-                    </div>
-                    <div className="field">
-                      <label htmlFor="email">{t.email}</label>
-                      <div className="input-wrap">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        <input id="email" type="email" placeholder="owner@example.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
-                      </div>
-                      <div className="hint">{t.emailHint}</div>
-                    </div>
-                  </div>
-                  <div className="field">
-                    <span className="field-label">{t.hours}</span>
-                    <div className="hours">
-                      <input type="time" value={formData.openTime} onChange={(e) => setFormData({...formData, openTime: e.target.value})} required />
-                      <span>—</span>
-                      <input type="time" value={formData.closeTime} onChange={(e) => setFormData({...formData, closeTime: e.target.value})} required />
-                    </div>
-                  </div>
-                </div>
-
-                <div className={`panel ${currentStep === 1 ? 'active' : ''}`}>
-                  <h2>{t.locationTitle}</h2>
-                  <p className="panel-intro">{t.locationIntro}</p>
-                  <div className="field relative">
-                    <label htmlFor="address">{t.address}</label>
-                    <div className="input-wrap">
-                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="m20 20-4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-                      <input id="address" type="search" placeholder={currentLang === 'bn' ? "রাস্তা, মার্কেট বা ল্যান্ডমার্ক খুঁজুন" : "Search road, market or landmark"} value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} onFocus={() => { if (searchResults.length > 0 || formData.address.length >= 3) setShowDropdown(true); }} onBlur={() => setTimeout(() => setShowDropdown(false), 150)} required />
-                    </div>
-                    {isSearching && (
-                      <div className="absolute right-3 top-9 flex items-center pointer-events-none">
-                        <span className="animate-spin h-4 w-4 border-2 border-[#0b7250] rounded-full border-t-transparent"></span>
-                      </div>
-                    )}
-                    {showDropdown && (
-                      <div className="absolute top-full left-0 z-[1000] mt-1 w-full bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
-                        {searchResults.length > 0 ? (
-                          <ul className="max-h-60 overflow-auto m-0 p-0 list-none text-left">
-                            {searchResults.map((result: any, i: number) => (
-                              <li 
-                                key={i} 
-                                onMouseDown={() => handleResultSelect(result)}
-                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-800 border-b border-gray-50 last:border-0"
-                              >
-                                {result.display_name}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : formData.address.length >= 3 && !isSearching ? (
-                          <div className="px-4 py-3 text-sm text-gray-500">No results found.</div>
-                        ) : null}
-                      </div>
-                    )}
-                  </div>
-                  <div className="map-frame">
-                    <MapPicker onLocationSelect={handleLocationSelect} targetPosition={mapTarget} />
-                    <div className="map-chip">
-                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s7-5.1 7-11a7 7 0 1 0-14 0c0 5.9 7 11 7 11Z" stroke="currentColor" strokeWidth="2"/><circle cx="12" cy="10" r="2.3" stroke="currentColor" strokeWidth="2"/></svg>
-                      <span>{location ? `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}` : t.mapHint}</span>
-                    </div>
-                  </div>
-                  <div className="location-details">
-                    <div className="field">
-                      <label htmlFor="city">{t.city}</label>
-                      <input id="city" type="text" placeholder={currentLang === 'bn' ? "যেমন: ঢাকা" : "e.g. Dhaka"} value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} required />
-                    </div>
-                    <div className="field">
-                      <label htmlFor="area">{t.area}</label>
-                      <input id="area" type="text" placeholder={currentLang === 'bn' ? "যেমন: ধানমন্ডি" : "e.g. Dhanmondi"} value={formData.area} onChange={(e) => setFormData({...formData, area: e.target.value})} required />
-                    </div>
-                    <div className="field">
-                      <span className="field-label">Plus Code</span>
-                      <div className="location-readout"><strong>{plusCode || '—'}</strong></div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={`panel ${currentStep === 2 ? 'active' : ''}`}>
-                  <h2>{t.capTitle}</h2>
-                  <p className="panel-intro">{t.capIntro}</p>
-                  <div className="group">
-                    <div className="group-head"><span className="field-label">{t.printers}</span><span>{t.chooseAll}</span></div>
-                    <div className="chips">
-                      <Chip label={t.bwLaser} selected={formData.services.includes("B&W Laser")} onClick={() => toggleService("B&W Laser")} />
-                      <Chip label={t.colorInk} selected={formData.services.includes("Color Inkjet")} onClick={() => toggleService("Color Inkjet")} />
-                      <Chip label={t.colorLaser} selected={formData.services.includes("Color Laser")} onClick={() => toggleService("Color Laser")} />
-                    </div>
-                  </div>
-                  <div className="group">
-                    <div className="group-head"><span className="field-label">{t.services}</span><span>{t.chooseAll2}</span></div>
-                    <div className="chips">
-                      <Chip label="A4" selected={formData.services.includes("A4")} onClick={() => toggleService("A4")} />
-                      <Chip label="Legal" selected={formData.services.includes("Legal")} onClick={() => toggleService("Legal")} />
-                      <Chip label={t.spiral} selected={formData.services.includes("Spiral binding")} onClick={() => toggleService("Spiral binding")} />
-                      <Chip label={t.lamination} selected={formData.services.includes("Lamination")} onClick={() => toggleService("Lamination")} />
-                    </div>
-                  </div>
-                  <div className="grid-2">
-                    <div className="field">
-                      <label htmlFor="basePrice">{t.basePrice}</label>
-                      <div className="input-wrap">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5.5h7a3 3 0 0 1 0 6H9.5M7 8.5h8a3 3 0 0 1 0 6H7M11 3v18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-                        <input id="basePrice" type="number" min="0" placeholder="2.00" value={formData.basePrice} onChange={(e) => setFormData({...formData, basePrice: e.target.value})} required />
-                      </div>
-                    </div>
-                    <div className="field">
-                      <span className="field-label">{t.payout}</span>
-                      <div className="payouts">
-                        {['bKash', 'Nagad', t.bank].map(method => (
-                          <button key={method} type="button" className={`payout ${formData.payoutMethod === method ? 'selected' : ''}`} onClick={() => setFormData({...formData, payoutMethod: method})}>
-                            {method}
-                          </button>
-                        ))}
-                      </div>
-                      {formData.payoutMethod && (
-                        <div className="mt-2">
-                          <input type="text" placeholder={t.payoutAcc} value={formData.payoutAccount} onChange={(e) => setFormData({...formData, payoutAccount: e.target.value})} />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="review-strip">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM12 7v6M12 17h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-                    <span>{t.review}</span>
-                  </div>
-                </div>
-
-                <div className="actions">
-                  <button className="back" onClick={() => setCurrentStep(prev => prev - 1)} type="button" hidden={currentStep === 0}>
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    <span>{t.back}</span>
-                  </button>
-                  <div className="microcopy">{t.microcopy}</div>
-                  <button className="next" onClick={handleNext} type="button">
-                    <span>{currentStep === 2 ? t.preview : t.continue}</span>
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9 18 6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </button>
-                </div>
-              </section>
+            <div className="journey">
+              <div className="journey-title">{t.afterSignup}</div>
+              <ol>
+                <li><span className="num">1</span><span>{t.journey1}</span></li>
+                <li><span className="num">2</span><span>{t.journey2}</span></li>
+                <li><span className="num">3</span><span>{t.journey3}</span></li>
+              </ol>
             </div>
-            
-            {showCompletion && (
-              <div className="completion open" role="dialog" aria-modal="true" aria-labelledby="completeTitle">
-                <div className="modal">
-                  <div className="success-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 4 4L19 6" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
-                  <h3 id="completeTitle">{t.completeTitle}</h3>
-                  <p>{t.completeText}</p>
-                  <div className="pairing"><span>{t.storeKey}</span><strong>INKO-••••</strong></div>
+          </aside>
+
+          <section className="form-shell">
+            <div className="progress-wrap">
+              <div className="progress-head">
+                <div className="progress-copy">{t.progress[currentStep]}</div>
+                <div className="progress-count">{t.count.replace('{n}', String(currentStep + 1))}</div>
+              </div>
+              <div className="progress-line"><span style={{ width: `${(currentStep + 1) * 33.333}%` }}></span></div>
+            </div>
+
+            <nav className="steps">
+              <button className={`step-tab ${currentStep === 0 ? 'active' : ''} ${currentStep > 0 ? 'complete' : ''}`} onClick={() => setCurrentStep(0)} type="button"><span>{t.step1small}</span><b>{t.step1}</b></button>
+              <button className={`step-tab ${currentStep === 1 ? 'active' : ''} ${currentStep > 1 ? 'complete' : ''}`} onClick={() => setCurrentStep(1)} type="button"><span>{t.step2small}</span><b>{t.step2}</b></button>
+              <button className={`step-tab ${currentStep === 2 ? 'active' : ''} ${currentStep > 2 ? 'complete' : ''}`} onClick={() => setCurrentStep(2)} type="button"><span>{t.step3small}</span><b>{t.step3}</b></button>
+            </nav>
+
+            <div className={`panel ${currentStep === 0 ? 'active' : ''}`}>
+              <h2>{t.shopTitle}</h2>
+              <p className="panel-intro">{t.shopIntro}</p>
+              <div className="grid-2">
+                <div className="field">
+                  <label htmlFor="shopName">{t.shopName}</label>
+                  <input id="shopName" type="text" placeholder={currentLang === 'bn' ? "যেমন: সিটি প্রিন্ট অ্যান্ড স্টেশনারি" : "e.g. City Print & Stationery"} value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
+                </div>
+                <div className="field">
+                  <label htmlFor="ownerName">{t.ownerName}</label>
+                  <input id="ownerName" type="text" placeholder={currentLang === 'bn' ? "পুরো নাম" : "Full name"} value={formData.ownerName} onChange={(e) => setFormData({...formData, ownerName: e.target.value})} required />
+                </div>
+              </div>
+              <div className="grid-2">
+                <div className="field">
+                  <label htmlFor="phone">{t.phone}</label>
+                  <div className="input-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8.5 3H6a2 2 0 0 0-2 2c0 8.28 6.72 15 15 15a2 2 0 0 0 2-2v-2.5l-4-1-1.2 2c-2.45-1.05-4.7-3.3-5.75-5.75l2-1.2L11 3.5 8.5 3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+                    <input id="phone" type="tel" placeholder="01XXXXXXXXX" value={formData.contactNumber} onChange={(e) => setFormData({...formData, contactNumber: e.target.value})} required />
+                  </div>
+                  <div className="hint">{t.phoneHint}</div>
+                </div>
+                <div className="field">
+                  <label htmlFor="email">{t.email}</label>
+                  <div className="input-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <input id="email" type="email" placeholder="owner@example.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
+                  </div>
+                  <div className="hint">{t.emailHint}</div>
+                </div>
+              </div>
+              <div className="field">
+                <span className="field-label">{t.hours}</span>
+                <div className="hours">
+                  <input type="time" value={formData.openTime} onChange={(e) => setFormData({...formData, openTime: e.target.value})} required />
+                  <span>—</span>
+                  <input type="time" value={formData.closeTime} onChange={(e) => setFormData({...formData, closeTime: e.target.value})} required />
+                </div>
+              </div>
+            </div>
+
+            <div className={`panel ${currentStep === 1 ? 'active' : ''}`}>
+              <h2>{t.locationTitle}</h2>
+              <p className="panel-intro">{t.locationIntro}</p>
+              <div className="field relative">
+                <label htmlFor="address">{t.address}</label>
+                <div className="input-wrap">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="m20 20-4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                  <input id="address" type="search" placeholder={currentLang === 'bn' ? "রাস্তা, মার্কেট বা ল্যান্ডমার্ক খুঁজুন" : "Search road, market or landmark"} value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} onFocus={() => { if (searchResults.length > 0 || formData.address.length >= 3) setShowDropdown(true); }} onBlur={() => setTimeout(() => setShowDropdown(false), 150)} required />
+                </div>
+                {isSearching && (
+                  <div className="absolute right-3 top-9 flex items-center pointer-events-none">
+                    <span className="animate-spin h-4 w-4 border-2 border-[#0b7250] rounded-full border-t-transparent"></span>
+                  </div>
+                )}
+                {showDropdown && (
+                  <div className="absolute top-full left-0 z-[1000] mt-1 w-full bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
+                    {searchResults.length > 0 ? (
+                      <ul className="max-h-60 overflow-auto m-0 p-0 list-none text-left">
+                        {searchResults.map((result: any, i: number) => (
+                          <li 
+                            key={i} 
+                            onMouseDown={() => handleResultSelect(result)}
+                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-800 border-b border-gray-50 last:border-0"
+                          >
+                            {result.display_name}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : formData.address.length >= 3 && !isSearching ? (
+                      <div className="px-4 py-3 text-sm text-gray-500">No results found.</div>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+              <div className="map-frame">
+                <MapPicker onLocationSelect={handleLocationSelect} targetPosition={mapTarget} />
+                <div className="map-chip">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s7-5.1 7-11a7 7 0 1 0-14 0c0 5.9 7 11 7 11Z" stroke="currentColor" strokeWidth="2"/><circle cx="12" cy="10" r="2.3" stroke="currentColor" strokeWidth="2"/></svg>
+                  <span>{location ? `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}` : t.mapHint}</span>
+                </div>
+              </div>
+              <div className="location-details">
+                <div className="field">
+                  <label htmlFor="city">{t.city}</label>
+                  <input id="city" type="text" placeholder={currentLang === 'bn' ? "যেমন: ঢাকা" : "e.g. Dhaka"} value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} required />
+                </div>
+                <div className="field">
+                  <label htmlFor="area">{t.area}</label>
+                  <input id="area" type="text" placeholder={currentLang === 'bn' ? "যেমন: ধানমন্ডি" : "e.g. Dhanmondi"} value={formData.area} onChange={(e) => setFormData({...formData, area: e.target.value})} required />
+                </div>
+                <div className="field">
+                  <span className="field-label">Plus Code</span>
+                  <div className="location-readout"><strong>{plusCode || '—'}</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <div className={`panel ${currentStep === 2 ? 'active' : ''}`}>
+              <h2>{t.capTitle}</h2>
+              <p className="panel-intro">{t.capIntro}</p>
+              <div className="group">
+                <div className="group-head"><span className="field-label">{t.printers}</span><span>{t.chooseAll}</span></div>
+                <div className="chips">
+                  <Chip label={t.bwLaser} selected={formData.services.includes("B&W Laser")} onClick={() => toggleService("B&W Laser")} />
+                  <Chip label={t.colorInk} selected={formData.services.includes("Color Inkjet")} onClick={() => toggleService("Color Inkjet")} />
+                  <Chip label={t.colorLaser} selected={formData.services.includes("Color Laser")} onClick={() => toggleService("Color Laser")} />
+                </div>
+              </div>
+              <div className="group">
+                <div className="group-head"><span className="field-label">{t.services}</span><span>{t.chooseAll2}</span></div>
+                <div className="chips">
+                  <Chip label="A4" selected={formData.services.includes("A4")} onClick={() => toggleService("A4")} />
+                  <Chip label="Legal" selected={formData.services.includes("Legal")} onClick={() => toggleService("Legal")} />
+                  <Chip label={t.spiral} selected={formData.services.includes("Spiral binding")} onClick={() => toggleService("Spiral binding")} />
+                  <Chip label={t.lamination} selected={formData.services.includes("Lamination")} onClick={() => toggleService("Lamination")} />
+                </div>
+              </div>
+              <div className="grid-2">
+                <div className="field">
+                  <label htmlFor="basePrice">{t.basePrice}</label>
+                  <div className="input-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5.5h7a3 3 0 0 1 0 6H9.5M7 8.5h8a3 3 0 0 1 0 6H7M11 3v18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                    <input id="basePrice" type="number" min="0" placeholder="2.00" value={formData.basePrice} onChange={(e) => setFormData({...formData, basePrice: e.target.value})} required />
+                  </div>
+                </div>
+                <div className="field">
+                  <span className="field-label">{t.payout}</span>
+                  <div className="payouts">
+                    {['bKash', 'Nagad', t.bank].map(method => (
+                      <button key={method} type="button" className={`payout ${formData.payoutMethod === method ? 'selected' : ''}`} onClick={() => setFormData({...formData, payoutMethod: method})}>
+                        {method}
+                      </button>
+                    ))}
+                  </div>
+                  {formData.payoutMethod && (
+                    <div className="mt-2">
+                      <input type="text" placeholder={t.payoutAcc} value={formData.payoutAccount} onChange={(e) => setFormData({...formData, payoutAccount: e.target.value})} />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="review-strip">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM12 7v6M12 17h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                <span>{t.review}</span>
+              </div>
+            </div>
+
+            <div className="actions">
+              <button className="back" onClick={() => setCurrentStep(prev => prev - 1)} type="button" hidden={currentStep === 0}>
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <span>{t.back}</span>
+              </button>
+              <div className="microcopy">{t.microcopy}</div>
+              <button className="next" onClick={handleNext} type="button">
+                <span>{currentStep === 2 ? t.preview : t.continue}</span>
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9 18 6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+            </div>
+          </section>
+        </div>
+
+        {showCompletion && (
+          <div className="completion open" role="dialog" aria-modal="true" aria-labelledby="completeTitle">
+            <div className="modal">
+              <div className="success-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 4 4L19 6" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
+              
+              {!successId ? (
+                <>
+                  <h3 id="completeTitle">{t.confirmTitle}</h3>
+                  <p>{t.confirmText}</p>
+                  <div className="pairing"><span>{t.storeKeyPreview}</span><strong>INKO-••••</strong></div>
                   <button type="button" onClick={handleSubmit} disabled={isSubmitting} className="w-full mt-4 min-h-[46px] border-0 rounded-[10px] bg-[#0b7250] text-white font-bold hover:bg-[#095f43] transition-colors">
-                    {isSubmitting ? 'Registering...' : 'Register & Download Desktop Agent'}
+                    {isSubmitting ? t.registering : t.registerBtn}
                   </button>
                   <button type="button" className="close-modal mt-2" onClick={() => setShowCompletion(false)}>{t.close}</button>
-                </div>
-              </div>
-            )}
-          </>
+                </>
+              ) : (
+                <>
+                  <h3 id="completeTitle">{t.successTitle}</h3>
+                  <p>{t.successText}</p>
+                  
+                  <div className="pairing !pb-3">
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <span>{t.yourStoreKey}</span>
+                        <strong className="tracking-widest mt-1 text-[#0b7250]">{successId}</strong>
+                      </div>
+                      <button 
+                        onClick={handleCopy} 
+                        className="p-2 mb-1 bg-[#173d2d] rounded-lg text-[#75e5b6] hover:bg-[#2c3d33] transition-colors relative" 
+                        title="Copy ID"
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        {copied && <span className="absolute -top-8 -right-2 bg-[#173d2d] text-white text-xs px-2 py-1 rounded">Copied!</span>}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {plusCode && (
+                    <p className="text-sm text-gray-400 mt-2 mb-6">
+                      Plus Code: <strong className="text-gray-200 bg-[#1a2820] px-2 py-0.5 rounded ml-1">{plusCode}</strong>
+                    </p>
+                  )}
+                  
+                  <div className="flex flex-col gap-3 mt-4">
+                    <a 
+                      href="https://github.com/bitarkik/Inko/releases/latest/download/PrintPanda-Agent-Setup.exe" 
+                      className="w-full min-h-[46px] flex items-center justify-center border-0 rounded-[10px] bg-[#0b7250] text-white font-bold hover:bg-[#095f43] transition-colors"
+                    >
+                      <svg className="mr-2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                      {t.downloadAgent}
+                    </a>
+                    <button 
+                      onClick={() => window.location.href = '/partner'} 
+                      type="button" 
+                      className="close-modal !bg-[#152019] border border-[#2c3d33] !text-[#edf7f0]"
+                    >
+                      {t.goToDashboard}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         )}
       </main>
       <style dangerouslySetInnerHTML={{ __html: `
