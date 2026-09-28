@@ -5,6 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { theme } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
+import Constants from 'expo-constants';
+import * as Updates from 'expo-updates';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -75,6 +77,13 @@ export default function ProfileScreen() {
           <Ionicons name="log-out-outline" size={20} color={theme.colors.red} />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
+
+        <View style={{ marginTop: 32, alignItems: 'center' }}>
+          <Text style={{ fontSize: 12, color: theme.colors.muted }}>Version {Constants.expoConfig?.version || '1.0.0'}</Text>
+          {Updates.updateId && (
+            <Text style={{ fontSize: 10, color: theme.colors.muted, marginTop: 4 }}>OTA ID: {Updates.updateId.substring(0, 8)}</Text>
+          )}
+        </View>
       </View>
     </View>
   );
