@@ -33,6 +33,13 @@ function MapController({ center }: { center: L.LatLng | null }) {
       map.flyTo(center, 15);
     }
   }, [center, map]);
+  
+  useEffect(() => {
+    // Fix leaflet grey box issue when rendering inside dynamic containers
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 250);
+  }, [map]);
   return null;
 }
 

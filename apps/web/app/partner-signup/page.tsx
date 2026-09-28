@@ -29,20 +29,28 @@ export default function PartnerSignup() {
   // Reverse geocode when map pin changes
   useEffect(() => {
     if (location) {
-      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.lat}&lon=${location.lng}`)
+      // Use BigDataCloud API which is free, unlimited for client-side, and doesn't block randomly like Nominatim
+      fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${location.lat}&longitude=${location.lng}&localityLanguage=en`)
         .then(res => res.json())
         .then(data => {
-          if (data && data.address) {
-            setLocationName(data.display_name || "");
+          if (data) {
+            // BigDataCloud gives city, locality, principalSubdivision
+            const addressString = [data.locality, data.city, data.principalSubdivision, data.countryName].filter(Boolean).join(", ");
+            setLocationName(addressString || "");
+            
             setFormData(prev => ({
               ...prev,
-              address: data.display_name || prev.address,
-              city: data.address.city || data.address.town || data.address.state || prev.city,
-              area: data.address.suburb || data.address.neighbourhood || data.address.county || prev.area
+              address: addressString || prev.address,
+              city: data.city || data.locality || prev.city,
+              area: data.locality || data.principalSubdivision || prev.area
             }));
           }
         })
-        .catch(err => console.error("Geocoding error:", err));
+        .catch(err => {
+          console.error("Geocoding error:", err);
+          // Fallback to coordinates string if API fails
+          setLocationName(`Lat: ${location.lat.toFixed(5)}, Lng: ${location.lng.toFixed(5)}`);
+        });
     }
   }, [location]);
 
