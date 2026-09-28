@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Store, MapPin, Banknote, CheckCircle, Clock, List, Map } from "lucide-react";
+import { Store, MapPin, Banknote, CheckCircle, Clock, List, Map, Download } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const MapPicker = dynamic(() => import("../components/MapPicker"), {
@@ -102,14 +102,6 @@ export default function PartnerSignup() {
 
       if (!response.ok) throw new Error("Failed to create store");
       setSuccessId(generatedId);
-      
-      // Auto prompt to download the desktop agent
-      const link = document.createElement("a");
-      link.href = "/PrintPanda-Agent-Setup.exe"; // Placeholder path
-      link.download = "PrintPanda-Agent-Setup.exe";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
     } catch (err) {
       alert("Error creating store: " + err);
     } finally {
@@ -132,18 +124,29 @@ export default function PartnerSignup() {
             <div className="bg-blue-50 p-4 rounded-xl text-left border border-blue-100 mb-6">
               <p className="text-sm text-blue-900 font-semibold mb-2">Next Steps:</p>
               <ol className="text-sm text-blue-800 list-decimal pl-4 space-y-2">
-                <li>We've automatically started downloading the PrintPanda Agent `.exe`</li>
-                <li>Install it on your print shop computer</li>
+                <li>Download the PrintPanda Agent `.exe` using the button below.</li>
+                <li>Install it on your print shop computer.</li>
                 <li>Type this exact 12-character ID into the Agent: <br/><strong className="bg-white px-2 py-1 rounded text-lg font-mono text-blue-900 mt-2 inline-block border border-blue-200">{successId}</strong></li>
               </ol>
             </div>
             
-            <button 
-              onClick={() => window.location.href = '/partner'}
-              className="w-full bg-gray-900 text-white font-medium py-3 rounded-xl hover:bg-gray-800 transition-colors"
-            >
-              Go to Partner Dashboard
-            </button>
+            <div className="flex flex-col gap-3">
+              <a 
+                href="https://github.com/bitarkik/Inko/releases/latest"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center"
+              >
+                <Download className="mr-2" size={20} />
+                Download PrintPanda Agent (.exe)
+              </a>
+              <button 
+                onClick={() => window.location.href = '/partner'}
+                className="w-full bg-gray-100 text-gray-900 font-medium py-3 rounded-xl hover:bg-gray-200 transition-colors"
+              >
+                Go to Partner Dashboard
+              </button>
+            </div>
           </div>
         ) : (
           <>
