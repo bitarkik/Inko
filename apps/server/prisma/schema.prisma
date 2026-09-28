@@ -43,6 +43,7 @@ model Store {
   ownerName         String?
   contactNumber     String?
   email             String?
+  plusCode          String?
   isAcceptingOrders Boolean   @default(true)
   lastPingAt        DateTime?
   orders            Order[]

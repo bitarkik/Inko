@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Store, MapPin, Banknote, CheckCircle, Clock, List, Map, Download, Copy } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Store, MapPin, Banknote, CheckCircle, Clock, List, Map, Download, Copy, Search, Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { OpenLocationCode } from 'open-location-code';
 
 const MapPicker = dynamic(() => import("../components/MapPicker"), {
   ssr: false,
@@ -25,10 +26,18 @@ export default function PartnerSignup() {
   });
   
   const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [mapTarget, setMapTarget] = useState<{lat: number, lng: number} | null>(null);
   const [locationName, setLocationName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successId, setSuccessId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const skipSearchRef = useRef(false);
+
+  const plusCode = location ? OpenLocationCode.encode(location.lat, location.lng) : null;
 
   const handleCopy = () => {
     if (successId) {
@@ -81,6 +90,53 @@ export default function PartnerSignup() {
     return () => clearTimeout(timeoutId);
   }, [location]);
 
+  // Forward Search Geocoding (Debounced)
+  useEffect(() => {
+    if (skipSearchRef.current) {
+      skipSearchRef.current = false;
+      return;
+    }
+    
+    if (formData.address.length < 3) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+    
+    setIsSearching(true);
+    setShowDropdown(true);
+    const timer = setTimeout(() => {
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.address)}&countrycodes=bd&limit=5&addressdetails=1&email=hello@printpanda.app`)
+        .then(res => res.json())
+        .then(data => {
+          setSearchResults(data || []);
+          setIsSearching(false);
+        })
+        .catch(err => {
+          console.error("Search error:", err);
+          setIsSearching(false);
+        });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [formData.address]);
+
+  // Handle Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowDropdown(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleResultSelect = (item: any) => {
+    skipSearchRef.current = true;
+    setFormData(prev => ({...prev, address: item.display_name}));
+    setSearchResults([]);
+    setShowDropdown(false);
+    setMapTarget({ lat: parseFloat(item.lat), lng: parseFloat(item.lon) });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -105,6 +161,7 @@ export default function PartnerSignup() {
           area: formData.area,
           latitude: location?.lat,
           longitude: location?.lng,
+          plusCode: plusCode,
           openTime: formData.openTime,
           closeTime: formData.closeTime,
           services: formData.services.split(',').map(s => s.trim()),
@@ -154,6 +211,11 @@ export default function PartnerSignup() {
                     </button>
                   </div>
                 </li>
+                {plusCode && (
+                  <li className="mt-2">
+                    Share your Plus Code: <strong className="font-mono bg-white px-2 py-0.5 rounded border border-blue-200">{plusCode}</strong> so customers can find you easily.
+                  </li>
+                )}
               </ol>
             </div>
             
@@ -317,8 +379,8 @@ export default function PartnerSignup() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Full Address (Manual)</label>
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Full Address (Search or Manual)</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <MapPin size={18} className="text-gray-400" />
@@ -328,9 +390,40 @@ export default function PartnerSignup() {
                           type="text"
                           value={formData.address}
                           onChange={(e) => setFormData({...formData, address: e.target.value})}
+                          onFocus={() => {
+                            if (searchResults.length > 0 || formData.address.length >= 3) setShowDropdown(true);
+                          }}
+                          onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
                           placeholder="e.g. 123 Main St, Dhaka"
-                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
+                          className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                         />
+                        {isSearching && (
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <Loader2 size={16} className="text-gray-400 animate-spin" />
+                          </div>
+                        )}
+                        {showDropdown && (
+                          <div className="absolute top-full left-0 z-50 mt-1 w-full bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
+                            {searchResults.length > 0 ? (
+                              <ul className="max-h-60 overflow-auto">
+                                {searchResults.map((result: any, i: number) => (
+                                  <li 
+                                    key={i} 
+                                    onMouseDown={() => handleResultSelect(result)}
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-800 border-b border-gray-50 last:border-0"
+                                  >
+                                    <div className="flex items-start gap-2">
+                                      <Search size={14} className="mt-0.5 text-gray-400 shrink-0" />
+                                      <span>{result.display_name}</span>
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : formData.address.length >= 3 && !isSearching ? (
+                              <div className="px-4 py-3 text-sm text-gray-500">No results found.</div>
+                            ) : null}
+                          </div>
+                        )}
                       </div>
                     </div>
                     
@@ -365,11 +458,14 @@ export default function PartnerSignup() {
                       <Map size={16} className="mr-1 text-gray-500" />
                       GPS Map Location
                     </label>
-                    <MapPicker onLocationSelect={handleLocationSelect} />
+                    <MapPicker onLocationSelect={handleLocationSelect} targetPosition={mapTarget} />
                     {location && (
                       <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                         <p className="text-xs text-green-700 font-semibold mb-1">Location Captured Successfully!</p>
-                        <p className="text-xs text-green-600 leading-snug">{locationName || `Lat: ${location.lat.toFixed(5)}, Lng: ${location.lng.toFixed(5)}`}</p>
+                        <p className="text-xs text-green-600 leading-snug mb-1">{locationName || `Lat: ${location.lat.toFixed(5)}, Lng: ${location.lng.toFixed(5)}`}</p>
+                        {plusCode && (
+                          <p className="text-xs text-green-800 font-medium">Plus Code: <strong className="font-mono">{plusCode}</strong> — share this so customers can find you</p>
+                        )}
                       </div>
                     )}
                   </div>

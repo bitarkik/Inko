@@ -22,7 +22,11 @@ function LocationMarker({ position, setPosition }: { position: L.LatLng | null, 
   });
 
   return position === null ? null : (
-    <Marker position={position}></Marker>
+    <Marker 
+      position={position} 
+      draggable={true} 
+      eventHandlers={{ dragend: (e) => setPosition(e.target.getLatLng()) }} 
+    />
   );
 }
 
@@ -44,12 +48,20 @@ function MapController({ center }: { center: L.LatLng | null }) {
 }
 
 export default function MapPicker({ 
-  onLocationSelect 
+  onLocationSelect,
+  targetPosition
 }: { 
-  onLocationSelect: (lat: number, lng: number) => void 
+  onLocationSelect: (lat: number, lng: number) => void;
+  targetPosition?: { lat: number, lng: number } | null;
 }) {
   const [position, setPosition] = useState<L.LatLng | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+
+  useEffect(() => {
+    if (targetPosition) {
+      setPosition(new L.LatLng(targetPosition.lat, targetPosition.lng));
+    }
+  }, [targetPosition]);
 
   useEffect(() => {
     if (position) {

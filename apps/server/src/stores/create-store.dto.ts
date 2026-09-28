@@ -54,4 +54,8 @@ export class CreateStoreDto {
   @IsOptional()
   @IsString()
   email?: string;
+
+  @IsOptional()
+  @IsString()
+  plusCode?: string;
 }
