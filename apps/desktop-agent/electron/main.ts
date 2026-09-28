@@ -361,6 +361,12 @@ app.whenReady().then(() => {
 
   autoUpdater.autoDownload = true;
   autoUpdater.checkForUpdatesAndNotify();
+  
+  // Check for updates every 15 minutes while the app is running
+  setInterval(() => {
+    sendLog('[System] Checking for updates in the background...');
+    autoUpdater.checkForUpdatesAndNotify();
+  }, 15 * 60 * 1000);
 
   autoUpdater.on('update-available', (info) => {
     sendLog(`[System] Update v${info.version} is available. Downloading...`);
