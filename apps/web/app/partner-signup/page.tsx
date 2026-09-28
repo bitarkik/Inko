@@ -530,7 +530,7 @@ export default function PartnerSignup() {
                 <div className="field">
                   <label htmlFor="basePrice">{t.basePrice}</label>
                   <div className="input-wrap">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5.5h7a3 3 0 0 1 0 6H9.5M7 8.5h8a3 3 0 0 1 0 6H7M11 3v18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                    <span className="absolute left-[16px] top-[12px] font-bold text-[var(--muted)] pointer-events-none select-none text-[15px]">৳</span>
                     <input id="basePrice" type="number" min="0" placeholder="2.00" value={formData.basePrice} onChange={(e) => setFormData({...formData, basePrice: e.target.value})} required />
                   </div>
                 </div>
