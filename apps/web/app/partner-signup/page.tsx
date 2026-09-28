@@ -136,7 +136,7 @@ export default function PartnerSignup() {
             
             <div className="flex flex-col gap-3">
               <a 
-                href="https://github.com/bitarkik/Inko/releases/download/v2.1.7/PrintPanda-Agent-Setup-2.1.7.exe"
+                href="https://github.com/bitarkik/Inko/releases/download/v2.1.9/PrintPanda-Agent-Setup-2.1.9.exe"
                 className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center"
               >
                 <Download className="mr-2" size={20} />
