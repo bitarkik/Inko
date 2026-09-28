@@ -23,7 +23,6 @@ const s3 = new S3Client({
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
   },
   requestHandler: undefined,
-  forcePathStyle: true,
 });
 
 @Controller('orders')
