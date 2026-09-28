@@ -26,32 +26,40 @@ export default function PartnerSignup() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successId, setSuccessId] = useState<string | null>(null);
 
-  // Reverse geocode when map pin changes
+  // Reverse geocode when map pin changes (Debounced to prevent API rate limits)
   useEffect(() => {
-    if (location) {
-      // Use BigDataCloud API which is free, unlimited for client-side, and doesn't block randomly like Nominatim
-      fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${location.lat}&longitude=${location.lng}&localityLanguage=en`)
-        .then(res => res.json())
+    if (!location) return;
+
+    setLocationName("Loading precise address...");
+    
+    // We use a 1.5 second debounce to prevent spamming the Nominatim API
+    const timeoutId = setTimeout(() => {
+      // Added zoom=18 for street level precision and email parameter to comply with openstreetmap rate limits
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.lat}&lon=${location.lng}&zoom=18&addressdetails=1&email=hello@printpanda.app`)
+        .then(res => {
+          if (res.status === 429) throw new Error("Rate limited by mapping provider");
+          return res.json();
+        })
         .then(data => {
-          if (data) {
-            // BigDataCloud gives city, locality, principalSubdivision
-            const addressString = [data.locality, data.city, data.principalSubdivision, data.countryName].filter(Boolean).join(", ");
-            setLocationName(addressString || "");
-            
+          if (data && data.address) {
+            setLocationName(data.display_name || "");
             setFormData(prev => ({
               ...prev,
-              address: addressString || prev.address,
-              city: data.city || data.locality || prev.city,
-              area: data.locality || data.principalSubdivision || prev.area
+              address: data.display_name || prev.address,
+              city: data.address.city || data.address.town || data.address.state || prev.city,
+              area: data.address.suburb || data.address.neighbourhood || data.address.county || prev.area
             }));
+          } else {
+            throw new Error("Invalid address format returned");
           }
         })
         .catch(err => {
           console.error("Geocoding error:", err);
-          // Fallback to coordinates string if API fails
           setLocationName(`Lat: ${location.lat.toFixed(5)}, Lng: ${location.lng.toFixed(5)}`);
         });
-    }
+    }, 1200); // 1.2 second debounce
+
+    return () => clearTimeout(timeoutId);
   }, [location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
