@@ -35,12 +35,21 @@ export class OrdersController {
       }
     })
   }))
-  createOrder(
+  async createOrder(
     @UploadedFile() file: any,
     @Body() createOrderDto: CreateOrderDto,
   ) {
-    // Save the R2 object key instead of the local path
-    return this.ordersService.createOrder(createOrderDto, file.key);
+    try {
+      console.log('[DEBUG] File received:', JSON.stringify(file));
+      console.log('[DEBUG] DTO received:', JSON.stringify(createOrderDto));
+      if (!file) {
+        throw new Error('No file uploaded — multer-s3 did not attach a file object');
+      }
+      return await this.ordersService.createOrder(createOrderDto, file.key || file.location);
+    } catch (err: any) {
+      console.error('[ERROR] createOrder failed:', err?.message, err?.stack);
+      throw err;
+    }
   }
 
   @Patch(':id/status')
