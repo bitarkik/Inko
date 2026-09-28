@@ -225,6 +225,7 @@ export default function PartnerSignup() {
 
       if (!response.ok) throw new Error("Failed to create store");
       setSuccessId(generatedId);
+      setShowCompletion(true);
     } catch (err) {
       alert("Error creating store: " + err);
     } finally {
@@ -261,7 +262,7 @@ export default function PartnerSignup() {
         alert("Please set a base price.");
         return;
       }
-      setShowCompletion(true);
+      handleSubmit();
     }
   };
 
@@ -277,7 +278,7 @@ export default function PartnerSignup() {
       shopTitle:'Let’s start with your shop.', shopIntro:'Only the details customers and the partner team need.', shopName:'Shop name', ownerName:'Owner / manager name', phone:'Mobile or WhatsApp number', phoneHint:'Used for OTP login and important order alerts.', email:'Email address', emailHint:'For account updates and support.', hours:'Regular opening hours',
       locationTitle:'Place the pin at your shop door.', locationIntro:'Search anywhere in Bangladesh, then drag the pin for a precise pickup point.', address:'Shop address', mapHint:'Tap the map to place your pin', city:'City', area:'Area',
       capTitle:'What can your shop handle?', capIntro:'These choices help route the right orders to you.', printers:'Printer setup', chooseAll:'Choose all that apply', bwLaser:'B&W Laser', colorInk:'Color Inkjet', colorLaser:'Color Laser', services:'Paper & finishing', chooseAll2:'Choose all that apply', spiral:'Spiral binding', lamination:'Lamination', basePrice:'B&W price per A4 page', payout:'Preferred payout', bank:'Bank', review:'You’ll review payout details and verify your phone before the shop goes live.', payoutAcc: 'Account Number',
-      back:'Back', continue:'Continue', preview:'Preview finish', microcopy:'You can review everything before registering.',
+      back:'Back', continue:'Continue', preview:'Register', microcopy:'You can review everything before registering.',
       progress:['Your shop profile','Your pickup location','Equipment & payout'], count:'Step {n} of 3',
       
       confirmTitle: 'Ready to register?',
@@ -301,7 +302,7 @@ export default function PartnerSignup() {
       shopTitle:'প্রথমে আপনার দোকানের তথ্য দিন।', shopIntro:'ক্রেতা ও পার্টনার টিমের প্রয়োজনীয় তথ্যই শুধু।', shopName:'দোকানের নাম', ownerName:'মালিক / ম্যানেজারের নাম', phone:'মোবাইল বা হোয়াটসঅ্যাপ নম্বর', phoneHint:'ওটিপি লগইন ও জরুরি অর্ডার আপডেটের জন্য।', email:'ইমেইল ঠিকানা', emailHint:'অ্যাকাউন্ট আপডেট ও সহায়তার জন্য।', hours:'সাধারণ খোলার সময়',
       locationTitle:'দোকানের দরজায় পিন বসান।', locationIntro:'বাংলাদেশের যেকোনো ঠিকানা খুঁজে সঠিক পিকআপ পয়েন্টে পিন টানুন।', address:'দোকানের ঠিকানা', mapHint:'পিন বসাতে ম্যাপে ট্যাপ করুন', city:'শহর', area:'এলাকা',
       capTitle:'আপনার দোকানে কী কী করা যায়?', capIntro:'এই তথ্য সঠিক অর্ডার আপনার দোকানে পাঠাতে সাহায্য করবে।', printers:'প্রিন্টার সেটআপ', chooseAll:'যা যা প্রযোজ্য বেছে নিন', bwLaser:'সাদা-কালো লেজার', colorInk:'কালার ইঙ্কজেট', colorLaser:'কালার লেজার', services:'কাগজ ও ফিনিশিং', chooseAll2:'যা যা প্রযোজ্য বেছে নিন', spiral:'স্পাইরাল বাইন্ডিং', lamination:'লেমিনেশন', basePrice:'প্রতি A4 সাদা-কালো পাতার দাম', payout:'পছন্দের পেমেন্ট', bank:'ব্যাংক', review:'দোকান লাইভ হওয়ার আগে পেমেন্টের তথ্য ও ফোন নম্বর যাচাই করা হবে।', payoutAcc: 'অ্যাকাউন্ট নম্বর',
-      back:'পেছনে', continue:'এগিয়ে যান', preview:'শেষ ধাপ দেখুন', microcopy:'রেজিস্টার করার আগে সব তথ্য দেখে নিতে পারবেন।',
+      back:'পেছনে', continue:'এগিয়ে যান', preview:'রেজিস্টার করুন', microcopy:'রেজিস্টার করার আগে সব তথ্য দেখে নিতে পারবেন।',
       progress:['আপনার দোকানের তথ্য','আপনার পিকআপ লোকেশন','মেশিন ও পেমেন্ট'], count:'৩টির মধ্যে ধাপ {n}',
 
       confirmTitle: 'রেজিস্টার করতে প্রস্তুত?',
@@ -561,75 +562,61 @@ export default function PartnerSignup() {
                 <span>{t.back}</span>
               </button>
               <div className="microcopy">{t.microcopy}</div>
-              <button className="next" onClick={handleNext} type="button">
-                <span>{currentStep === 2 ? t.preview : t.continue}</span>
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9 18 6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <button className="next" onClick={handleNext} type="button" disabled={isSubmitting}>
+                <span>{currentStep === 2 ? (isSubmitting ? t.registering : t.preview) : t.continue}</span>
+                {!isSubmitting && <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9 18 6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               </button>
             </div>
           </section>
         </div>
 
-        {showCompletion && (
+        {showCompletion && successId && (
           <div className="completion open" role="dialog" aria-modal="true" aria-labelledby="completeTitle">
             <div className="modal">
               <div className="success-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 4 4L19 6" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
               
-              {!successId ? (
-                <>
-                  <h3 id="completeTitle">{t.confirmTitle}</h3>
-                  <p>{t.confirmText}</p>
-                  <div className="pairing"><span>{t.storeKeyPreview}</span><strong>INKO-••••</strong></div>
-                  <button type="button" onClick={handleSubmit} disabled={isSubmitting} className="w-full mt-4 min-h-[46px] border-0 rounded-[10px] bg-[#0b7250] text-white font-bold hover:bg-[#095f43] transition-colors">
-                    {isSubmitting ? t.registering : t.registerBtn}
+              <h3 id="completeTitle">{t.successTitle}</h3>
+              <p>{t.successText}</p>
+              
+              <div className="pairing !pb-3">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <span>{t.yourStoreKey}</span>
+                    <strong className="tracking-widest mt-1 text-[#0b7250]">{successId}</strong>
+                  </div>
+                  <button 
+                    onClick={handleCopy} 
+                    className="p-2 mb-1 bg-[#173d2d] rounded-lg text-[#75e5b6] hover:bg-[#2c3d33] transition-colors relative" 
+                    title="Copy ID"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    {copied && <span className="absolute -top-8 -right-2 bg-[#173d2d] text-white text-xs px-2 py-1 rounded">Copied!</span>}
                   </button>
-                  <button type="button" className="close-modal mt-2" onClick={() => setShowCompletion(false)}>{t.close}</button>
-                </>
-              ) : (
-                <>
-                  <h3 id="completeTitle">{t.successTitle}</h3>
-                  <p>{t.successText}</p>
-                  
-                  <div className="pairing !pb-3">
-                    <div className="flex justify-between items-end">
-                      <div>
-                        <span>{t.yourStoreKey}</span>
-                        <strong className="tracking-widest mt-1 text-[#0b7250]">{successId}</strong>
-                      </div>
-                      <button 
-                        onClick={handleCopy} 
-                        className="p-2 mb-1 bg-[#173d2d] rounded-lg text-[#75e5b6] hover:bg-[#2c3d33] transition-colors relative" 
-                        title="Copy ID"
-                      >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                        {copied && <span className="absolute -top-8 -right-2 bg-[#173d2d] text-white text-xs px-2 py-1 rounded">Copied!</span>}
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {plusCode && (
-                    <p className="text-sm text-gray-400 mt-2 mb-6">
-                      Plus Code: <strong className="text-gray-200 bg-[#1a2820] px-2 py-0.5 rounded ml-1">{plusCode}</strong>
-                    </p>
-                  )}
-                  
-                  <div className="flex flex-col gap-3 mt-4">
-                    <a 
-                      href="https://github.com/bitarkik/Inko/releases/latest/download/PrintPanda-Agent-Setup.exe" 
-                      className="w-full min-h-[46px] flex items-center justify-center border-0 rounded-[10px] bg-[#0b7250] text-white font-bold hover:bg-[#095f43] transition-colors"
-                    >
-                      <svg className="mr-2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                      {t.downloadAgent}
-                    </a>
-                    <button 
-                      onClick={() => window.location.href = '/partner'} 
-                      type="button" 
-                      className="close-modal !bg-[#152019] border border-[#2c3d33] !text-[#edf7f0]"
-                    >
-                      {t.goToDashboard}
-                    </button>
-                  </div>
-                </>
+                </div>
+              </div>
+              
+              {plusCode && (
+                <p className="text-sm text-gray-400 mt-2 mb-6">
+                  Plus Code: <strong className="text-gray-200 bg-[#1a2820] px-2 py-0.5 rounded ml-1">{plusCode}</strong>
+                </p>
               )}
+              
+              <div className="flex flex-col gap-3 mt-4">
+                <a 
+                  href="https://github.com/bitarkik/Inko/releases/latest/download/PrintPanda-Agent-Setup.exe" 
+                  className="w-full min-h-[46px] flex items-center justify-center border-0 rounded-[10px] bg-[#0b7250] text-white font-bold hover:bg-[#095f43] transition-colors"
+                >
+                  <svg className="mr-2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  {t.downloadAgent}
+                </a>
+                <button 
+                  onClick={() => window.location.href = '/partner'} 
+                  type="button" 
+                  className="close-modal !bg-[#152019] border border-[#2c3d33] !text-[#edf7f0]"
+                >
+                  {t.goToDashboard}
+                </button>
+              </div>
             </div>
           </div>
         )}
