@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Store, MapPin, Banknote, CheckCircle, Clock, List, Map } from "lucide-react";
 import dynamic from "next/dynamic";
 
@@ -16,14 +16,35 @@ export default function PartnerSignup() {
     city: "",
     area: "",
     basePrice: "2",
-    openTime: "09:00 AM",
-    closeTime: "06:00 PM",
+    openTime: "09:00",
+    closeTime: "18:00",
     services: "B&W Print, Color Print",
   });
   
   const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [locationName, setLocationName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successId, setSuccessId] = useState<string | null>(null);
+
+  // Reverse geocode when map pin changes
+  useEffect(() => {
+    if (location) {
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.lat}&lon=${location.lng}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.address) {
+            setLocationName(data.display_name || "");
+            setFormData(prev => ({
+              ...prev,
+              address: data.display_name || prev.address,
+              city: data.address.city || data.address.town || data.address.state || prev.city,
+              area: data.address.suburb || data.address.neighbourhood || data.address.county || prev.area
+            }));
+          }
+        })
+        .catch(err => console.error("Geocoding error:", err));
+    }
+  }, [location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,7 +148,7 @@ export default function PartnerSignup() {
                         value={formData.name}
                         onChange={(e) => setFormData({...formData, name: e.target.value})}
                         placeholder="e.g. Mike's Print Shop"
-                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                       />
                     </div>
                   </div>
@@ -146,7 +167,7 @@ export default function PartnerSignup() {
                         value={formData.basePrice}
                         onChange={(e) => setFormData({...formData, basePrice: e.target.value})}
                         placeholder="e.g. 2"
-                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                       />
                     </div>
                   </div>
@@ -165,7 +186,7 @@ export default function PartnerSignup() {
                         value={formData.services}
                         onChange={(e) => setFormData({...formData, services: e.target.value})}
                         placeholder="B&W Print, Color Print"
-                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                       />
                     </div>
                   </div>
@@ -179,11 +200,10 @@ export default function PartnerSignup() {
                         </div>
                         <input
                           required
-                          type="text"
+                          type="time"
                           value={formData.openTime}
                           onChange={(e) => setFormData({...formData, openTime: e.target.value})}
-                          placeholder="09:00 AM"
-                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                         />
                       </div>
                     </div>
@@ -191,11 +211,10 @@ export default function PartnerSignup() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Close Time</label>
                       <input
                         required
-                        type="text"
+                        type="time"
                         value={formData.closeTime}
                         onChange={(e) => setFormData({...formData, closeTime: e.target.value})}
-                        placeholder="06:00 PM"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                       />
                     </div>
                   </div>
@@ -220,7 +239,7 @@ export default function PartnerSignup() {
                           value={formData.address}
                           onChange={(e) => setFormData({...formData, address: e.target.value})}
                           placeholder="e.g. 123 Main St, Dhaka"
-                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                         />
                       </div>
                     </div>
@@ -234,7 +253,7 @@ export default function PartnerSignup() {
                           value={formData.city}
                           onChange={(e) => setFormData({...formData, city: e.target.value})}
                           placeholder="City"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                         />
                       </div>
                       <div>
@@ -245,7 +264,7 @@ export default function PartnerSignup() {
                           value={formData.area}
                           onChange={(e) => setFormData({...formData, area: e.target.value})}
                           placeholder="Area"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                         />
                       </div>
                     </div>
@@ -258,9 +277,10 @@ export default function PartnerSignup() {
                     </label>
                     <MapPicker onLocationSelect={(lat, lng) => setLocation({lat, lng})} />
                     {location && (
-                      <p className="text-xs text-green-600 mt-2 font-mono bg-green-50 p-2 rounded border border-green-100">
-                        GPS Captured: {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
-                      </p>
+                      <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-xs text-green-700 font-semibold mb-1">Location Captured Successfully!</p>
+                        <p className="text-xs text-green-600 leading-snug">{locationName || `Lat: ${location.lat.toFixed(5)}, Lng: ${location.lng.toFixed(5)}`}</p>
+                      </div>
                     )}
                   </div>
                 </div>

@@ -70,7 +70,7 @@ export default function PartnerDashboard() {
                 value={storeIdInput}
                 onChange={(e) => setStoreIdInput(e.target.value)}
                 placeholder="e.g. ABC123XYZ789"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase text-gray-900"
               />
               {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
             </div>
