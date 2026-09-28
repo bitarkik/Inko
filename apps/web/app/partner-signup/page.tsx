@@ -483,7 +483,7 @@ export default function PartnerSignup() {
                 )}
               </div>
               <div className="map-frame">
-                <MapPicker onLocationSelect={handleLocationSelect} targetPosition={mapTarget} />
+                <MapPicker onLocationSelect={handleLocationSelect} targetPosition={mapTarget} isActive={currentStep === 1} />
                 <div className="map-chip">
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s7-5.1 7-11a7 7 0 1 0-14 0c0 5.9 7 11 7 11Z" stroke="currentColor" strokeWidth="2"/><circle cx="12" cy="10" r="2.3" stroke="currentColor" strokeWidth="2"/></svg>
                   <span>{location ? `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}` : t.mapHint}</span>

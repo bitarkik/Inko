@@ -30,7 +30,7 @@ function LocationMarker({ position, setPosition }: { position: L.LatLng | null, 
   );
 }
 
-function MapController({ center }: { center: L.LatLng | null }) {
+function MapController({ center, isActive }: { center: L.LatLng | null, isActive?: boolean }) {
   const map = useMap();
   useEffect(() => {
     if (center) {
@@ -40,19 +40,23 @@ function MapController({ center }: { center: L.LatLng | null }) {
   
   useEffect(() => {
     // Fix leaflet grey box issue when rendering inside dynamic containers
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 250);
-  }, [map]);
+    if (isActive !== false) {
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 50);
+    }
+  }, [map, isActive]);
   return null;
 }
 
 export default function MapPicker({ 
   onLocationSelect,
-  targetPosition
+  targetPosition,
+  isActive = true
 }: { 
   onLocationSelect: (lat: number, lng: number) => void;
   targetPosition?: { lat: number, lng: number } | null;
+  isActive?: boolean;
 }) {
   const [position, setPosition] = useState<L.LatLng | null>(null);
   const [isLocating, setIsLocating] = useState(false);
@@ -114,7 +118,7 @@ export default function MapPicker({
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <LocationMarker position={position} setPosition={setPosition} />
-          <MapController center={position} />
+          <MapController center={position} isActive={isActive} />
         </MapContainer>
       </div>
       <p className="text-xs text-gray-500 text-center">You can also click on the map to place a pin manually.</p>
