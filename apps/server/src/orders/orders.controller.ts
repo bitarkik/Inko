@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, Patch, Get, UseInterceptors, UploadedFile, Res, StreamableFile, NotFoundException, Query, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, Param, Patch, Get, UseInterceptors, UploadedFile, Res, NotFoundException, Query, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -6,9 +6,9 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import type { Response } from 'express';
 import { createReadStream } from 'fs';
 import { join } from 'path';
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import multerS3 from 'multer-s3';
+import { memoryStorage } from 'multer';
 
 // Initialize S3 client for Cloudflare R2
 const s3 = new S3Client({
@@ -18,6 +18,7 @@ const s3 = new S3Client({
     accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
   },
+  requestHandler: undefined,
 });
 
 @Controller('orders')
@@ -26,29 +27,34 @@ export class OrdersController {
 
   @Post()
   @UseInterceptors(FileInterceptor('document', {
-    storage: multerS3({
-      s3: s3,
-      bucket: process.env.R2_BUCKET_NAME || 'printpanda-uploads',
-      key: function (req: any, file: any, cb: any) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'orders/' + uniqueSuffix + '-' + file.originalname);
-      }
-    })
+    storage: memoryStorage(),
+    limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max
   }))
   async createOrder(
-    @UploadedFile() file: any,
+    @UploadedFile() file: Express.Multer.File,
     @Body() createOrderDto: CreateOrderDto,
   ) {
+    if (!file) {
+      throw new BadRequestException('No document file uploaded');
+    }
+
     try {
-      console.log('[DEBUG] File received:', JSON.stringify(file));
-      console.log('[DEBUG] DTO received:', JSON.stringify(createOrderDto));
-      if (!file) {
-        throw new Error('No file uploaded — multer-s3 did not attach a file object');
-      }
-      return await this.ordersService.createOrder(createOrderDto, file.key || file.location);
+      // Upload buffer to R2 manually
+      const key = `orders/${Date.now()}-${Math.round(Math.random() * 1e9)}-${file.originalname}`;
+      console.log('[R2] Uploading file to key:', key);
+
+      await s3.send(new PutObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME || 'printpanda-uploads',
+        Key: key,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      }));
+
+      console.log('[R2] Upload successful');
+      return this.ordersService.createOrder(createOrderDto, key);
     } catch (err: any) {
-      console.error('[ERROR] createOrder failed:', err?.message, err?.stack);
-      throw err;
+      console.error('[R2] Upload failed:', err?.message, err?.code);
+      throw new InternalServerErrorException('Failed to upload document: ' + err?.message);
     }
   }
 
