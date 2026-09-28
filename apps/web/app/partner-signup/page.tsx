@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Store, MapPin, Banknote, CheckCircle, Clock, List, Map } from "lucide-react";
 import dynamic from "next/dynamic";
 
@@ -25,6 +25,13 @@ export default function PartnerSignup() {
   const [locationName, setLocationName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successId, setSuccessId] = useState<string | null>(null);
+
+  const handleLocationSelect = useCallback((lat: number, lng: number) => {
+    setLocation(prev => {
+      if (prev?.lat === lat && prev?.lng === lng) return prev;
+      return { lat, lng };
+    });
+  }, []);
 
   // Reverse geocode when map pin changes (Debounced to prevent API rate limits)
   useEffect(() => {
@@ -291,7 +298,7 @@ export default function PartnerSignup() {
                       <Map size={16} className="mr-1 text-gray-500" />
                       GPS Map Location
                     </label>
-                    <MapPicker onLocationSelect={(lat, lng) => setLocation({lat, lng})} />
+                    <MapPicker onLocationSelect={handleLocationSelect} />
                     {location && (
                       <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                         <p className="text-xs text-green-700 font-semibold mb-1">Location Captured Successfully!</p>
