@@ -14,6 +14,10 @@ import { memoryStorage } from 'multer';
 const s3 = new S3Client({
   region: 'auto',
   endpoint: process.env.R2_ENDPOINT,
+  // R2's edge has no TLS cert for <bucket>.<account>.r2.cloudflarestorage.com,
+  // so virtual-hosted-style URLs fail the TLS handshake (alert 40).
+  // Path style keeps the hostname at <account>.r2.cloudflarestorage.com.
+  forcePathStyle: true,
   credentials: {
     accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
