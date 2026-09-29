@@ -50,7 +50,7 @@ function saveConfig(data: any) {
   }
 }
 
-// PrintPanda Agent State
+// PrintIt by Inko Agent State
 const initialConfig = loadConfig();
 let storeId: string | null = initialConfig.storeId || null;
 let isPolling = false;
@@ -323,7 +323,7 @@ function createWindow() {
   win = new BrowserWindow({
     width: 1200,
     height: 800,
-    title: `PrintPanda Agent v${app.getVersion()}`,
+    title: `PrintIt by Inko Agent v${app.getVersion()}`,
     icon: path.join(process.env.VITE_PUBLIC, 'vite.svg'),
     autoHideMenuBar: true, 
     webPreferences: {

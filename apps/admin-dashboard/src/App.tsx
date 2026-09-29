@@ -217,7 +217,7 @@ export default function App() {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 11 11 13 15 9"/><path d="M5 4h14v16H5z"/><path d="M9 4V2h6v2"/></svg><span>Approvals</span><span className="count">{applications.length}</span>
           </button>
         </nav>
-        <div className="sidebar-foot"><b>Live operations view</b><br/>Data from PrintPanda API</div>
+        <div className="sidebar-foot"><b>Live operations view</b><br/>Data from PrintIt by Inko API</div>
       </aside>
 
       <main className="main">

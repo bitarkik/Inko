@@ -74,14 +74,14 @@ export class StoresService {
         resend.emails.send({
           from: 'hello@printitbyinko.com',
           to: store.email,
-          subject: 'Application Received - PrintPanda Partner',
+          subject: 'Application Received - PrintIt by Inko Partner',
           html: `
             <h3>Application Received!</h3>
             <p>Hi ${store.ownerName},</p>
             <p>We have received your application for <strong>${store.name}</strong>.</p>
             <p>Your Store ID is: <strong>${store.id}</strong></p>
-            <p>While we review your application, please download and install the PrintPanda Agent on your store's computer:</p>
-            <p><a href="https://github.com/bitarkik/Inko/releases/latest/download/PrintPanda-Agent-Setup.exe">Download PrintPanda Agent</a></p>
+            <p>While we review your application, please download and install the PrintIt by Inko Agent on your store's computer:</p>
+            <p><a href="https://github.com/bitarkik/Inko/releases/latest/download/PrintIt-by-Inko-Agent-Setup.exe">Download PrintIt by Inko Agent</a></p>
             <p><strong>Setup Steps:</strong></p>
             <ol>
               <li>Install the agent.</li>

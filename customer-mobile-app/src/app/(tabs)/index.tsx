@@ -163,7 +163,7 @@ export default function HomeScreen() {
   const renderHeader = () => (
     <>
         <View style={styles.topline}>
-          <Text style={styles.wordmark}>PrintPanda</Text>
+          <Text style={styles.wordmark}>PrintIt by Inko</Text>
           <TouchableOpacity style={styles.langBtn} onPress={toggleLang}>
             <Text style={styles.langText}>
               {lang === 'en' ? <Text style={styles.activeLang}>EN</Text> : 'EN'} / {lang === 'bn' ? <Text style={styles.activeLang}>বাংলা</Text> : 'বাংলা'}

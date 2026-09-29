@@ -15,7 +15,7 @@ const dmMono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PrintPanda - Print from anywhere",
+  title: "PrintIt by Inko - Print from anywhere",
   description: "Skip the queue. Print, pay, pick up.",
 };
 

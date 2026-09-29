@@ -121,7 +121,7 @@ export default function LandingPage() {
           {/* Left: Pitch */}
           <div>
             <div className="inline-flex items-center gap-2 text-[var(--green)] font-bold text-sm mb-4 sm:mb-5 before:content-[''] before:w-6 before:h-0.5 before:bg-current">
-              PrintPanda · print from anywhere
+              PrintIt by Inko · print from anywhere
             </div>
             
             <h1 className="text-[clamp(40px,5.4vw,74px)] leading-[1.02] tracking-tight mb-5 sm:mb-[22px] max-w-[680px] font-extrabold">
@@ -417,7 +417,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="max-w-[1240px] mx-auto px-5 sm:px-7 border-t border-[var(--line)] pt-7 pb-4 flex flex-col sm:flex-row justify-between text-[var(--muted)] text-[13px] font-medium gap-2">
-        <span>PrintPanda · browser-based printing for Bangladesh</span>
+        <span>PrintIt by Inko · browser-based printing for Bangladesh</span>
         <span>Counter pickup first · Delivery later</span>
       </footer>
 

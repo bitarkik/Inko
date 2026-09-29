@@ -104,7 +104,7 @@ export default function OrdersScreen() {
               onPress={() => router.push({ pathname: `/order/${order.id}`, params: { payment: order.paymentMethod } })}
             >
               <View style={styles.orderHeader}>
-                <Text style={styles.storeName}>{order.store?.name || 'PrintPanda Shop'}</Text>
+                <Text style={styles.storeName}>{order.store?.name || 'PrintIt by Inko Shop'}</Text>
                 <View style={[styles.statusBadge, order.status === 'CANCELLED' && { backgroundColor: theme.colors.redBg }]}>
                   <Text style={[styles.statusText, order.status === 'CANCELLED' && { color: theme.colors.red }]}>
                     {getStatusText(order.status)}

@@ -118,7 +118,7 @@ export default function OrderTrackerScreen() {
         <View style={styles.trackerCard}>
           <View style={styles.trackerTop}>
             <View>
-              <Text style={styles.trackerShop}>PrintPanda Partner</Text>
+              <Text style={styles.trackerShop}>PrintIt by Inko Partner</Text>
               <Text style={styles.trackerMeta}>{order.totalPages} pages · ৳{order.totalPrice}</Text>
             </View>
             <View style={styles.orderIdBadge}>

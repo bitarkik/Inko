@@ -6,7 +6,7 @@ type Language = 'en' | 'bn';
 
 const i18n = {
   en: {
-    brand: "PrintPanda",
+    brand: "PrintIt by Inko",
     ordersQueue: "Orders Queue",
     completed: "Completed",
     activity: "Activity",
@@ -666,7 +666,7 @@ export default function App() {
             {setupStep === 1 && (
               <div id="setupFormState">
                 <div className="modal-top">
-                  <div><h2>{t.connectShop}</h2><p>Enter the store ID from your PrintPanda merchant dashboard.</p></div>
+                  <div><h2>{t.connectShop}</h2><p>Enter the store ID from your PrintIt by Inko merchant dashboard.</p></div>
                   <button className="close-btn" onClick={() => setIsModalOpen(false)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
                 </div>
                 <div className="setup-steps"><span className="active"></span><span></span><span></span></div>

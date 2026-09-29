@@ -1,7 +1,7 @@
-# PrintPanda 🐼🖨️ 
+# PrintIt by Inko 🐼🖨️ 
 > A Multi-Tenant, Print-on-Demand Marketplace Platform
 
-PrintPanda is a distributed, multi-tenant marketplace designed to connect local print shops with customers. Built with a modern microservices-inspired architecture, the platform handles dynamic file uploads, distributed document queues, and secure hardware-level printing execution across multiple geographic locations.
+PrintIt by Inko is a distributed, multi-tenant marketplace designed to connect local print shops with customers. Built with a modern microservices-inspired architecture, the platform handles dynamic file uploads, distributed document queues, and secure hardware-level printing execution across multiple geographic locations.
 
 ## 🏗 Architecture
 

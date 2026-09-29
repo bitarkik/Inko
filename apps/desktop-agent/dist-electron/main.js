@@ -20028,7 +20028,7 @@ function tu() {
 	Rl = new t({
 		width: 1200,
 		height: 800,
-		title: `PrintPanda Agent v${n.getVersion()}`,
+		title: `PrintIt by Inko Agent v${n.getVersion()}`,
 		icon: y.join(process.env.VITE_PUBLIC, "vite.svg"),
 		autoHideMenuBar: !0,
 		webPreferences: {

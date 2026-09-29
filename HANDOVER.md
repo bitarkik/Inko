@@ -1,7 +1,7 @@
-# PrintPanda Project Handover Document
+# PrintIt by Inko Project Handover Document
 
 ## Project Context
-PrintPanda is an on-demand document printing platform that connects mobile users to local print shops. Users can select documents, configure print settings (color, copies, paper size), find nearby shops, and place an order. Shop owners use a Desktop Agent to receive and print these orders automatically.
+PrintIt by Inko is an on-demand document printing platform that connects mobile users to local print shops. Users can select documents, configure print settings (color, copies, paper size), find nearby shops, and place an order. Shop owners use a Desktop Agent to receive and print these orders automatically.
 
 ### Architecture Overview
 The project is a monorepo containing three main applications:

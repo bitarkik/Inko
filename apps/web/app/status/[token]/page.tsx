@@ -54,7 +54,7 @@ export default function StatusTrackerPage() {
       {/* Topbar */}
       <header className="max-w-[700px] w-full mx-auto px-5 sm:px-7 min-h-[72px] flex items-center justify-between border-b border-[var(--line)]">
         <div className="font-[family:var(--font-dm-mono)] font-bold text-sm tracking-wide text-[var(--green)]">
-          PrintPanda
+          PrintIt by Inko
         </div>
         <button 
           onClick={() => router.push("/")}

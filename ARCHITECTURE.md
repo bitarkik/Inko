@@ -1,4 +1,4 @@
-# Inko / PrintPanda Architecture & Context
+# Inko / PrintIt by Inko Architecture & Context
 
 This document provides a high-level overview of the entire Print-on-Demand marketplace ecosystem to help agents get up to speed quickly.
 

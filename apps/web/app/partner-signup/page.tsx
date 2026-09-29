@@ -300,7 +300,7 @@ export default function PartnerSignup() {
       successTitle: 'Store Created!',
       successText: "Application received! We'll review it and notify you on WhatsApp, usually within 24 hours.",
       yourStoreKey: 'YOUR STORE KEY',
-      downloadAgent: 'Download PrintPanda Agent (.exe)',
+      downloadAgent: 'Download PrintIt by Inko Agent (.exe)',
       goToDashboard: 'Go to Partner Dashboard'
     },
     bn: {
