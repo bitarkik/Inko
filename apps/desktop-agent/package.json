@@ -1,61 +1,61 @@
-﻿{
-    "name":  "desktop-agent",
-    "private":  true,
-    "version":  "2.1.10",
-    "type":  "module",
-    "main":  "dist-electron/main.js",
-    "repository":  "https://github.com/bitarkik/Inko",
-    "scripts":  {
-                    "dev":  "vite",
-                    "build":  "tsc -b \u0026\u0026 vite build \u0026\u0026 electron-builder",
-                    "build:publish":  "tsc -b \u0026\u0026 vite build \u0026\u0026 electron-builder -p always",
-                    "lint":  "oxlint",
-                    "preview":  "vite preview"
-                },
-    "build":  {
-                  "appId":  "com.printpanda.agent",
-                  "productName":  "PrintIt by Inko Agent",
-                  "artifactName":  "PrintIt-by-Inko-Agent-Setup.${ext}",
-                  "directories":  {
-                                      "output":  "release/"
-                                  },
-                  "win":  {
-                              "target":  [
-                                             "nsis"
-                                         ]
-                          },
-                  "publish":  [
-                                  {
-                                      "provider":  "github",
-                                      "owner":  "bitarkik",
-                                      "repo":  "Inko"
-                                  }
-                              ],
-                  "files":  [
-                                "dist/**/*",
-                                "dist-electron/**/*"
-                            ]
-              },
-    "dependencies":  {
-                         "axios":  "^1.20.0",
-                         "electron-updater":  "^6.3.9",
-                         "pdfjs-dist":  "^6.3.289",
-                         "react":  "^19.2.8",
-                         "react-dom":  "^19.2.8"
-                     },
-    "devDependencies":  {
-                            "@types/node":  "^24.13.3",
-                            "@types/react":  "^19.2.18",
-                            "@types/react-dom":  "^19.2.4",
-                            "@vitejs/plugin-react":  "^6.1.0",
-                            "concurrently":  "^10.0.5",
-                            "electron":  "^44.2.0",
-                            "electron-builder":  "^26.15.3",
-                            "oxlint":  "^1.79.0",
-                            "typescript":  "~6.0.2",
-                            "vite":  "^8.2.2",
-                            "vite-plugin-electron":  "^1.1.2",
-                            "vite-plugin-electron-renderer":  "^1.0.0",
-                            "wait-on":  "^9.1.0"
-                        }
+{
+  "name": "desktop-agent",
+  "private": true,
+  "version": "2.1.10",
+  "type": "module",
+  "main": "dist-electron/main.js",
+  "repository": "https://github.com/bitarkik/Inko",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && electron-builder",
+    "build:publish": "tsc -b && vite build && electron-builder -p always",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "build": {
+    "appId": "com.printpanda.agent",
+    "productName": "PrintIt by Inko Agent",
+    "artifactName": "PrintIt-by-Inko-Agent-Setup.${ext}",
+    "directories": {
+      "output": "release/"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "bitarkik",
+        "repo": "Inko"
+      }
+    ],
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ]
+  },
+  "dependencies": {
+    "axios": "^1.20.0",
+    "electron-updater": "^6.3.9",
+    "pdfjs-dist": "^6.3.289",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "concurrently": "^10.0.5",
+    "electron": "^44.2.0",
+    "electron-builder": "^26.15.3",
+    "oxlint": "^1.79.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.2",
+    "vite-plugin-electron": "^1.1.2",
+    "vite-plugin-electron-renderer": "^1.0.0",
+    "wait-on": "^9.1.0"
+  }
 }
