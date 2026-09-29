@@ -21,6 +21,10 @@ export class OrdersService {
       throw new NotFoundException(`Store with ID ${createOrderDto.storeId} not found`);
     }
     
+    if (store.status !== 'ACTIVE') {
+      throw new Error('This shop is pending approval and cannot accept orders yet.');
+    }
+
     if (!store.isAcceptingOrders) {
       throw new Error('Sorry, this shop is not accepting orders right now.');
     }

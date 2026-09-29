@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Query } from '@nestjs/common';
 import { StoresService } from './stores.service';
 import { CreateStoreDto } from './create-store.dto';
 
@@ -14,6 +14,11 @@ export class StoresController {
   @Post()
   create(@Body() data: CreateStoreDto) {
     return this.storesService.create(data);
+  }
+
+  @Get('status')
+  checkStatus(@Query('storeId') storeId: string, @Query('phone') phone: string) {
+    return this.storesService.checkStatus(storeId, phone);
   }
 
   @Get(':storeId/dashboard')

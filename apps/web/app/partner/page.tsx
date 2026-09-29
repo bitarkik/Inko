@@ -11,6 +11,10 @@ export default function PartnerDashboard() {
   const [activeStoreId, setActiveStoreId] = useState("");
   const [error, setError] = useState("");
 
+  const [phoneInput, setPhoneInput] = useState("");
+  const [view, setView] = useState<"login" | "status">("login");
+  const [statusResult, setStatusResult] = useState<{ status: string } | null>(null);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (storeIdInput.trim().length !== 12) {
@@ -20,6 +24,38 @@ export default function PartnerDashboard() {
     setError("");
     setActiveStoreId(storeIdInput.trim());
     setIsLoggedIn(true);
+  };
+
+  const handleCheckStatus = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (storeIdInput.trim().length !== 12) {
+      setError("Store ID must be exactly 12 characters long.");
+      return;
+    }
+    if (!phoneInput.trim()) {
+      setError("Phone number is required.");
+      return;
+    }
+    
+    setError("");
+    setIsLoading(true);
+    setStatusResult(null);
+    
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const res = await fetch(`${apiUrl}/stores/status?storeId=${storeIdInput.trim()}&phone=${encodeURIComponent(phoneInput.trim())}`);
+      if (res.ok) {
+        const json = await res.json();
+        setStatusResult(json);
+      } else {
+        if (res.status === 404) setError("Application not found. Check your Store ID and Phone number.");
+        else setError("Error checking status.");
+      }
+    } catch (e) {
+      setError("Network error.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -58,29 +94,90 @@ export default function PartnerDashboard() {
             <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
               <Printer size={24} />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Partner Login</h1>
-            <p className="text-gray-500 mt-1">Enter your 12-character Store ID to view your dashboard.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{view === 'login' ? 'Partner Login' : 'Application Status'}</h1>
+            <p className="text-gray-500 mt-1">
+              {view === 'login' 
+                ? 'Enter your 12-character Store ID to view your dashboard.' 
+                : 'Enter your Store ID and registered Phone Number to check your approval status.'}
+            </p>
           </div>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Store ID</label>
-              <input
-                type="text"
-                maxLength={12}
-                value={storeIdInput}
-                onChange={(e) => setStoreIdInput(e.target.value)}
-                placeholder="e.g. ABC123XYZ789"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase text-gray-900"
-              />
-              {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
-            </div>
-            <button
-              type="submit"
-              className="w-full font-bold py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors"
-            >
-              Access Dashboard
-            </button>
-          </form>
+          
+          {view === 'login' ? (
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Store ID</label>
+                <input
+                  type="text"
+                  maxLength={12}
+                  value={storeIdInput}
+                  onChange={(e) => setStoreIdInput(e.target.value)}
+                  placeholder="e.g. ABC123XYZ789"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase text-gray-900"
+                />
+                {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+              </div>
+              <button
+                type="submit"
+                className="w-full font-bold py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors"
+              >
+                Access Dashboard
+              </button>
+              <div className="text-center mt-4">
+                <button type="button" onClick={() => { setView('status'); setError(""); setStatusResult(null); }} className="text-blue-600 text-sm hover:underline">
+                  Check application status
+                </button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleCheckStatus} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Store ID</label>
+                <input
+                  type="text"
+                  maxLength={12}
+                  value={storeIdInput}
+                  onChange={(e) => setStoreIdInput(e.target.value)}
+                  placeholder="e.g. ABC123XYZ789"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase text-gray-900"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Registered Phone</label>
+                <input
+                  type="tel"
+                  value={phoneInput}
+                  onChange={(e) => setPhoneInput(e.target.value)}
+                  placeholder="e.g. +8801700000000"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                />
+                {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+              </div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full font-bold py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors disabled:opacity-50"
+              >
+                {isLoading ? "Checking..." : "Check Status"}
+              </button>
+              
+              {statusResult && (
+                <div className={`mt-4 p-4 rounded-lg border ${statusResult.status === 'ACTIVE' ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
+                  <h3 className="font-bold text-gray-900 text-center text-lg mb-1">Status: {statusResult.status}</h3>
+                  <p className="text-sm text-center text-gray-600">
+                    {statusResult.status === 'ACTIVE' 
+                      ? 'Your store is approved and active!' 
+                      : 'Your application is currently under review.'}
+                  </p>
+                </div>
+              )}
+
+              <div className="text-center mt-4">
+                <button type="button" onClick={() => { setView('login'); setError(""); setStatusResult(null); }} className="text-gray-500 text-sm hover:underline">
+                  &larr; Back to Login
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     );

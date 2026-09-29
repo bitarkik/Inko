@@ -46,6 +46,7 @@ model Store {
   plusCode          String?
   payoutMethod      String?
   payoutAccount     String?
+  status            String    @default("PENDING")
   isAcceptingOrders Boolean   @default(true)
   lastPingAt        DateTime?
   orders            Order[]

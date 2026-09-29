@@ -42,12 +42,28 @@ export class StoresService {
   }
 
   async findAll() {
-    return this.prisma.store.findMany();
+    return this.prisma.store.findMany({
+      where: { status: 'ACTIVE' }
+    });
+  }
+
+  async checkStatus(storeId: string, phone: string) {
+    const store = await this.prisma.store.findFirst({
+      where: { id: storeId, contactNumber: phone },
+      select: { status: true },
+    });
+    if (!store) {
+      throw new NotFoundException('Store not found or phone number does not match');
+    }
+    return store;
   }
 
   async create(data: any) {
     return this.prisma.store.create({
-      data,
+      data: {
+        ...data,
+        status: 'PENDING',
+      },
     });
   }
 

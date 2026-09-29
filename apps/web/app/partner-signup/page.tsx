@@ -298,7 +298,7 @@ export default function PartnerSignup() {
       registering: 'Registering...',
       close: 'Back to wizard',
       successTitle: 'Store Created!',
-      successText: 'Your store is now live on the network. Install the agent and use this Store Key to pair it.',
+      successText: "Application received! We'll review it and notify you on WhatsApp, usually within 24 hours.",
       yourStoreKey: 'YOUR STORE KEY',
       downloadAgent: 'Download PrintPanda Agent (.exe)',
       goToDashboard: 'Go to Partner Dashboard'
@@ -322,7 +322,7 @@ export default function PartnerSignup() {
       registering: 'রেজিস্টার হচ্ছে...',
       close: 'উইজার্ডে ফিরে যান',
       successTitle: 'স্টোর তৈরি হয়েছে!',
-      successText: 'আপনার দোকান এখন নেটওয়ার্কে লাইভ। এজেন্ট ইনস্টল করুন এবং পেয়ার করতে এই স্টোর কী ব্যবহার করুন।',
+      successText: 'আবেদন গৃহীত হয়েছে! আমরা এটি পর্যালোচনা করব এবং সাধারণত ২৪ ঘণ্টার মধ্যে হোয়াটসঅ্যাপে আপনাকে জানাব।',
       yourStoreKey: 'আপনার স্টোর কী',
       downloadAgent: 'প্রিন্টপান্ডা এজেন্ট (.exe) ডাউনলোড',
       goToDashboard: 'পার্টনার ড্যাশবোর্ডে যান'
