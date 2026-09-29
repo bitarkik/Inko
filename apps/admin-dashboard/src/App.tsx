@@ -7,6 +7,7 @@ interface StoreStat {
   createdAt: string;
   lastPingAt: string | null;
   isActive: boolean;
+  status: string;
   revenue: number;
   completedJobs: number;
 }
@@ -45,6 +46,21 @@ function App() {
     const interval = setInterval(fetchStats, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleApprove = async (storeId: string) => {
+    try {
+      const res = await fetch(`http://localhost:3001/admin/stores/${storeId}/approve`, {
+        method: 'PATCH'
+      });
+      if (res.ok) {
+        setStores(stores.map(s => s.id === storeId ? { ...s, status: 'ACTIVE' } : s));
+      } else {
+        alert("Failed to approve store.");
+      }
+    } catch (e) {
+      alert("Network error.");
+    }
+  };
 
   if (loading) {
     return <div className="flex h-screen items-center justify-center bg-gray-50 text-gray-500">Loading Master Dashboard...</div>;
@@ -123,11 +139,12 @@ function App() {
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Signup Date</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Jobs</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Revenue</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Approval</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
                   {stores.length === 0 ? (
-                    <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-500">No stores registered yet.</td></tr>
+                    <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">No stores registered yet.</td></tr>
                   ) : stores.map(store => (
                     <tr key={store.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{store.name}</td>
@@ -149,6 +166,18 @@ function App() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{store.completedJobs}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${store.revenue.toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {store.status === 'PENDING' ? (
+                          <button 
+                            onClick={() => handleApprove(store.id)}
+                            className="bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-blue-700"
+                          >
+                            Approve
+                          </button>
+                        ) : (
+                          <span className="text-green-600 font-medium text-xs bg-green-50 px-2 py-1 rounded">Active</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -47,6 +47,7 @@ export class AdminService {
         createdAt: store.createdAt,
         lastPingAt: store.lastPingAt,
         isActive,
+        status: store.status,
         revenue: storeRevenue,
         completedJobs: storeJobs,
       };
@@ -65,5 +66,14 @@ export class AdminService {
       topPerformers,
       allStores: storesStats,
     };
+  }
+
+  async approveStore(storeId: string) {
+    const store = await this.prisma.store.update({
+      where: { id: storeId },
+      data: { status: 'ACTIVE' },
+    });
+    // In the future: trigger email notification to store.email
+    return store;
   }
 }
