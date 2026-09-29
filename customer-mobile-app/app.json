@@ -21,7 +21,7 @@
       "package": "com.printpanda.app",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyBxyzJWyn86nbHH3za_Vn7Tgxs3wZA8TJk"
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
         }
       }
     },
@@ -39,7 +39,7 @@
           "imageWidth": 76
         }
       ],
-      ["react-native-maps", { "androidGoogleMapsApiKey": "AIzaSyBxyzJWyn86nbHH3za_Vn7Tgxs3wZA8TJk" }]
+      ["react-native-maps", { "androidGoogleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY" }]
     ],
     "experiments": {
       "typedRoutes": true,
