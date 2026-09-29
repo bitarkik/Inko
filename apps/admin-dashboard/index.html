@@ -476,9 +476,30 @@
     ['orderSearch','orderStatus','orderStore'].forEach(id=>document.getElementById(id).addEventListener(id==='orderSearch'?'input':'change',renderOrders));
 
     function renderApprovals(){
+      const countEl = document.querySelector('[data-page="approvals"] .count');
+      if (countEl) countEl.textContent = applications.length;
+      
+      const bannerText = document.querySelector('#approvals .status-banner b');
+      if (bannerText) bannerText.textContent = applications.length + ' applications need a decision.';
+
       const grid=document.getElementById('approvalGrid');
-      grid.innerHTML=applications.map(a=>'<article class="panel approval-card" data-app="'+a.id+'"><div class="approval-top"><div><h3>'+a.name+'</h3><div class="owner">'+a.owner+' · '+a.id+'</div></div>'+statusTag('Pending')+'</div><div class="approval-meta"><div class="fact"><small>Area</small><b>'+a.area+'</b></div><div class="fact"><small>Submitted</small><b>'+a.submitted+'</b></div><div class="fact"><small>Hardware</small><b>'+a.hardware+'</b></div><div class="fact"><small>Documents</small><b>'+a.docs+'</b></div></div><div class="approval-actions"><button class="secondary-btn review-app">Review file</button><button class="primary-btn approve-app">Approve store</button></div></article>').join('');
+      grid.innerHTML=applications.map(a=>'<article class="panel approval-card" data-app="'+a.id+'"><div class="approval-top"><div><h3>'+a.name+'</h3><div class="owner">'+a.owner+' · '+a.id+'</div></div>'+statusTag('Pending')+'</div><div class="approval-meta"><div class="fact"><small>Area</small><b>'+a.area+'</b></div><div class="fact"><small>Submitted</small><b>'+a.submitted+'</b></div><div class="fact"><small>Hardware</small><b>'+a.hardware+'</b></div><div class="fact"><small>Documents</small><b>'+a.docs+'</b></div></div><div class="approval-actions"><button class="secondary-btn review-app">Review file</button><button class="primary-btn approve-app" onclick="approveApp(\''+a.id+'\')">Approve store</button></div></article>').join('');
     }
+
+    window.approveApp = async function(id) {
+      if(!confirm("Are you sure you want to approve this store?")) return;
+      try {
+        const res = await fetch('https://printpanda-api.onrender.com/admin/stores/'+id+'/approve', { method: 'PATCH' });
+        if(res.ok) {
+          toast('Store approved!');
+          fetchLiveData();
+        } else {
+          toast('Failed to approve store.');
+        }
+      } catch(e) {
+        toast('Network error.');
+      }
+    };
     
     let currentStore=null;
     function openStore(id,tab){
@@ -532,7 +553,20 @@
         document.getElementById('kpi-live-stores').textContent = data.allStores.filter(s => s.isActive).length + ' ready';
         document.getElementById('kpi-offline-stores').textContent = data.allStores.filter(s => !s.isActive).length + ' offline';
         
-        stores = data.allStores.map((s, i) => ({
+        const activeStores = data.allStores.filter(s => s.status !== 'PENDING');
+        const pendingStores = data.allStores.filter(s => s.status === 'PENDING');
+        
+        applications = pendingStores.map((a, i) => ({
+          id: a.id,
+          name: a.name,
+          owner: a.ownerName || 'N/A',
+          area: a.address,
+          submitted: new Date(a.createdAt).toLocaleDateString(),
+          hardware: 'Printers',
+          docs: 'Pending'
+        }));
+
+        stores = activeStores.map((s, i) => ({
           id: s.id,
           name: s.name,
           owner: s.ownerName || 'N/A',
