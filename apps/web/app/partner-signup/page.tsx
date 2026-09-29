@@ -258,8 +258,18 @@ export default function PartnerSignup() {
     if (currentStep < 2) {
       setCurrentStep(prev => prev + 1);
     } else {
+      if (!formData.name || !formData.ownerName || !formData.contactNumber || !formData.email) {
+        alert(currentLang === 'bn' ? "অনুগ্রহ করে দোকানের প্রাথমিক তথ্য দিন (ধাপ ১)" : "Please fill in all shop details in Step 1.");
+        setCurrentStep(0);
+        return;
+      }
+      if (!formData.address || !formData.city || !formData.area || !location) {
+        alert(currentLang === 'bn' ? "অনুগ্রহ করে লোকেশন নিশ্চিত করুন (ধাপ ২)" : "Please confirm your location details in Step 2.");
+        setCurrentStep(1);
+        return;
+      }
       if (!formData.basePrice) {
-        alert("Please set a base price.");
+        alert(currentLang === 'bn' ? "অনুগ্রহ করে বেস প্রাইস দিন" : "Please set a base price.");
         return;
       }
       handleSubmit();
