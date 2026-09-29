@@ -20,7 +20,7 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 
 let win: BrowserWindow | null
 
-const API_URL = 'https://printpanda-api.onrender.com';
+const API_URL = 'https://api.printitbyinko.com';
 const POLL_INTERVAL_MS = 5000;
 const TEMP_DIR = path.join(app.getPath('userData'), 'temp-prints');
 const CONFIG_PATH = path.join(app.getPath('userData'), 'printpanda-config.json');

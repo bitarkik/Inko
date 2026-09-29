@@ -29,7 +29,7 @@ export default function App() {
 
   const fetchLiveData = async () => {
     try {
-      const res = await fetch('https://printpanda-api.onrender.com/admin/stats');
+      const res = await fetch('https://api.printitbyinko.com/admin/stats');
       const data = await res.json();
       
       const pStats = data.platformStats;
@@ -142,7 +142,7 @@ export default function App() {
   const approveApp = async (id: string) => {
     if (!window.confirm("Are you sure you want to approve this store?")) return;
     try {
-      const res = await fetch(`https://printpanda-api.onrender.com/admin/stores/${id}/approve`, { method: 'PATCH' });
+      const res = await fetch(`https://api.printitbyinko.com/admin/stores/${id}/approve`, { method: 'PATCH' });
       if (res.ok) {
         showToast('Store approved!');
         fetchLiveData();

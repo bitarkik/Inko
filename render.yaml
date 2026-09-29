@@ -1,7 +1,7 @@
 services:
   # 1. NestJS Cloud API
   - type: web
-    name: printpanda-api
+    name: printit-api
     env: node
     plan: free
     buildCommand: cd apps/server && npm install --include=dev && npx prisma generate && npm run build
