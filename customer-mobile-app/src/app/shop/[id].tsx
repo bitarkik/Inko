@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as DocumentPicker from 'expo-document-picker';
 import { theme } from '../../theme';
 import { useI18n } from '../../i18n';
 import { apiClient } from '../../api/client';
@@ -24,14 +25,19 @@ export default function ShopDetailsScreen() {
 
   const fetchStore = async () => {
     try {
-      // In a real app we'd fetch GET /stores/:id
-      // For now we fetch all and find, or just mock it if it fails
       const response = await apiClient.get('/stores');
       const found = response.data.find((s: any) => s.id === id);
       if (found) {
+        const metadata = STORE_METADATA[found.id] || {};
         setStore({
           ...found,
-          ...(STORE_METADATA[found.id] || { latitude: 23.7, longitude: 90.4, city: 'Unknown', area: 'Unknown', services: ['Printing'], openTime: '9 AM', closeTime: '8 PM' })
+          latitude: found.latitude ?? metadata.latitude ?? 23.7,
+          longitude: found.longitude ?? metadata.longitude ?? 90.4,
+          city: found.city || metadata.city || 'Unknown',
+          area: found.area || metadata.area || 'Unknown',
+          services: found.services?.length ? found.services : (metadata.services || []),
+          openTime: found.openTime || metadata.openTime || '9 AM',
+          closeTime: found.closeTime || metadata.closeTime || '8 PM',
         });
       }
     } catch (error) {
@@ -39,6 +45,15 @@ export default function ShopDetailsScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const pickDocumentAndOrder = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf', copyToCacheDirectory: true });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        router.push({ pathname: '/config', params: { uri: result.assets[0].uri, name: result.assets[0].name, storeId: id } });
+      }
+    } catch (error) { console.error(error); }
   };
 
   if (loading || !store) {
@@ -58,10 +73,14 @@ export default function ShopDetailsScreen() {
         <Text style={styles.headerTitle}>Shop Details</Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}>
         <View style={styles.mapContainer}>
           <MapView 
             style={styles.map}
+            provider={PROVIDER_GOOGLE}
+            pitchEnabled={false}
+            scrollEnabled={false}
+            zoomEnabled={false}
             initialRegion={{
               latitude: store.latitude,
               longitude: store.longitude,
@@ -99,6 +118,13 @@ export default function ShopDetailsScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom + 8, 16) }]}>
+        <TouchableOpacity style={styles.orderBtn} onPress={pickDocumentAndOrder}>
+          <Ionicons name="print" size={20} color="white" />
+          <Text style={styles.orderBtnText}>Print Here</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -125,7 +151,7 @@ const styles = StyleSheet.create({
   mapContainer: { height: 200, width: '100%' },
   map: { width: '100%', height: '100%' },
   
-  infoSection: { padding: 20, backgroundColor: theme.colors.card, marginTop: -20, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
+  infoSection: { padding: 20, backgroundColor: theme.colors.surface, marginTop: -20, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
   shopName: { fontSize: 22, fontWeight: '800', color: theme.colors.text, marginBottom: 4 },
   address: { fontSize: 14, color: theme.colors.text, marginBottom: 2 },
   region: { fontSize: 12, color: theme.colors.muted, marginBottom: 12 },
@@ -135,10 +161,27 @@ const styles = StyleSheet.create({
   
   sectionTitle: { fontSize: 16, fontWeight: '700', color: theme.colors.text, marginBottom: 12 },
   servicesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 },
-  serviceChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8 },
+  serviceChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8 },
   serviceText: { fontSize: 13, fontWeight: '600', color: theme.colors.text, marginLeft: 6 },
   
   priceCard: { backgroundColor: theme.colors.brandInk, padding: 20, borderRadius: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   priceLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: '600' },
-  priceValue: { color: 'white', fontSize: 18, fontWeight: '800' }
+  priceValue: { color: 'white', fontSize: 18, fontWeight: '800' },
+
+  bottomBar: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    backgroundColor: theme.colors.surface,
+    borderTopWidth: 1, borderTopColor: theme.colors.border,
+    padding: 16,
+  },
+  orderBtn: {
+    backgroundColor: theme.colors.brand,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+  },
+  orderBtnText: { color: 'white', fontSize: 16, fontWeight: '800' }
 });

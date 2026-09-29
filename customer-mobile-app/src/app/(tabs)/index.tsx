@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Platform, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Platform, TextInput, Modal, FlatList, TouchableWithoutFeedback } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Location from 'expo-location';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../theme';
@@ -21,6 +21,36 @@ const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => 
             Math.sin(dLon/2) * Math.sin(dLon/2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   return R * c;
+};
+
+const Dropdown = ({ label, value, options, onSelect }: { label: string, value: string | null, options: string[], onSelect: (val: string) => void }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <View style={{ flex: 1, marginRight: 8 }}>
+      <TouchableOpacity style={styles.dropdownBtn} onPress={() => setOpen(true)}>
+        <Text style={[styles.dropdownBtnText, !value && { color: theme.colors.muted }]}>{value || label}</Text>
+        <Ionicons name="chevron-down" size={14} color={theme.colors.muted} />
+      </TouchableOpacity>
+      <Modal visible={open} transparent animationType="fade">
+        <TouchableWithoutFeedback onPress={() => setOpen(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Select {label}</Text>
+              <FlatList 
+                data={options}
+                keyExtractor={item => item}
+                renderItem={({item}) => (
+                  <TouchableOpacity style={styles.modalOption} onPress={() => { onSelect(item); setOpen(false); }}>
+                    <Text style={[styles.modalOptionText, value === item && styles.modalOptionActive]}>{item}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+    </View>
+  );
 };
 
 export default function HomeScreen() {
@@ -69,10 +99,16 @@ export default function HomeScreen() {
   const fetchStores = async () => {
     try {
       const response = await apiClient.get('/stores');
-      const enrichedStores = response.data.map((store: any) => ({
-        ...store,
-        ...(STORE_METADATA[store.id] || { latitude: 23.7, longitude: 90.4, city: 'Unknown', area: 'Unknown' })
-      }));
+      const enrichedStores = response.data.map((store: any) => {
+        const metadata = STORE_METADATA[store.id] || {};
+        return {
+          ...store,
+          latitude: store.latitude ?? metadata.latitude ?? 23.7,
+          longitude: store.longitude ?? metadata.longitude ?? 90.4,
+          city: store.city || metadata.city || 'Unknown',
+          area: store.area || metadata.area || 'Unknown',
+        };
+      });
       setStores(enrichedStores);
     } catch (error) {
       console.error('Failed to fetch stores:', error);
@@ -124,14 +160,8 @@ export default function HomeScreen() {
     // displayedStores = displayedStores.slice(0, 5);
   }
 
-  return (
-    <View style={styles.container}>
-      <View style={{ height: Platform.OS === 'android' ? insets.top + 10 : 50 }} />
-      
-      <ScrollView 
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 80 }]}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      >
+  const renderHeader = () => (
+    <>
         <View style={styles.topline}>
           <Text style={styles.wordmark}>PrintPanda</Text>
           <TouchableOpacity style={styles.langBtn} onPress={toggleLang}>
@@ -146,19 +176,22 @@ export default function HomeScreen() {
           <Text style={styles.locationText}>{addressText}</Text>
         </View>
 
-        <Text style={styles.greeting}>{t('greeting')}</Text>
+        {viewMode === 'list' && (
+          <>
+            <Text style={styles.greeting}>{t('greeting')}</Text>
 
-        <View style={styles.hero}>
-          <Text style={styles.heroKicker}>{t('fast')}</Text>
-          <Text style={styles.heroTitle}>{t('quick')}</Text>
-          <Text style={styles.heroSub}>{t('formats')}</Text>
-          <TouchableOpacity style={styles.heroBtn} onPress={pickDocument}>
-            <Ionicons name="document-text" size={18} color={theme.colors.brandInk} />
-            <Text style={styles.heroBtnText}>{t('selectFile')}</Text>
-          </TouchableOpacity>
-        </View>
+            <View style={styles.hero}>
+              <Text style={styles.heroKicker}>{t('fast')}</Text>
+              <Text style={styles.heroTitle}>{t('quick')}</Text>
+              <Text style={styles.heroSub}>{t('formats')}</Text>
+              <TouchableOpacity style={styles.heroBtn} onPress={pickDocument}>
+                <Ionicons name="document-text" size={18} color={theme.colors.brandInk} />
+                <Text style={styles.heroBtnText}>{t('selectFile')}</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
         
-        {/* Search & Filters */}
         <View style={styles.searchBar}>
           <Ionicons name="search" size={18} color={theme.colors.muted} />
           <TextInput 
@@ -167,33 +200,19 @@ export default function HomeScreen() {
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-          {(selectedCity || searchQuery) && (
+          {(selectedCity || searchQuery) ? (
             <TouchableOpacity onPress={() => { setSelectedCity(null); setSelectedArea(null); setSearchQuery(''); }}>
               <Ionicons name="close-circle" size={18} color={theme.colors.muted} />
             </TouchableOpacity>
-          )}
+          ) : null}
         </View>
         
         <View style={styles.filterRow}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {cities.map(city => (
-              <TouchableOpacity key={city as string} style={[styles.filterChip, selectedCity === city && styles.filterChipActive]} onPress={() => { setSelectedCity(city as string); setSelectedArea(null); }}>
-                <Text style={[styles.filterChipText, selectedCity === city && styles.filterChipTextActive]}>{city as string}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          <Dropdown label="Select City" value={selectedCity} options={cities as string[]} onSelect={(val) => { setSelectedCity(val); setSelectedArea(null); }} />
+          {selectedCity && (
+            <Dropdown label="Select Area" value={selectedArea} options={areas as string[]} onSelect={(val) => setSelectedArea(val)} />
+          )}
         </View>
-        {selectedCity && (
-          <View style={styles.filterRow}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {areas.map(area => (
-                <TouchableOpacity key={area as string} style={[styles.filterChip, selectedArea === area && styles.filterChipActive]} onPress={() => setSelectedArea(area as string)}>
-                  <Text style={[styles.filterChipText, selectedArea === area && styles.filterChipTextActive]}>{area as string}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        )}
 
         <View style={styles.sectionHead}>
           <Text style={styles.sectionTitle}>{t('nearby')} {displayedStores.length > 0 ? `(${displayedStores.length})` : ''}</Text>
@@ -206,8 +225,19 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         </View>
+    </>
+  );
 
-        {viewMode === 'list' ? (
+  return (
+    <View style={styles.container}>
+      <View style={{ height: Platform.OS === 'android' ? insets.top + 10 : 50 }} />
+      
+      {viewMode === 'list' ? (
+        <ScrollView 
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 80 }]}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
+          {renderHeader()}
           <View style={styles.shopList}>
             {displayedStores.map(store => (
               <TouchableOpacity 
@@ -246,31 +276,35 @@ export default function HomeScreen() {
               <Text style={{ textAlign: 'center', color: theme.colors.muted, marginTop: 20 }}>No shops found.</Text>
             )}
           </View>
-        ) : (
-          <View style={styles.mapContainer}>
-            <MapView 
-              style={styles.map}
-              initialRegion={{
-                latitude: userLocation?.coords.latitude || 23.7,
-                longitude: userLocation?.coords.longitude || 90.4,
-                latitudeDelta: 0.1,
-                longitudeDelta: 0.1,
-              }}
-              showsUserLocation={true}
-            >
-              {displayedStores.map(store => (
-                <Marker 
-                  key={store.id}
-                  coordinate={{ latitude: store.latitude, longitude: store.longitude }}
-                  title={store.name}
-                  description={`৳${store.basePrice}/page`}
-                  onCalloutPress={() => router.push(`/shop/${store.id}`)}
-                />
-              ))}
-            </MapView>
+        </ScrollView>
+      ) : (
+        <View style={{ flex: 1 }}>
+          <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
+            {renderHeader()}
           </View>
-        )}
-      </ScrollView>
+          <MapView 
+            style={{ flex: 1, marginTop: 12 }}
+            provider={PROVIDER_GOOGLE}
+            initialRegion={{
+              latitude: userLocation?.coords.latitude || 23.7,
+              longitude: userLocation?.coords.longitude || 90.4,
+              latitudeDelta: 0.1,
+              longitudeDelta: 0.1,
+            }}
+            showsUserLocation={true}
+          >
+            {displayedStores.map(store => (
+              <Marker 
+                key={store.id}
+                coordinate={{ latitude: store.latitude, longitude: store.longitude }}
+                title={store.name}
+                description={`৳${store.basePrice}/page`}
+                onCalloutPress={() => router.push(`/shop/${store.id}`)}
+              />
+            ))}
+          </MapView>
+        </View>
+      )}
     </View>
   );
 }
@@ -295,11 +329,15 @@ const styles = StyleSheet.create({
   
   searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 12 },
   searchInput: { flex: 1, marginLeft: 8, fontSize: 14, color: theme.colors.text },
-  filterRow: { flexDirection: 'row', marginBottom: 12 },
-  filterChip: { backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginRight: 8 },
-  filterChipActive: { backgroundColor: theme.colors.soft, borderColor: theme.colors.brand },
-  filterChipText: { fontSize: 12, color: theme.colors.muted, fontWeight: '600' },
-  filterChipTextActive: { color: theme.colors.brandDark },
+  filterRow: { flexDirection: 'row', marginBottom: 16 },
+  dropdownBtn: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: theme.colors.card, borderWidth: 1, borderColor: theme.colors.border, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 },
+  dropdownBtnText: { fontSize: 13, fontWeight: '600', color: theme.colors.text },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: theme.colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '50%' },
+  modalTitle: { fontSize: 18, fontWeight: '800', color: theme.colors.text, marginBottom: 16 },
+  modalOption: { paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: theme.colors.border },
+  modalOptionText: { fontSize: 16, color: theme.colors.text },
+  modalOptionActive: { color: theme.colors.brand, fontWeight: '700' },
 
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: theme.colors.text },
@@ -324,6 +362,6 @@ const styles = StyleSheet.create({
   queueDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: theme.colors.brandDark, marginRight: 4 },
   queueText: { fontSize: 10, fontWeight: '700', color: theme.colors.brandDark },
   
-  mapContainer: { height: 350, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: theme.colors.border },
+  mapContainer: { height: 450, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: theme.colors.border },
   map: { width: '100%', height: '100%' }
 });

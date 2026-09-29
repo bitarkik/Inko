@@ -11,7 +11,7 @@ export default function ConfigScreen() {
   const router = useRouter();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
-  const { uri, name } = useLocalSearchParams();
+    const { uri, name, storeId } = useLocalSearchParams();
   
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -153,12 +153,13 @@ export default function ConfigScreen() {
                 totalPrice: calcTotal(),
                 colorMode: colorRate === 3 ? 'B&W' : 'Color',
                 sidedMode: sidedRate === 1 ? 'Single' : 'Duplex',
-                copies
+                copies,
+                ...(storeId && { storeId })
               }
             });
           }}
         >
-          <Text style={styles.primaryBtnText}>{t('selectShop')} →</Text>
+          <Text style={styles.primaryBtnText}>{storeId ? 'Continue to Checkout →' : `${t('selectShop')} →`}</Text>
         </TouchableOpacity>
       </View>
     </View>

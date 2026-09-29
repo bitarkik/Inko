@@ -44,6 +44,8 @@ export class AdminService {
         ownerName: store.ownerName,
         contactNumber: store.contactNumber,
         email: store.email,
+        latitude: store.latitude,
+        longitude: store.longitude,
         createdAt: store.createdAt,
         lastPingAt: store.lastPingAt,
         isActive,

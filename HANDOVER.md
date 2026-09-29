@@ -1,45 +1,51 @@
-# Project PrintPanda / Inko - Handover Document
+# PrintPanda Project Handover Document
 
-## 1. Project Overview
-PrintPanda is a modern printing ecosystem designed to connect students with local print shops (like those in Nilkhet or university campuses). 
+## Project Context
+PrintPanda is an on-demand document printing platform that connects mobile users to local print shops. Users can select documents, configure print settings (color, copies, paper size), find nearby shops, and place an order. Shop owners use a Desktop Agent to receive and print these orders automatically.
 
-**The ecosystem consists of 3 parts:**
-1. **Customer Mobile App (`customer-mobile-app`)**: A React Native (Expo) app for students to upload PDFs, pick shops, and track live printing queues. **(This is fully functional and feature-complete for MVP)**.
-2. **Shop Owner Web Portal (`apps/web`)**: A Next.js marketing and partner portal where print shops register, set prices, and manage their dashboard. **(This is the target for the next session)**.
-3. **Desktop Agent (`apps/desktop-agent`)**: An Electron app that runs on the print shop's Windows PC to actually automate the printer.
-4. **Backend (`apps/server`)**: A NestJS API powered by PostgreSQL (Prisma).
+### Architecture Overview
+The project is a monorepo containing three main applications:
+1. **Cloud Backend (`apps/server`)**: A NestJS + Prisma (PostgreSQL) REST API that handles orders, users, shops, and file uploads. It utilizes Cloudflare R2 for scalable S3-compatible document storage and BullMQ/Redis for background processing. Hosted on Render.
+2. **Customer Mobile App (`customer-mobile-app`)**: A React Native (Expo Router) application for customers. Users can browse shops (with geospatial sorting), configure prints, upload PDFs, and track their order status in real-time (Swiggy/Uber-style). Supports Guest Checkout and OTA updates via EAS.
+3. **Desktop Agent (`apps/desktop-agent`)**: An Electron + React application meant to run on print shop computers. It connects to the backend, fetches the shop's queue, and automatically interfaces with the local machine's printers using `pdf-to-printer` and `unix-print`.
 
----
+## State of Development
+- **Backend**: Fully deployed on Render with an active PostgreSQL database and Redis queue. Migrations are automatically applied during Render deploys (`npx prisma db push --accept-data-loss`). Cloudflare R2 is configured for file storage (`multer` in memory -> `PutObjectCommand`). 
+- **Mobile App**: Uses Expo Go for local development. Connected to the production Render API. `expo-updates` is configured for OTA updates via EAS Build. Guest checkout is implemented. The real-time tracker and order history map database statuses (e.g., `READY_TO_PRINT`) to user-friendly strings.
+- **Desktop Agent**: Fully functional. It communicates with the production API, maps user names to orders (first name bolded above the order ID), and handles IPC for local printing. 
 
-## 2. What We Accomplished in the Mobile App
-The Mobile App is fully wired up to the backend and ready for real-world testing.
-* **UI/UX**: Implemented a "Quiet Luxury" minimal black-and-white theme.
-* **Location Services**: Integrated `expo-location` and real Haversine distance calculations so students see the closest shops.
-* **Authentication**: Built `AuthContext` and a persistent login/signup flow relying on Phone Number & Password.
-* **Order Flow**: Customers can select a PDF, calculate dynamic pricing, choose Cash/bKash, and place an order directly into the PostgreSQL database.
-* **Order Tracking & History**: Customers have a live Swiggy-style tracker and an "Orders" tab fetching historical data from `/orders/me`. 
-* **Cancellation**: Users can safely cancel an order if the shop hasn't started printing yet.
+## Key Technical Decisions & Lessons Learned
+1. **Cloudflare R2 TLS/SSL Quirk**: 
+   - *Problem*: `multer-s3` caused a 500 error (`SSL alert number 40`) when uploading files to Cloudflare R2 on Render.
+   - *Root Cause*: Twofold. First, Cloudflare's edge dropped the TLS handshake because the Account ID in the R2 Endpoint URL had a typo. Second, Cloudflare's wildcard certificate (`*.r2.cloudflarestorage.com`) doesn't cover nested subdomains (`bucket.account.r2...`).
+   - *Solution*: Replaced `multer-s3` streaming with `memoryStorage()` + manual `PutObjectCommand`. Added `forcePathStyle: true` to the AWS SDK `S3Client` instantiation to prevent the SDK from using virtual-hosted subdomains. *Do not revert this.*
+2. **Mobile App Navigation (Endless Back Stack)**:
+   - *Problem*: Users clicking "Back" after placing an order would cycle endlessly through previously visited pages.
+   - *Solution*: Replaced `router.replace` with `router.dismissAll(); router.push(...)` in `checkout.tsx` to wipe the stack before entering the order tracker.
+3. **Environment & Deployment**:
+   - The user strictly prefers pointing everything to the Cloud server (`https://printpanda-api.onrender.com`) for end-to-end testing, rather than using localhost.
+   - Any backend `render.yaml` changes or database schema modifications pushed to GitHub `main` branch will automatically trigger a Render redeploy. Give Render ~90 seconds to apply updates before testing.
 
----
+## Next Steps / Future Work
+- **Shop Owner Web Portal**: (Epic 3) The user needs a web dashboard for shop owners to register their shops, configure pricing (Base price, Color price, B&W price), set their location, and view analytics. Currently, shops are seeded manually or via raw API calls.
+- **Push Notifications**: Integrating Expo Push Notifications for order status updates.
 
-## 3. Current Backend State (`apps/server`)
-* **Database**: Running locally on `127.0.0.1:5433` via Docker (`docker-compose.yml` in root).
-* **Models**: `User`, `Store`, and `Order` are fully modeled and migrated.
-* **Enums**: `OrderStatus` handles the full lifecycle (`PENDING_PAYMENT`, `QUEUED`, `PROCESSING`, `READY_TO_PRINT`, `PRINTING`, `READY_TO_PICKUP`, `COMPLETED`, `CANCELLED`).
-* **Seed**: We seeded 2 test stores (`downtown`, `library`) using `prisma/seed.ts`.
+## Local Development Commands
+**Backend**:
+```bash
+cd apps/server
+npx prisma generate
+npm run start:dev
+```
+**Mobile App**:
+```bash
+cd customer-mobile-app
+npx expo start
+```
+*Note: To build an APK with OTA support for physical devices, run `eas build -p android --profile preview`.*
 
----
-
-## 4. Next Steps for the Next Agent (Shop Owner Web Portal)
-The next session will focus entirely on `apps/web` (Next.js).
-
-1. **Wire up Partner Signup**: 
-   - `apps/web/app/partner-signup/page.tsx` has a UI, but it needs to actually send the data to the NestJS backend to create a `Store` in the database.
-   - *Backend Task*: Ensure the `POST /stores` route in NestJS is ready to accept Name, Address, and Base Price.
-2. **Shop Owner Dashboard**: 
-   - Build a dashboard where the shop owner can see a live queue of incoming orders.
-   - Allow the shop owner to click a button to change an order's status from `QUEUED` to `PRINTING` (which will update the student's mobile app live).
-3. **Map Integration**: 
-   - Allow shop owners to drop a pin on a map during signup so their real `latitude/longitude` is saved to the database.
-4. **Desktop Agent Prep**:
-   - Provide a portal for the shop owner to download the `Inko Desktop Agent` and retrieve their unique `storeId` API key.
+**Desktop Agent**:
+```bash
+cd apps/desktop-agent
+npm run dev
+```

@@ -18,7 +18,12 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.printpanda.app"
+      "package": "com.printpanda.app",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBxyzJWyn86nbHH3za_Vn7Tgxs3wZA8TJk"
+        }
+      }
     },
     "web": {
       "output": "static",
@@ -33,7 +38,8 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      ["react-native-maps", { "androidGoogleMapsApiKey": "AIzaSyBxyzJWyn86nbHH3za_Vn7Tgxs3wZA8TJk" }]
     ],
     "experiments": {
       "typedRoutes": true,

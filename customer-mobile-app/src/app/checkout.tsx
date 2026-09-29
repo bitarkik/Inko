@@ -13,10 +13,10 @@ export default function CheckoutScreen() {
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const { uri, name, totalPages, totalPrice, colorMode, sidedMode, copies } = useLocalSearchParams();
+  const { uri, name, totalPages, totalPrice, colorMode, sidedMode, copies, storeId } = useLocalSearchParams();
   
   const [stores, setStores] = useState<any[]>([]);
-  const [selectedStore, setSelectedStore] = useState<string | null>(null);
+  const [selectedStore, setSelectedStore] = useState<string | null>((storeId as string) || null);
   const [payment, setPayment] = useState('bKash');
   const [loading, setLoading] = useState(false);
 
@@ -28,9 +28,12 @@ export default function CheckoutScreen() {
     try {
       const response = await apiClient.get('/stores');
       setStores(response.data);
-      const firstOnlineStore = response.data.find((s: any) => s.isAcceptingOrders !== false);
-      if (firstOnlineStore) {
-        setSelectedStore(firstOnlineStore.id);
+      
+      if (!storeId) {
+        const firstOnlineStore = response.data.find((s: any) => s.isAcceptingOrders !== false);
+        if (firstOnlineStore) {
+          setSelectedStore(firstOnlineStore.id);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch stores:', error);
@@ -101,37 +104,50 @@ export default function CheckoutScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.sectionTitle}>{t('chooseShop')}</Text>
-        
-        {stores.map(store => (
-          <TouchableOpacity 
-            key={store.id} 
-            disabled={store.isAcceptingOrders === false}
-            style={[
-              styles.shopCard, 
-              selectedStore === store.id && styles.shopCardSelected,
-              store.isAcceptingOrders === false && { opacity: 0.6 }
-            ]}
-            onPress={() => setSelectedStore(store.id)}
-          >
-            <View style={styles.shopRow}>
-              <View>
-                <Text style={styles.shopName}>{store.name} <Text style={styles.rating}>4.9 ★</Text></Text>
-                <Text style={styles.metaText}>{store.address}</Text>
-                {store.isAcceptingOrders === false && (
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#dc2626', marginTop: 4 }}>Not Accepting Orders</Text>
-                )}
-              </View>
-              <View style={[
-                styles.radio, 
-                selectedStore === store.id && styles.radioSelected,
-                store.isAcceptingOrders === false && { borderColor: theme.colors.border }
-              ]}>
-                {selectedStore === store.id && <View style={styles.radioDot} />}
-              </View>
+        {!storeId && (
+          <>
+            <Text style={styles.sectionTitle}>{t('chooseShop')}</Text>
+            {stores.map(store => (
+              <TouchableOpacity 
+                key={store.id} 
+                disabled={store.isAcceptingOrders === false}
+                style={[
+                  styles.shopCard, 
+                  selectedStore === store.id && styles.shopCardSelected,
+                  store.isAcceptingOrders === false && { opacity: 0.6 }
+                ]}
+                onPress={() => setSelectedStore(store.id)}
+              >
+                <View style={styles.shopRow}>
+                  <View>
+                    <Text style={styles.shopName}>{store.name} <Text style={styles.rating}>4.9 ★</Text></Text>
+                    <Text style={styles.metaText}>{store.address}</Text>
+                    {store.isAcceptingOrders === false && (
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#dc2626', marginTop: 4 }}>Not Accepting Orders</Text>
+                    )}
+                  </View>
+                  <View style={[
+                    styles.radio, 
+                    selectedStore === store.id && styles.radioSelected,
+                    store.isAcceptingOrders === false && { borderColor: theme.colors.border }
+                  ]}>
+                    {selectedStore === store.id && <View style={styles.radioDot} />}
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </>
+        )}
+
+        {storeId && selectedStoreName ? (
+          <>
+            <Text style={styles.sectionTitle}>Selected Shop</Text>
+            <View style={[styles.shopCard, styles.shopCardSelected]}>
+              <Text style={styles.shopName}>{selectedStoreName}</Text>
+              <Text style={styles.metaText}>{stores.find(s => s.id === selectedStore)?.address}</Text>
             </View>
-          </TouchableOpacity>
-        ))}
+          </>
+        ) : null}
 
         <View style={styles.orderSummary}>
           <View style={styles.summaryTop}>
