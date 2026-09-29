@@ -297,7 +297,7 @@ export default function PartnerSignup() {
       registerBtn: 'Register & Download Desktop Agent',
       registering: 'Registering...',
       close: 'Back to wizard',
-      successTitle: 'Store Created!',
+      successTitle: 'Application Received!',
       successText: "Application received! We'll review it and notify you on WhatsApp, usually within 24 hours.",
       yourStoreKey: 'YOUR STORE KEY',
       downloadAgent: 'Download PrintIt by Inko Agent (.exe)',
@@ -321,10 +321,10 @@ export default function PartnerSignup() {
       registerBtn: 'রেজিস্টার ও ডেস্কটপ এজেন্ট ডাউনলোড',
       registering: 'রেজিস্টার হচ্ছে...',
       close: 'উইজার্ডে ফিরে যান',
-      successTitle: 'স্টোর তৈরি হয়েছে!',
+      successTitle: 'আবেদন গৃহীত হয়েছে!',
       successText: 'আবেদন গৃহীত হয়েছে! আমরা এটি পর্যালোচনা করব এবং সাধারণত ২৪ ঘণ্টার মধ্যে হোয়াটসঅ্যাপে আপনাকে জানাব।',
       yourStoreKey: 'আপনার স্টোর কী',
-      downloadAgent: 'প্রিন্টপান্ডা এজেন্ট (.exe) ডাউনলোড',
+      downloadAgent: 'PrintIt by Inko Agent (.exe) ডাউনলোড',
       goToDashboard: 'পার্টনার ড্যাশবোর্ডে যান'
     }
   };
@@ -582,7 +582,14 @@ export default function PartnerSignup() {
 
         {showCompletion && successId && (
           <div className="completion open" role="dialog" aria-modal="true" aria-labelledby="completeTitle">
-            <div className="modal">
+            <div className="modal relative">
+              <button 
+                onClick={() => { setShowCompletion(false); setSuccessId(null); }}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-200 bg-transparent border-0"
+                aria-label="Close"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
               <div className="success-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 4 4L19 6" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
               
               <h3 id="completeTitle">{t.successTitle}</h3>
@@ -613,7 +620,7 @@ export default function PartnerSignup() {
               
               <div className="flex flex-col gap-3 mt-4">
                 <a 
-                  href="https://github.com/bitarkik/Inko/releases/latest/download/PrintPanda-Agent-Setup.exe" 
+                  href="https://github.com/bitarkik/Inko/releases/latest/download/PrintIt-by-Inko-Agent-Setup.exe" 
                   className="w-full min-h-[46px] flex items-center justify-center border-0 rounded-[10px] bg-[#0b7250] text-white font-bold hover:bg-[#095f43] transition-colors"
                 >
                   <svg className="mr-2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
