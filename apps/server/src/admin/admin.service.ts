@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Resend } from 'resend';
 
 @Injectable()
 export class AdminService {
@@ -75,7 +76,23 @@ export class AdminService {
       where: { id: storeId },
       data: { status: 'ACTIVE' },
     });
-    // In the future: trigger email notification to store.email
+    
+    if (store.email && process.env.RESEND_API_KEY) {
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      resend.emails.send({
+        from: 'hello@printitbyinko.com',
+        to: store.email,
+        subject: 'Your PrintPanda Shop is Live!',
+        html: `
+          <h3>Congratulations!</h3>
+          <p>Hi ${store.ownerName},</p>
+          <p>Your store <strong>${store.name}</strong> has been approved and is now ACTIVE.</p>
+          <p>If you haven't already, please ensure the PrintPanda Agent is running on your desktop with your Store ID: <strong>${store.id}</strong>.</p>
+          <p>You are now ready to receive print orders from customers.</p>
+        `
+      }).catch(err => console.error("Failed to send approval email", err));
+    }
+    
     return store;
   }
 }

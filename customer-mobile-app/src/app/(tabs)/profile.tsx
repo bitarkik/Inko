@@ -79,7 +79,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         <View style={{ marginTop: 32, alignItems: 'center' }}>
-          <Text style={{ fontSize: 12, color: theme.colors.muted }}>Version {Constants.expoConfig?.version || '1.0.0'}</Text>
+          <Text style={{ fontSize: 12, color: theme.colors.muted }}>Version {Constants.expoConfig?.extra?.displayVersion || Constants.expoConfig?.version || '1.0.0'}</Text>
           {Updates.updateId && (
             <Text style={{ fontSize: 10, color: theme.colors.muted, marginTop: 4 }}>OTA ID: {Updates.updateId.substring(0, 8)}</Text>
           )}

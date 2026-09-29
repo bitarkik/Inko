@@ -234,6 +234,7 @@ export default function HomeScreen() {
       
       {viewMode === 'list' ? (
         <ScrollView 
+          style={{ flex: 1 }}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 80 }]}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >

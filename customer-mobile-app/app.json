@@ -46,6 +46,7 @@
       "reactCompiler": true
     },
     "extra": {
+      "displayVersion": "1.0.1",
       "router": {},
       "eas": {
         "projectId": "6ded98be-2d04-429b-8309-3fc6f615bdac"
