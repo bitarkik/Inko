@@ -33,5 +33,5 @@ jobs:
       - name: Upload EXE
         uses: actions/upload-artifact@v4
         with:
-          name: PrintPanda-Installer
+          name: PrintIt-Installer
           path: apps/desktop-agent/release/*.exe
