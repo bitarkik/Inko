@@ -373,7 +373,7 @@ export default function PartnerSignup() {
   
   const copyMap = {
     en: {
-      network:'INKO PARTNER NETWORK', headline:'Turn your print shop into an online order hub.', lead:'A guided setup for your shop profile, service area, equipment and payouts â€” designed to finish in a few focused steps.',
+      network:'INKO PARTNER NETWORK', headline:'Turn your print shop into an online order hub.', lead:'A guided setup for your shop profile, service area, equipment and payouts — designed to finish in a few focused steps.',
       benefit1:'Keep your printers', benefit1sub:'Tell us what each machine can handle.', benefit2:'Pin the shop door', benefit2sub:'Help customers reach the right counter.', benefit3:'Choose your payout', benefit3sub:'Add bKash, Nagad or bank details.',
       earningsTitle:'Live earnings estimator', estimateBadge:'LIVE ESTIMATE', sliderLabel:'Drag to set your expected extra daily volume', estimateNote:'Illustrative planning estimate based on the example earnings rate.',
       afterSignup:'AFTER SIGNUP', journey1:'Download the desktop agent', journey2:'Pair it with your store key', journey3:'Run a test print and go online',
@@ -397,7 +397,7 @@ export default function PartnerSignup() {
       goToDashboard: 'Go to Partner Dashboard'
     },
     bn: {
-      network:'à¦‡à¦¨à¦•à§‹ à¦ªà¦¾à¦°à§à¦Ÿà¦¨à¦¾à¦° à¦¨à§‡à¦Ÿà¦“à¦¯à¦¼à¦¾à¦°à§à¦•', headline:'à¦†à¦ªà¦¨à¦¾à¦° à¦ªà§à¦°à¦¿à¦¨à§à¦Ÿ à¦¶à¦ªà¦•à§‡ à¦…à¦¨à¦²à¦¾à¦‡à¦¨ à¦…à¦°à§à¦¡à¦¾à¦° à¦¹à¦¾à¦¬à§‡ à¦ªà¦°à¦¿à¦£à¦¤ à¦•à¦°à§à¦¨à¥¤', lead:'à¦¦à§‹à¦•à¦¾à¦¨à§‡à¦° à¦¤à¦¥à§à¦¯, à¦²à§‹à¦•à§‡à¦¶à¦¨, à¦®à§‡à¦¶à¦¿à¦¨ à¦“ à¦ªà§‡à¦®à§‡à¦¨à§à¦Ÿ â€” à¦•à¦¯à¦¼à§‡à¦•à¦Ÿà¦¿ à¦¸à¦¹à¦œ à¦§à¦¾à¦ªà§‡ à¦¸à¦¬ à¦¸à§‡à¦Ÿà¦†à¦ª à¦•à¦°à§à¦¨à¥¤',
+      network:'à¦‡à¦¨à¦•à§‹ à¦ªà¦¾à¦°à§à¦Ÿà¦¨à¦¾à¦° à¦¨à§‡à¦Ÿà¦“à¦¯à¦¼à¦¾à¦°à§à¦•', headline:'à¦†à¦ªà¦¨à¦¾à¦° à¦ªà§à¦°à¦¿à¦¨à§à¦Ÿ à¦¶à¦ªà¦•à§‡ à¦…à¦¨à¦²à¦¾à¦‡à¦¨ à¦…à¦°à§à¦¡à¦¾à¦° à¦¹à¦¾à¦¬à§‡ à¦ªà¦°à¦¿à¦£à¦¤ à¦•à¦°à§à¦¨à¥¤', lead:'à¦¦à§‹à¦•à¦¾à¦¨à§‡à¦° à¦¤à¦¥à§à¦¯, à¦²à§‹à¦•à§‡à¦¶à¦¨, à¦®à§‡à¦¶à¦¿à¦¨ à¦“ à¦ªà§‡à¦®à§‡à¦¨à§à¦Ÿ — à¦•à¦¯à¦¼à§‡à¦•à¦Ÿà¦¿ à¦¸à¦¹à¦œ à¦§à¦¾à¦ªà§‡ à¦¸à¦¬ à¦¸à§‡à¦Ÿà¦†à¦ª à¦•à¦°à§à¦¨à¥¤',
       benefit1:'à¦¬à¦°à§à¦¤à¦®à¦¾à¦¨ à¦ªà§à¦°à¦¿à¦¨à§à¦Ÿà¦¾à¦°à¦‡ à¦°à¦¾à¦–à§à¦¨', benefit1sub:'à¦•à§‹à¦¨ à¦®à§‡à¦¶à¦¿à¦¨à§‡ à¦•à§€ à¦•à¦°à¦¾ à¦¯à¦¾à¦¯à¦¼, à¦œà¦¾à¦¨à¦¿à¦¯à¦¼à§‡ à¦¦à¦¿à¦¨à¥¤', benefit2:'à¦¦à§‹à¦•à¦¾à¦¨à§‡à¦° à¦¦à¦°à¦œà¦¾à¦¯à¦¼ à¦ªà¦¿à¦¨ à¦¦à¦¿à¦¨', benefit2sub:'à¦•à§à¦°à§‡à¦¤à¦¾à¦•à§‡ à¦¸à¦ à¦¿à¦• à¦•à¦¾à¦‰à¦¨à§à¦Ÿà¦¾à¦°à§‡ à¦ªà§Œà¦à¦›à¦¾à¦¤à§‡ à¦¸à¦¾à¦¹à¦¾à¦¯à§à¦¯ à¦•à¦°à§à¦¨à¥¤', benefit3:'à¦ªà§‡à¦®à§‡à¦¨à§à¦Ÿ à¦¬à§‡à¦›à§‡ à¦¨à¦¿à¦¨', benefit3sub:'à¦¬à¦¿à¦•à¦¾à¦¶, à¦¨à¦—à¦¦ à¦¬à¦¾ à¦¬à§à¦¯à¦¾à¦‚à¦• à¦¯à§‹à¦— à¦•à¦°à§à¦¨à¥¤',
       earningsTitle:'à¦²à¦¾à¦‡à¦­ à¦†à¦¯à¦¼à§‡à¦° à¦¹à¦¿à¦¸à¦¾à¦¬', estimateBadge:'à¦²à¦¾à¦‡à¦­ à¦¹à¦¿à¦¸à¦¾à¦¬', sliderLabel:'à¦ªà§à¦°à¦¤à¦¿à¦¦à¦¿à¦¨à§‡à¦° à¦¸à¦®à§à¦­à¦¾à¦¬à§à¦¯ à¦…à¦¤à¦¿à¦°à¦¿à¦•à§à¦¤ à¦ªà§ƒà¦·à§à¦ à¦¾à¦° à¦¸à¦‚à¦–à§à¦¯à¦¾ à¦ à¦¿à¦• à¦•à¦°à¦¤à§‡ à¦Ÿà¦¾à¦¨à§à¦¨', estimateNote:'à¦‰à¦¦à¦¾à¦¹à¦°à¦£à§‡à¦° à¦†à¦¯à¦¼à§‡à¦° à¦¹à¦¾à¦° à¦…à¦¨à§à¦¯à¦¾à¦¯à¦¼à§€ à¦ªà¦°à¦¿à¦•à¦²à§à¦ªà¦¨à¦¾à¦° à¦œà¦¨à§à¦¯ à¦†à¦¨à§à¦®à¦¾à¦¨à¦¿à¦• à¦¹à¦¿à¦¸à¦¾à¦¬à¥¤',
       afterSignup:'à¦¸à¦¾à¦‡à¦¨à¦†à¦ªà§‡à¦° à¦ªà¦°à§‡', journey1:'à¦¡à§‡à¦¸à§à¦•à¦Ÿà¦ª à¦à¦œà§‡à¦¨à§à¦Ÿ à¦¡à¦¾à¦‰à¦¨à¦²à§‹à¦¡ à¦•à¦°à§à¦¨', journey2:'à¦¸à§à¦Ÿà§‹à¦° à¦•à§€ à¦¦à¦¿à¦¯à¦¼à§‡ à¦ªà§‡à¦¯à¦¼à¦¾à¦° à¦•à¦°à§à¦¨', journey3:'à¦Ÿà§‡à¦¸à§à¦Ÿ à¦ªà§à¦°à¦¿à¦¨à§à¦Ÿ à¦•à¦°à§‡ à¦…à¦¨à¦²à¦¾à¦‡à¦¨à§‡ à¦¯à¦¾à¦¨',
@@ -571,7 +571,7 @@ export default function PartnerSignup() {
                 <span className="field-label">{t.hours}</span>
                 <div className="hours">
                   <input type="time" value={formData.openTime} onChange={(e) => setFormData({...formData, openTime: e.target.value})} required />
-                  <span>â€”</span>
+                  <span>—</span>
                   <input type="time" value={formData.closeTime} onChange={(e) => setFormData({...formData, closeTime: e.target.value})} required />
                 </div>
               </div>
@@ -629,7 +629,7 @@ export default function PartnerSignup() {
                 </div>
                 <div className="field">
                   <span className="field-label">Plus Code</span>
-                  <div className="location-readout"><strong>{plusCode || 'â€”'}</strong></div>
+                  <div className="location-readout"><strong>{plusCode || '—'}</strong></div>
                 </div>
               </div>
             </div>
