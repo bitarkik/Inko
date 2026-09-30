@@ -49,11 +49,6 @@ export default function LandingPage() {
           area: s.area || s.address || "Unknown"
         }));
         setStores(normalized);
-        
-        const uniqueCities = Array.from(new Set(normalized.map(s => s.city)));
-        if (uniqueCities.length > 0) {
-          setSelectedCity(uniqueCities[0]);
-        }
       })
       .catch(err => console.error("Failed to fetch stores", err));
   }, []);
@@ -62,14 +57,10 @@ export default function LandingPage() {
   const cities = Array.from(new Set(stores.map(s => s.city).filter(Boolean))) as string[];
   const areasInCity = Array.from(new Set(stores.filter(s => s.city === selectedCity).map(s => s.area).filter(Boolean))) as string[];
 
-  // Auto-select first area when city changes
+  // Reset area when city changes
   useEffect(() => {
-    if (areasInCity.length > 0 && !areasInCity.includes(selectedArea)) {
-      setSelectedArea(areasInCity[0]);
-    } else if (areasInCity.length === 0) {
-      setSelectedArea("");
-    }
-  }, [selectedCity, areasInCity, selectedArea]);
+    setSelectedArea("");
+  }, [selectedCity]);
 
   // Filter stores based on search OR city+area selection
   let filteredStores = stores;
@@ -272,7 +263,7 @@ export default function LandingPage() {
                       key={store.id} 
                       className={`border p-5 rounded-[16px] flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 transition-all cursor-pointer ${
                         store.isAcceptingOrders 
-                          ? 'border-[var(--line)] bg-white hover:border-[var(--green)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]' 
+                          ? 'border-[var(--line)] bg-[var(--bg)] hover:border-[var(--green)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]' 
                           : 'border-[var(--line)] bg-[var(--surface-2)] opacity-60'
                       }`}
                       onClick={() => {
