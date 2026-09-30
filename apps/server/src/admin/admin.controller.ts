@@ -1,17 +1,31 @@
-import { Controller, Get, Param, Patch } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Headers, UnauthorizedException } from '@nestjs/common';
 import { AdminService } from './admin.service';
 
 @Controller('admin')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
+  private checkAuth(password: string) {
+    if (process.env.ADMIN_PASSWORD && password !== process.env.ADMIN_PASSWORD) {
+      throw new UnauthorizedException('Invalid admin password');
+    }
+  }
+
   @Get('stats')
-  getPlatformStats() {
+  getPlatformStats(@Headers('x-admin-password') password: string) {
+    this.checkAuth(password);
     return this.adminService.getPlatformStats();
   }
 
   @Patch('stores/:id/approve')
-  approveStore(@Param('id') id: string) {
+  approveStore(@Param('id') id: string, @Headers('x-admin-password') password: string) {
+    this.checkAuth(password);
     return this.adminService.approveStore(id);
+  }
+
+  @Patch('stores/:id/revoke')
+  revokeStore(@Param('id') id: string, @Headers('x-admin-password') password: string) {
+    this.checkAuth(password);
+    return this.adminService.revokeStore(id);
   }
 }

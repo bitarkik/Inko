@@ -95,4 +95,12 @@ export class AdminService {
     
     return store;
   }
+
+  async revokeStore(storeId: string) {
+    const store = await this.prisma.store.update({
+      where: { id: storeId },
+      data: { status: 'SUSPENDED', isAcceptingOrders: false },
+    });
+    return store;
+  }
 }

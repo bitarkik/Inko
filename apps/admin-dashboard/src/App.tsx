@@ -9,6 +9,8 @@ import { MapPage } from './pages/MapPage';
 import { Approvals } from './pages/Approvals';
 
 export default function App() {
+  const [authPassword, setAuthPassword] = useState(() => localStorage.getItem('admin_password') || '');
+  const [isAuth, setIsAuth] = useState(!!localStorage.getItem('admin_password'));
   const [activePage, setActivePage] = useState('overview');
   const [stores, setStores] = useState<Store[]>([]);
   const [orders] = useState<Order[]>([
@@ -29,7 +31,16 @@ export default function App() {
 
   const fetchLiveData = async () => {
     try {
-      const res = await fetch('https://api.printitbyinko.com/admin/stats');
+      const res = await fetch('https://api.printitbyinko.com/admin/stats', {
+        headers: { 'x-admin-password': authPassword }
+      });
+      
+      if (res.status === 401) {
+        setIsAuth(false);
+        localStorage.removeItem('admin_password');
+        return;
+      }
+      
       const data = await res.json();
       
       const pStats = data.platformStats;
@@ -142,12 +153,34 @@ export default function App() {
   const approveApp = async (id: string) => {
     if (!window.confirm("Are you sure you want to approve this store?")) return;
     try {
-      const res = await fetch(`https://api.printitbyinko.com/admin/stores/${id}/approve`, { method: 'PATCH' });
+      const res = await fetch(`https://api.printitbyinko.com/admin/stores/${id}/approve`, { 
+        method: 'PATCH',
+        headers: { 'x-admin-password': authPassword }
+      });
       if (res.ok) {
         showToast('Store approved!');
         fetchLiveData();
       } else {
         showToast('Failed to approve store.');
+      }
+    } catch (e) {
+      showToast('Network error.');
+    }
+  };
+
+  const revokeStore = async (id: string) => {
+    if (!window.confirm("WARNING: Are you sure you want to revoke this partner? They will be instantly disconnected and unable to accept orders.")) return;
+    try {
+      const res = await fetch(`https://api.printitbyinko.com/admin/stores/${id}/revoke`, { 
+        method: 'PATCH',
+        headers: { 'x-admin-password': authPassword }
+      });
+      if (res.ok) {
+        showToast('Store partnership revoked.');
+        setDrawerOpen(false);
+        fetchLiveData();
+      } else {
+        showToast('Failed to revoke store.');
       }
     } catch (e) {
       showToast('Network error.');
@@ -195,6 +228,40 @@ export default function App() {
     mapPage: ['Dhaka operations map', 'Store readiness and sample demand concentration by area'],
     approvals: ['Partner approvals', 'Review applications before stores enter the dispatch network']
   };
+
+  if (!isAuth) {
+    return (
+      <div style={{display:'flex',height:'100vh',justifyContent:'center',alignItems:'center',background:'var(--bg)'}}>
+        <div style={{background:'var(--panel)',padding:'32px',borderRadius:'16px',boxShadow:'var(--shadow)',width:'360px',textAlign:'center'}}>
+          <h2 style={{margin:'0 0 8px'}}>Admin Login</h2>
+          <p style={{color:'var(--muted)',fontSize:'13px',marginBottom:'24px'}}>Enter the master password to access the dashboard.</p>
+          <input 
+            type="password" 
+            placeholder="Master password"
+            style={{width:'100%',padding:'12px',borderRadius:'8px',border:'1px solid var(--line)',background:'var(--panel-2)',marginBottom:'16px'}}
+            value={authPassword}
+            onChange={(e) => setAuthPassword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                localStorage.setItem('admin_password', authPassword);
+                setIsAuth(true);
+                fetchLiveData();
+              }
+            }}
+          />
+          <button 
+            onClick={() => {
+              localStorage.setItem('admin_password', authPassword);
+              setIsAuth(true);
+              fetchLiveData();
+            }}
+            style={{width:'100%',padding:'12px',borderRadius:'8px',border:'none',background:'var(--emerald)',color:'white',fontWeight:'bold',cursor:'pointer'}}>
+            Access Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="app">
@@ -272,6 +339,7 @@ export default function App() {
                     <div className="fact"><small>Active duration</small><b>{currentStore.days} days · {currentStore.online}% online</b></div>
                     <div className="fact"><small>Customer quality</small><b className="rating">★ {currentStore.rating} · {currentStore.reviews} reviews</b></div>
                   </div>
+                  <button onClick={() => revokeStore(currentStore.id)} style={{marginTop: '16px', width: '100%', padding: '10px', background: 'var(--red-soft)', color: 'var(--red)', border: '1px solid #e09494', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer'}}>Revoke Partnership</button>
                 </div>
                 <div className="detail-section">
                   <h3>Hardware & capabilities</h3>
