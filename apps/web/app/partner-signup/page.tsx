@@ -298,7 +298,7 @@ export default function PartnerSignup() {
       registering: 'Registering...',
       close: 'Back to wizard',
       successTitle: 'Application Received!',
-      successText: "Application received! We'll review it and notify you on WhatsApp, usually within 24 hours.",
+      successText: "Application received! We'll review it and notify you via email, usually within 24 hours.",
       yourStoreKey: 'YOUR STORE KEY',
       downloadAgent: 'Download PrintIt by Inko Agent (.exe)',
       goToDashboard: 'Go to Partner Dashboard'
@@ -322,7 +322,7 @@ export default function PartnerSignup() {
       registering: 'রেজিস্টার হচ্ছে...',
       close: 'উইজার্ডে ফিরে যান',
       successTitle: 'আবেদন গৃহীত হয়েছে!',
-      successText: 'আবেদন গৃহীত হয়েছে! আমরা এটি পর্যালোচনা করব এবং সাধারণত ২৪ ঘণ্টার মধ্যে হোয়াটসঅ্যাপে আপনাকে জানাব।',
+      successText: 'আবেদন গৃহীত হয়েছে! আমরা এটি পর্যালোচনা করব এবং সাধারণত ২৪ ঘণ্টার মধ্যে ইমেইলের মাধ্যমে আপনাকে জানাব।',
       yourStoreKey: 'আপনার স্টোর কী',
       downloadAgent: 'PrintIt by Inko Agent (.exe) ডাউনলোড',
       goToDashboard: 'পার্টনার ড্যাশবোর্ডে যান'

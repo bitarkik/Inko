@@ -51,7 +51,7 @@ export class AdminService {
         lastPingAt: store.lastPingAt,
         isActive,
         dbStatus: store.status,
-        status: store.status === 'SUSPENDED' ? 'Revoked' : (isActive ? 'Live' : 'Offline'),
+        status: store.status === 'SUSPENDED' ? 'Cancelled' : (isActive ? 'Live' : 'Offline'),
         revokedAt: store.revokedAt,
         revokeReason: store.revokeReason,
         revenue: storeRevenue,

@@ -58,8 +58,8 @@ export default function App() {
         offlineStores: data.allStores.filter((s: any) => !s.isActive).length,
       });
 
-      const activeStores = data.allStores.filter((s: any) => s.status !== 'PENDING');
-      const pendingStores = data.allStores.filter((s: any) => s.status === 'PENDING');
+      const activeStores = data.allStores.filter((s: any) => s.dbStatus !== 'PENDING' && s.dbStatus !== 'DECLINED');
+      const pendingStores = data.allStores.filter((s: any) => s.dbStatus === 'PENDING');
       
       setApplications(pendingStores.map((a: any) => ({
         id: a.id,
