@@ -44,6 +44,22 @@ export default function PartnerSignup() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  
+  const [errors, setErrors] = useState<{ email?: string, phone?: string }>({});
+
+  useEffect(() => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^01[3-9]\d{8}$/;
+    const newErrors: { email?: string, phone?: string } = {};
+    if (formData.email && !emailRegex.test(formData.email)) {
+      newErrors.email = currentLang === 'bn' ? 'সঠিক ইমেইল দিন' : 'Invalid email format';
+    }
+    if (formData.contactNumber && !phoneRegex.test(formData.contactNumber)) {
+      newErrors.phone = currentLang === 'bn' ? 'সঠিক ১১-ডিজিটের নম্বর দিন' : 'Valid 11-digit BD number required';
+    }
+    setErrors(newErrors);
+  }, [formData.email, formData.contactNumber, currentLang]);
+
   const skipSearchRef = useRef(false);
   const skipReverseAddressRef = useRef(false);
   const googleAddressRef = useRef("");
@@ -456,18 +472,18 @@ export default function PartnerSignup() {
                 <div className="field">
                   <label htmlFor="phone">{t.phone}</label>
                   <div className="input-wrap">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8.5 3H6a2 2 0 0 0-2 2c0 8.28 6.72 15 15 15a2 2 0 0 0 2-2v-2.5l-4-1-1.2 2c-2.45-1.05-4.7-3.3-5.75-5.75l2-1.2L11 3.5 8.5 3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>
-                    <input id="phone" type="tel" placeholder="01XXXXXXXXX" value={formData.contactNumber} onChange={(e) => setFormData({...formData, contactNumber: e.target.value})} required />
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style={errors.phone ? { color: 'var(--danger)' } : {}}><path d="M8.5 3H6a2 2 0 0 0-2 2c0 8.28 6.72 15 15 15a2 2 0 0 0 2-2v-2.5l-4-1-1.2 2c-2.45-1.05-4.7-3.3-5.75-5.75l2-1.2L11 3.5 8.5 3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+                    <input id="phone" type="tel" placeholder="01XXXXXXXXX" value={formData.contactNumber} onChange={(e) => setFormData({...formData, contactNumber: e.target.value})} required style={errors.phone ? { borderColor: 'var(--danger)', color: 'var(--danger)' } : {}} />
                   </div>
-                  <div className="hint">{t.phoneHint}</div>
+                  <div className="hint" style={errors.phone ? { color: 'var(--danger)', fontWeight: 600 } : {}}>{errors.phone || t.phoneHint}</div>
                 </div>
                 <div className="field">
                   <label htmlFor="email">{t.email}</label>
                   <div className="input-wrap">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    <input id="email" type="email" placeholder="owner@example.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style={errors.email ? { color: 'var(--danger)' } : {}}><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <input id="email" type="email" placeholder="owner@example.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required style={errors.email ? { borderColor: 'var(--danger)', color: 'var(--danger)' } : {}} />
                   </div>
-                  <div className="hint">{t.emailHint}</div>
+                  <div className="hint" style={errors.email ? { color: 'var(--danger)', fontWeight: 600 } : {}}>{errors.email || t.emailHint}</div>
                 </div>
               </div>
               <div className="field">
