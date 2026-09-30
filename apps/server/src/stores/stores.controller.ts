@@ -1,7 +1,6 @@
-import { Controller, Get, Post, Body, Param, Patch, Query, Headers, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Query } from '@nestjs/common';
 import { StoresService } from './stores.service';
 import { CreateStoreDto } from './create-store.dto';
-import { auth } from '../firebase';
 
 @Controller('stores')
 export class StoresController {
@@ -13,35 +12,8 @@ export class StoresController {
   }
 
   @Post()
-  async create(@Body() data: CreateStoreDto, @Headers('authorization') authHeader: string) {
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Missing or invalid Authorization header');
-    }
-
-    const idToken = authHeader.split('Bearer ')[1];
-    
-    try {
-      const decodedToken = await auth.verifyIdToken(idToken);
-      const verifiedPhone = decodedToken.phone_number;
-      
-      if (!data.contactNumber) {
-        throw new BadRequestException('Contact number is required');
-      }
-
-      // We accept contactNumber formatted with or without the +88, but Firebase always returns with +880...
-      const expectedPhone = data.contactNumber.startsWith('+88') 
-        ? data.contactNumber 
-        : `+88${data.contactNumber}`;
-
-      if (verifiedPhone !== expectedPhone) {
-        throw new BadRequestException(`Verified phone number (${verifiedPhone}) does not match the provided contact number.`);
-      }
-
-      return this.storesService.create(data);
-    } catch (error) {
-      console.error("Firebase auth error:", error);
-      throw new UnauthorizedException('Invalid or expired Firebase token');
-    }
+  create(@Body() data: CreateStoreDto) {
+    return this.storesService.create(data);
   }
 
   @Get('status')

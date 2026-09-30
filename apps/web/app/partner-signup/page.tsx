@@ -1,6 +1,4 @@
-﻿"use client";
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
-import { auth } from "../../lib/firebase";
+"use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
@@ -46,60 +44,6 @@ export default function PartnerSignup() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [verificationId, setVerificationId] = useState<any>(null);
-  const [otp, setOtp] = useState("");
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [firebaseIdToken, setFirebaseIdToken] = useState("");
-  const recaptchaVerifierRef = useRef<any>(null);
-
-  useEffect(() => {
-    if (!recaptchaVerifierRef.current && typeof window !== 'undefined') {
-      recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible',
-      });
-    }
-  }, []);
-
-  const handleSendOtp = async () => {
-    if (errors.phone || !formData.contactNumber) {
-      alert("Please enter a valid phone number first.");
-      return;
-    }
-    setIsVerifying(true);
-    try {
-      const formattedPhone = formData.contactNumber.startsWith('+88') 
-        ? formData.contactNumber 
-        : `+88${formData.contactNumber}`;
-
-      const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, recaptchaVerifierRef.current);
-      setVerificationId(confirmationResult);
-      alert(currentLang === 'bn' ? "OTP পাঠানো হয়েছে" : "OTP sent to your phone");
-    } catch (error: any) {
-      console.error(error);
-      alert("Error sending OTP: " + error.message);
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!otp) return;
-    setIsVerifying(true);
-    try {
-      const result = await verificationId.confirm(otp);
-      const token = await result.user.getIdToken();
-      setFirebaseIdToken(token);
-      setIsPhoneVerified(true);
-      alert(currentLang === 'bn' ? "ফোন নম্বর ভেরিফাই হয়েছে!" : "Phone number verified!");
-    } catch (error) {
-      console.error(error);
-      alert("Invalid OTP");
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
   
   const [errors, setErrors] = useState<{ email?: string, phone?: string }>({});
 
@@ -108,10 +52,10 @@ export default function PartnerSignup() {
     const phoneRegex = /^01[3-9]\d{8}$/;
     const newErrors: { email?: string, phone?: string } = {};
     if (formData.email && !emailRegex.test(formData.email)) {
-      newErrors.email = currentLang === 'bn' ? 'à¦¸à¦ à¦¿à¦• à¦‡à¦®à§‡à¦‡à¦² à¦¦à¦¿à¦¨' : 'Invalid email format';
+      newErrors.email = currentLang === 'bn' ? 'সঠিক ইমেইল দিন' : 'Invalid email format';
     }
     if (formData.contactNumber && !phoneRegex.test(formData.contactNumber)) {
-      newErrors.phone = currentLang === 'bn' ? 'à¦¸à¦ à¦¿à¦• à§§à§§-à¦¡à¦¿à¦œà¦¿à¦Ÿà§‡à¦° à¦¨à¦®à§à¦¬à¦° à¦¦à¦¿à¦¨' : 'Valid 11-digit BD number required';
+      newErrors.phone = currentLang === 'bn' ? 'সঠিক ১১-ডিজিটের নম্বর দিন' : 'Valid 11-digit BD number required';
     }
     setErrors(newErrors);
   }, [formData.email, formData.contactNumber, currentLang]);
@@ -273,7 +217,7 @@ export default function PartnerSignup() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
       const response = await fetch(`${apiUrl}/stores`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${firebaseIdToken}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: generatedId,
           name: formData.name,
@@ -320,20 +264,20 @@ export default function PartnerSignup() {
 
     if (currentStep === 0) {
       if (!formData.name || !formData.ownerName || !formData.contactNumber || !formData.email) {
-        alert(currentLang === 'bn' ? "à¦…à¦¨à§à¦—à§à¦°à¦¹ à¦•à¦°à§‡ à¦¸à¦¬ à¦¤à¦¥à§à¦¯ à¦¦à¦¿à¦¨" : "Please fill in all required fields.");
+        alert(currentLang === 'bn' ? "অনুগ্রহ করে সব তথ্য দিন" : "Please fill in all required fields.");
         return;
       }
       if (!emailRegex.test(formData.email)) {
-        alert(currentLang === 'bn' ? "à¦…à¦¨à§à¦—à§à¦°à¦¹ à¦•à¦°à§‡ à¦à¦•à¦Ÿà¦¿ à¦¸à¦ à¦¿à¦• à¦‡à¦®à§‡à¦‡à¦² à¦ à¦¿à¦•à¦¾à¦¨à¦¾ à¦¦à¦¿à¦¨à¥¤" : "Please enter a valid email address.");
+        alert(currentLang === 'bn' ? "অনুগ্রহ করে একটি সঠিক ইমেইল ঠিকানা দিন।" : "Please enter a valid email address.");
         return;
       }
       if (!phoneRegex.test(formData.contactNumber)) {
-        alert(currentLang === 'bn' ? "à¦…à¦¨à§à¦—à§à¦°à¦¹ à¦•à¦°à§‡ à¦à¦•à¦Ÿà¦¿ à¦¸à¦ à¦¿à¦• à§§à§§-à¦¡à¦¿à¦œà¦¿à¦Ÿà§‡à¦° à¦¬à¦¾à¦‚à¦²à¦¾à¦¦à§‡à¦¶à¦¿ à¦«à§‹à¦¨ à¦¨à¦®à§à¦¬à¦° à¦¦à¦¿à¦¨ (à¦¯à§‡à¦®à¦¨: 017...)à¥¤" : "Please enter a valid 11-digit Bangladeshi phone number (e.g., 017...).");
+        alert(currentLang === 'bn' ? "অনুগ্রহ করে একটি সঠিক ১১-ডিজিটের বাংলাদেশি ফোন নম্বর দিন (যেমন: 017...)।" : "Please enter a valid 11-digit Bangladeshi phone number (e.g., 017...).");
         return;
       }
     } else if (currentStep === 1) {
       if (!formData.address || !formData.city || !formData.area || !location) {
-        alert(currentLang === 'bn' ? "à¦…à¦¨à§à¦—à§à¦°à¦¹ à¦•à¦°à§‡ à¦²à§‹à¦•à§‡à¦¶à¦¨ à¦¨à¦¿à¦¶à§à¦šà¦¿à¦¤ à¦•à¦°à§à¦¨" : "Please confirm your location details and place the pin on the map.");
+        alert(currentLang === 'bn' ? "অনুগ্রহ করে লোকেশন নিশ্চিত করুন" : "Please confirm your location details and place the pin on the map.");
         return;
       }
     }
@@ -342,27 +286,27 @@ export default function PartnerSignup() {
       setCurrentStep(prev => prev + 1);
     } else {
       if (!formData.name || !formData.ownerName || !formData.contactNumber || !formData.email) {
-        alert(currentLang === 'bn' ? "à¦…à¦¨à§à¦—à§à¦°à¦¹ à¦•à¦°à§‡ à¦¦à§‹à¦•à¦¾à¦¨à§‡à¦° à¦ªà§à¦°à¦¾à¦¥à¦®à¦¿à¦• à¦¤à¦¥à§à¦¯ à¦¦à¦¿à¦¨ (à¦§à¦¾à¦ª à§§)" : "Please fill in all shop details in Step 1.");
+        alert(currentLang === 'bn' ? "অনুগ্রহ করে দোকানের প্রাথমিক তথ্য দিন (ধাপ ১)" : "Please fill in all shop details in Step 1.");
         setCurrentStep(0);
         return;
       }
       if (!emailRegex.test(formData.email)) {
-        alert(currentLang === 'bn' ? "à¦…à¦¨à§à¦—à§à¦°à¦¹ à¦•à¦°à§‡ à¦à¦•à¦Ÿà¦¿ à¦¸à¦ à¦¿à¦• à¦‡à¦®à§‡à¦‡à¦² à¦ à¦¿à¦•à¦¾à¦¨à¦¾ à¦¦à¦¿à¦¨ (à¦§à¦¾à¦ª à§§)à¥¤" : "Please enter a valid email address in Step 1.");
+        alert(currentLang === 'bn' ? "অনুগ্রহ করে একটি সঠিক ইমেইল ঠিকানা দিন (ধাপ ১)।" : "Please enter a valid email address in Step 1.");
         setCurrentStep(0);
         return;
       }
       if (!phoneRegex.test(formData.contactNumber)) {
-        alert(currentLang === 'bn' ? "à¦…à¦¨à§à¦—à§à¦°à¦¹ à¦•à¦°à§‡ à¦à¦•à¦Ÿà¦¿ à¦¸à¦ à¦¿à¦• à§§à§§-à¦¡à¦¿à¦œà¦¿à¦Ÿà§‡à¦° à¦¬à¦¾à¦‚à¦²à¦¾à¦¦à§‡à¦¶à¦¿ à¦«à§‹à¦¨ à¦¨à¦®à§à¦¬à¦° à¦¦à¦¿à¦¨ (à¦§à¦¾à¦ª à§§)à¥¤" : "Please enter a valid 11-digit Bangladeshi phone number in Step 1.");
+        alert(currentLang === 'bn' ? "অনুগ্রহ করে একটি সঠিক ১১-ডিজিটের বাংলাদেশি ফোন নম্বর দিন (ধাপ ১)।" : "Please enter a valid 11-digit Bangladeshi phone number in Step 1.");
         setCurrentStep(0);
         return;
       }
       if (!formData.address || !formData.city || !formData.area || !location) {
-        alert(currentLang === 'bn' ? "à¦…à¦¨à§à¦—à§à¦°à¦¹ à¦•à¦°à§‡ à¦²à§‹à¦•à§‡à¦¶à¦¨ à¦¨à¦¿à¦¶à§à¦šà¦¿à¦¤ à¦•à¦°à§à¦¨ (à¦§à¦¾à¦ª à§¨)" : "Please confirm your location details in Step 2.");
+        alert(currentLang === 'bn' ? "অনুগ্রহ করে লোকেশন নিশ্চিত করুন (ধাপ ২)" : "Please confirm your location details in Step 2.");
         setCurrentStep(1);
         return;
       }
       if (!formData.basePrice) {
-        alert(currentLang === 'bn' ? "à¦…à¦¨à§à¦—à§à¦°à¦¹ à¦•à¦°à§‡ à¦¬à§‡à¦¸ à¦ªà§à¦°à¦¾à¦‡à¦¸ à¦¦à¦¿à¦¨" : "Please set a base price.");
+        alert(currentLang === 'bn' ? "অনুগ্রহ করে বেস প্রাইস দিন" : "Please set a base price.");
         return;
       }
       handleSubmit();
@@ -378,9 +322,9 @@ export default function PartnerSignup() {
       earningsTitle:'Live earnings estimator', estimateBadge:'LIVE ESTIMATE', sliderLabel:'Drag to set your expected extra daily volume', estimateNote:'Illustrative planning estimate based on the example earnings rate.',
       afterSignup:'AFTER SIGNUP', journey1:'Download the desktop agent', journey2:'Pair it with your store key', journey3:'Run a test print and go online',
       step1small:'STEP 1', step1:'Shop', step2small:'STEP 2', step2:'Location', step3small:'STEP 3', step3:'Capabilities',
-      shopTitle:'Let's start with your shop.', shopIntro:'Only the details customers and the partner team need.', shopName:'Shop name', ownerName:'Owner / manager name', phone:'Mobile or WhatsApp number', phoneHint:'Used for OTP login and important order alerts.', email:'Email address', emailHint:'For account updates and support.', hours:'Regular opening hours',
+      shopTitle:'Let’s start with your shop.', shopIntro:'Only the details customers and the partner team need.', shopName:'Shop name', ownerName:'Owner / manager name', phone:'Mobile or WhatsApp number', phoneHint:'Used for OTP login and important order alerts.', email:'Email address', emailHint:'For account updates and support.', hours:'Regular opening hours',
       locationTitle:'Place the pin at your shop door.', locationIntro:'Search anywhere in Bangladesh, then drag the pin for a precise pickup point.', address:'Shop address', mapHint:'Tap the map to place your pin', city:'City', area:'Area',
-      capTitle:'What can your shop handle?', capIntro:'These choices help route the right orders to you.', printers:'Printer setup', chooseAll:'Choose all that apply', bwLaser:'B&W Laser', colorInk:'Color Inkjet', colorLaser:'Color Laser', services:'Paper & finishing', chooseAll2:'Choose all that apply', spiral:'Spiral binding', lamination:'Lamination', basePrice:'B&W price per A4 page', payout:'Preferred payout', bank:'Bank', review:'You'll review payout details and verify your phone before the shop goes live.', payoutAcc: 'Account Number',
+      capTitle:'What can your shop handle?', capIntro:'These choices help route the right orders to you.', printers:'Printer setup', chooseAll:'Choose all that apply', bwLaser:'B&W Laser', colorInk:'Color Inkjet', colorLaser:'Color Laser', services:'Paper & finishing', chooseAll2:'Choose all that apply', spiral:'Spiral binding', lamination:'Lamination', basePrice:'B&W price per A4 page', payout:'Preferred payout', bank:'Bank', review:'You’ll review payout details and verify your phone before the shop goes live.', payoutAcc: 'Account Number',
       back:'Back', continue:'Continue', preview:'Register', microcopy:'You can review everything before registering.',
       progress:['Your shop profile','Your pickup location','Equipment & payout'], count:'Step {n} of 3',
       
@@ -397,28 +341,28 @@ export default function PartnerSignup() {
       goToDashboard: 'Go to Partner Dashboard'
     },
     bn: {
-      network:'à¦‡à¦¨à¦•à§‹ à¦ªà¦¾à¦°à§à¦Ÿà¦¨à¦¾à¦° à¦¨à§‡à¦Ÿà¦“à¦¯à¦¼à¦¾à¦°à§à¦•', headline:'à¦†à¦ªà¦¨à¦¾à¦° à¦ªà§à¦°à¦¿à¦¨à§à¦Ÿ à¦¶à¦ªà¦•à§‡ à¦…à¦¨à¦²à¦¾à¦‡à¦¨ à¦…à¦°à§à¦¡à¦¾à¦° à¦¹à¦¾à¦¬à§‡ à¦ªà¦°à¦¿à¦£à¦¤ à¦•à¦°à§à¦¨à¥¤', lead:'à¦¦à§‹à¦•à¦¾à¦¨à§‡à¦° à¦¤à¦¥à§à¦¯, à¦²à§‹à¦•à§‡à¦¶à¦¨, à¦®à§‡à¦¶à¦¿à¦¨ à¦“ à¦ªà§‡à¦®à§‡à¦¨à§à¦Ÿ — à¦•à¦¯à¦¼à§‡à¦•à¦Ÿà¦¿ à¦¸à¦¹à¦œ à¦§à¦¾à¦ªà§‡ à¦¸à¦¬ à¦¸à§‡à¦Ÿà¦†à¦ª à¦•à¦°à§à¦¨à¥¤',
-      benefit1:'à¦¬à¦°à§à¦¤à¦®à¦¾à¦¨ à¦ªà§à¦°à¦¿à¦¨à§à¦Ÿà¦¾à¦°à¦‡ à¦°à¦¾à¦–à§à¦¨', benefit1sub:'à¦•à§‹à¦¨ à¦®à§‡à¦¶à¦¿à¦¨à§‡ à¦•à§€ à¦•à¦°à¦¾ à¦¯à¦¾à¦¯à¦¼, à¦œà¦¾à¦¨à¦¿à¦¯à¦¼à§‡ à¦¦à¦¿à¦¨à¥¤', benefit2:'à¦¦à§‹à¦•à¦¾à¦¨à§‡à¦° à¦¦à¦°à¦œà¦¾à¦¯à¦¼ à¦ªà¦¿à¦¨ à¦¦à¦¿à¦¨', benefit2sub:'à¦•à§à¦°à§‡à¦¤à¦¾à¦•à§‡ à¦¸à¦ à¦¿à¦• à¦•à¦¾à¦‰à¦¨à§à¦Ÿà¦¾à¦°à§‡ à¦ªà§Œà¦à¦›à¦¾à¦¤à§‡ à¦¸à¦¾à¦¹à¦¾à¦¯à§à¦¯ à¦•à¦°à§à¦¨à¥¤', benefit3:'à¦ªà§‡à¦®à§‡à¦¨à§à¦Ÿ à¦¬à§‡à¦›à§‡ à¦¨à¦¿à¦¨', benefit3sub:'à¦¬à¦¿à¦•à¦¾à¦¶, à¦¨à¦—à¦¦ à¦¬à¦¾ à¦¬à§à¦¯à¦¾à¦‚à¦• à¦¯à§‹à¦— à¦•à¦°à§à¦¨à¥¤',
-      earningsTitle:'à¦²à¦¾à¦‡à¦­ à¦†à¦¯à¦¼à§‡à¦° à¦¹à¦¿à¦¸à¦¾à¦¬', estimateBadge:'à¦²à¦¾à¦‡à¦­ à¦¹à¦¿à¦¸à¦¾à¦¬', sliderLabel:'à¦ªà§à¦°à¦¤à¦¿à¦¦à¦¿à¦¨à§‡à¦° à¦¸à¦®à§à¦­à¦¾à¦¬à§à¦¯ à¦…à¦¤à¦¿à¦°à¦¿à¦•à§à¦¤ à¦ªà§ƒà¦·à§à¦ à¦¾à¦° à¦¸à¦‚à¦–à§à¦¯à¦¾ à¦ à¦¿à¦• à¦•à¦°à¦¤à§‡ à¦Ÿà¦¾à¦¨à§à¦¨', estimateNote:'à¦‰à¦¦à¦¾à¦¹à¦°à¦£à§‡à¦° à¦†à¦¯à¦¼à§‡à¦° à¦¹à¦¾à¦° à¦…à¦¨à§à¦¯à¦¾à¦¯à¦¼à§€ à¦ªà¦°à¦¿à¦•à¦²à§à¦ªà¦¨à¦¾à¦° à¦œà¦¨à§à¦¯ à¦†à¦¨à§à¦®à¦¾à¦¨à¦¿à¦• à¦¹à¦¿à¦¸à¦¾à¦¬à¥¤',
-      afterSignup:'à¦¸à¦¾à¦‡à¦¨à¦†à¦ªà§‡à¦° à¦ªà¦°à§‡', journey1:'à¦¡à§‡à¦¸à§à¦•à¦Ÿà¦ª à¦à¦œà§‡à¦¨à§à¦Ÿ à¦¡à¦¾à¦‰à¦¨à¦²à§‹à¦¡ à¦•à¦°à§à¦¨', journey2:'à¦¸à§à¦Ÿà§‹à¦° à¦•à§€ à¦¦à¦¿à¦¯à¦¼à§‡ à¦ªà§‡à¦¯à¦¼à¦¾à¦° à¦•à¦°à§à¦¨', journey3:'à¦Ÿà§‡à¦¸à§à¦Ÿ à¦ªà§à¦°à¦¿à¦¨à§à¦Ÿ à¦•à¦°à§‡ à¦…à¦¨à¦²à¦¾à¦‡à¦¨à§‡ à¦¯à¦¾à¦¨',
-      step1small:'à¦§à¦¾à¦ª à§§', step1:'à¦¦à§‹à¦•à¦¾à¦¨', step2small:'à¦§à¦¾à¦ª à§¨', step2:'à¦²à§‹à¦•à§‡à¦¶à¦¨', step3small:'à¦§à¦¾à¦ª à§©', step3:'à¦¸à§à¦¬à¦¿à¦§à¦¾à¦¸à¦®à§‚à¦¹',
-      shopTitle:'à¦ªà§à¦°à¦¥à¦®à§‡ à¦†à¦ªà¦¨à¦¾à¦° à¦¦à§‹à¦•à¦¾à¦¨à§‡à¦° à¦¤à¦¥à§à¦¯ à¦¦à¦¿à¦¨à¥¤', shopIntro:'à¦•à§à¦°à§‡à¦¤à¦¾ à¦“ à¦ªà¦¾à¦°à§à¦Ÿà¦¨à¦¾à¦° à¦Ÿà¦¿à¦®à§‡à¦° à¦ªà§à¦°à¦¯à¦¼à§‹à¦œà¦¨à§€à¦¯à¦¼ à¦¤à¦¥à§à¦¯à¦‡ à¦¶à§à¦§à§à¥¤', shopName:'à¦¦à§‹à¦•à¦¾à¦¨à§‡à¦° à¦¨à¦¾à¦®', ownerName:'à¦®à¦¾à¦²à¦¿à¦• / à¦®à§à¦¯à¦¾à¦¨à§‡à¦œà¦¾à¦°à§‡à¦° à¦¨à¦¾à¦®', phone:'à¦®à§‹à¦¬à¦¾à¦‡à¦² à¦¬à¦¾ à¦¹à§‹à¦¯à¦¼à¦¾à¦Ÿà¦¸à¦…à§à¦¯à¦¾à¦ª à¦¨à¦®à§à¦¬à¦°', phoneHint:'à¦“à¦Ÿà¦¿à¦ªà¦¿ à¦²à¦—à¦‡à¦¨ à¦“ à¦œà¦°à§à¦°à¦¿ à¦…à¦°à§à¦¡à¦¾à¦° à¦†à¦ªà¦¡à§‡à¦Ÿà§‡à¦° à¦œà¦¨à§à¦¯à¥¤', email:'à¦‡à¦®à§‡à¦‡à¦² à¦ à¦¿à¦•à¦¾à¦¨à¦¾', emailHint:'à¦…à§à¦¯à¦¾à¦•à¦¾à¦‰à¦¨à§à¦Ÿ à¦†à¦ªà¦¡à§‡à¦Ÿ à¦“ à¦¸à¦¹à¦¾à¦¯à¦¼à¦¤à¦¾à¦° à¦œà¦¨à§à¦¯à¥¤', hours:'à¦¸à¦¾à¦§à¦¾à¦°à¦£ à¦–à§‹à¦²à¦¾à¦° à¦¸à¦®à¦¯à¦¼',
-      locationTitle:'à¦¦à§‹à¦•à¦¾à¦¨à§‡à¦° à¦¦à¦°à¦œà¦¾à¦¯à¦¼ à¦ªà¦¿à¦¨ à¦¬à¦¸à¦¾à¦¨à¥¤', locationIntro:'à¦¬à¦¾à¦‚à¦²à¦¾à¦¦à§‡à¦¶à§‡à¦° à¦¯à§‡à¦•à§‹à¦¨à§‹ à¦ à¦¿à¦•à¦¾à¦¨à¦¾ à¦–à§à¦à¦œà§‡ à¦¸à¦ à¦¿à¦• à¦ªà¦¿à¦•à¦†à¦ª à¦ªà¦¯à¦¼à§‡à¦¨à§à¦Ÿà§‡ à¦ªà¦¿à¦¨ à¦Ÿà¦¾à¦¨à§à¦¨à¥¤', address:'à¦¦à§‹à¦•à¦¾à¦¨à§‡à¦° à¦ à¦¿à¦•à¦¾à¦¨à¦¾', mapHint:'à¦ªà¦¿à¦¨ à¦¬à¦¸à¦¾à¦¤à§‡ à¦®à§à¦¯à¦¾à¦ªà§‡ à¦Ÿà§à¦¯à¦¾à¦ª à¦•à¦°à§à¦¨', city:'à¦¶à¦¹à¦°', area:'à¦à¦²à¦¾à¦•à¦¾',
-      capTitle:'à¦†à¦ªà¦¨à¦¾à¦° à¦¦à§‹à¦•à¦¾à¦¨à§‡ à¦•à§€ à¦•à§€ à¦•à¦°à¦¾ à¦¯à¦¾à¦¯à¦¼?', capIntro:'à¦à¦‡ à¦¤à¦¥à§à¦¯ à¦¸à¦ à¦¿à¦• à¦…à¦°à§à¦¡à¦¾à¦° à¦†à¦ªà¦¨à¦¾à¦° à¦¦à§‹à¦•à¦¾à¦¨à§‡ à¦ªà¦¾à¦ à¦¾à¦¤à§‡ à¦¸à¦¾à¦¹à¦¾à¦¯à§à¦¯ à¦•à¦°à¦¬à§‡à¥¤', printers:'à¦ªà§à¦°à¦¿à¦¨à§à¦Ÿà¦¾à¦° à¦¸à§‡à¦Ÿà¦†à¦ª', chooseAll:'à¦¯à¦¾ à¦¯à¦¾ à¦ªà§à¦°à¦¯à§‹à¦œà§à¦¯ à¦¬à§‡à¦›à§‡ à¦¨à¦¿à¦¨', bwLaser:'à¦¸à¦¾à¦¦à¦¾-à¦•à¦¾à¦²à§‹ à¦²à§‡à¦œà¦¾à¦°', colorInk:'à¦•à¦¾à¦²à¦¾à¦° à¦‡à¦™à§à¦•à¦œà§‡à¦Ÿ', colorLaser:'à¦•à¦¾à¦²à¦¾à¦° à¦²à§‡à¦œà¦¾à¦°', services:'à¦•à¦¾à¦—à¦œ à¦“ à¦«à¦¿à¦¨à¦¿à¦¶à¦¿à¦‚', chooseAll2:'à¦¯à¦¾ à¦¯à¦¾ à¦ªà§à¦°à¦¯à§‹à¦œà§à¦¯ à¦¬à§‡à¦›à§‡ à¦¨à¦¿à¦¨', spiral:'à¦¸à§à¦ªà¦¾à¦‡à¦°à¦¾à¦² à¦¬à¦¾à¦‡à¦¨à§à¦¡à¦¿à¦‚', lamination:'à¦²à§‡à¦®à¦¿à¦¨à§‡à¦¶à¦¨', basePrice:'à¦ªà§à¦°à¦¤à¦¿ A4 à¦¸à¦¾à¦¦à¦¾-à¦•à¦¾à¦²à§‹ à¦ªà¦¾à¦¤à¦¾à¦° à¦¦à¦¾à¦®', payout:'à¦ªà¦›à¦¨à§à¦¦à§‡à¦° à¦ªà§‡à¦®à§‡à¦¨à§à¦Ÿ', bank:'à¦¬à§à¦¯à¦¾à¦‚à¦•', review:'à¦¦à§‹à¦•à¦¾à¦¨ à¦²à¦¾à¦‡à¦­ à¦¹à¦“à¦¯à¦¼à¦¾à¦° à¦†à¦—à§‡ à¦ªà§‡à¦®à§‡à¦¨à§à¦Ÿà§‡à¦° à¦¤à¦¥à§à¦¯ à¦“ à¦«à§‹à¦¨ à¦¨à¦®à§à¦¬à¦° à¦¯à¦¾à¦šà¦¾à¦‡ à¦•à¦°à¦¾ à¦¹à¦¬à§‡à¥¤', payoutAcc: 'à¦…à§à¦¯à¦¾à¦•à¦¾à¦‰à¦¨à§à¦Ÿ à¦¨à¦®à§à¦¬à¦°',
-      back:'à¦ªà§‡à¦›à¦¨à§‡', continue:'à¦à¦—à¦¿à¦¯à¦¼à§‡ à¦¯à¦¾à¦¨', preview:'à¦°à§‡à¦œà¦¿à¦¸à§à¦Ÿà¦¾à¦° à¦•à¦°à§à¦¨', microcopy:'à¦°à§‡à¦œà¦¿à¦¸à§à¦Ÿà¦¾à¦° à¦•à¦°à¦¾à¦° à¦†à¦—à§‡ à¦¸à¦¬ à¦¤à¦¥à§à¦¯ à¦¦à§‡à¦–à§‡ à¦¨à¦¿à¦¤à§‡ à¦ªà¦¾à¦°à¦¬à§‡à¦¨à¥¤',
-      progress:['à¦†à¦ªà¦¨à¦¾à¦° à¦¦à§‹à¦•à¦¾à¦¨à§‡à¦° à¦¤à¦¥à§à¦¯','à¦†à¦ªà¦¨à¦¾à¦° à¦ªà¦¿à¦•à¦†à¦ª à¦²à§‹à¦•à§‡à¦¶à¦¨','à¦®à§‡à¦¶à¦¿à¦¨ à¦“ à¦ªà§‡à¦®à§‡à¦¨à§à¦Ÿ'], count:'à§©à¦Ÿà¦¿à¦° à¦®à¦§à§à¦¯à§‡ à¦§à¦¾à¦ª {n}',
+      network:'ইনকো পার্টনার নেটওয়ার্ক', headline:'আপনার প্রিন্ট শপকে অনলাইন অর্ডার হাবে পরিণত করুন।', lead:'দোকানের তথ্য, লোকেশন, মেশিন ও পেমেন্ট — কয়েকটি সহজ ধাপে সব সেটআপ করুন।',
+      benefit1:'বর্তমান প্রিন্টারই রাখুন', benefit1sub:'কোন মেশিনে কী করা যায়, জানিয়ে দিন।', benefit2:'দোকানের দরজায় পিন দিন', benefit2sub:'ক্রেতাকে সঠিক কাউন্টারে পৌঁছাতে সাহায্য করুন।', benefit3:'পেমেন্ট বেছে নিন', benefit3sub:'বিকাশ, নগদ বা ব্যাংক যোগ করুন।',
+      earningsTitle:'লাইভ আয়ের হিসাব', estimateBadge:'লাইভ হিসাব', sliderLabel:'প্রতিদিনের সম্ভাব্য অতিরিক্ত পৃষ্ঠার সংখ্যা ঠিক করতে টানুন', estimateNote:'উদাহরণের আয়ের হার অনুযায়ী পরিকল্পনার জন্য আনুমানিক হিসাব।',
+      afterSignup:'সাইনআপের পরে', journey1:'ডেস্কটপ এজেন্ট ডাউনলোড করুন', journey2:'স্টোর কী দিয়ে পেয়ার করুন', journey3:'টেস্ট প্রিন্ট করে অনলাইনে যান',
+      step1small:'ধাপ ১', step1:'দোকান', step2small:'ধাপ ২', step2:'লোকেশন', step3small:'ধাপ ৩', step3:'সুবিধাসমূহ',
+      shopTitle:'প্রথমে আপনার দোকানের তথ্য দিন।', shopIntro:'ক্রেতা ও পার্টনার টিমের প্রয়োজনীয় তথ্যই শুধু।', shopName:'দোকানের নাম', ownerName:'মালিক / ম্যানেজারের নাম', phone:'মোবাইল বা হোয়াটসঅ্যাপ নম্বর', phoneHint:'ওটিপি লগইন ও জরুরি অর্ডার আপডেটের জন্য।', email:'ইমেইল ঠিকানা', emailHint:'অ্যাকাউন্ট আপডেট ও সহায়তার জন্য।', hours:'সাধারণ খোলার সময়',
+      locationTitle:'দোকানের দরজায় পিন বসান।', locationIntro:'বাংলাদেশের যেকোনো ঠিকানা খুঁজে সঠিক পিকআপ পয়েন্টে পিন টানুন।', address:'দোকানের ঠিকানা', mapHint:'পিন বসাতে ম্যাপে ট্যাপ করুন', city:'শহর', area:'এলাকা',
+      capTitle:'আপনার দোকানে কী কী করা যায়?', capIntro:'এই তথ্য সঠিক অর্ডার আপনার দোকানে পাঠাতে সাহায্য করবে।', printers:'প্রিন্টার সেটআপ', chooseAll:'যা যা প্রযোজ্য বেছে নিন', bwLaser:'সাদা-কালো লেজার', colorInk:'কালার ইঙ্কজেট', colorLaser:'কালার লেজার', services:'কাগজ ও ফিনিশিং', chooseAll2:'যা যা প্রযোজ্য বেছে নিন', spiral:'স্পাইরাল বাইন্ডিং', lamination:'লেমিনেশন', basePrice:'প্রতি A4 সাদা-কালো পাতার দাম', payout:'পছন্দের পেমেন্ট', bank:'ব্যাংক', review:'দোকান লাইভ হওয়ার আগে পেমেন্টের তথ্য ও ফোন নম্বর যাচাই করা হবে।', payoutAcc: 'অ্যাকাউন্ট নম্বর',
+      back:'পেছনে', continue:'এগিয়ে যান', preview:'রেজিস্টার করুন', microcopy:'রেজিস্টার করার আগে সব তথ্য দেখে নিতে পারবেন।',
+      progress:['আপনার দোকানের তথ্য','আপনার পিকআপ লোকেশন','মেশিন ও পেমেন্ট'], count:'৩টির মধ্যে ধাপ {n}',
 
-      confirmTitle: 'à¦°à§‡à¦œà¦¿à¦¸à§à¦Ÿà¦¾à¦° à¦•à¦°à¦¤à§‡ à¦ªà§à¦°à¦¸à§à¦¤à§à¦¤?',
-      confirmText: 'à¦¨à¦¿à¦šà§‡ à¦•à§à¦²à¦¿à¦• à¦•à¦°à§‡ à¦†à¦ªà¦¨à¦¾à¦° à¦¦à§‹à¦•à¦¾à¦¨à§‡à¦° à¦°à§‡à¦œà¦¿à¦¸à§à¦Ÿà§à¦°à§‡à¦¶à¦¨ à¦¸à¦®à§à¦ªà¦¨à§à¦¨ à¦•à¦°à§à¦¨ à¦à¦¬à¦‚ à¦¸à§à¦Ÿà§‹à¦° à¦•à§€ à¦¤à§ˆà¦°à¦¿ à¦•à¦°à§à¦¨à¥¤',
-      storeKeyPreview: 'à¦¸à§à¦Ÿà§‹à¦° à¦•à§€ à¦ªà§à¦°à¦¿à¦­à¦¿à¦‰',
-      registerBtn: 'à¦°à§‡à¦œà¦¿à¦¸à§à¦Ÿà¦¾à¦° à¦“ à¦¡à§‡à¦¸à§à¦•à¦Ÿà¦ª à¦à¦œà§‡à¦¨à§à¦Ÿ à¦¡à¦¾à¦‰à¦¨à¦²à§‹à¦¡',
-      registering: 'à¦°à§‡à¦œà¦¿à¦¸à§à¦Ÿà¦¾à¦° à¦¹à¦šà§à¦›à§‡...',
-      close: 'à¦‰à¦‡à¦œà¦¾à¦°à§à¦¡à§‡ à¦«à¦¿à¦°à§‡ à¦¯à¦¾à¦¨',
-      successTitle: 'à¦†à¦¬à§‡à¦¦à¦¨ à¦—à§ƒà¦¹à§€à¦¤ à¦¹à¦¯à¦¼à§‡à¦›à§‡!',
-      successText: 'à¦†à¦¬à§‡à¦¦à¦¨ à¦—à§ƒà¦¹à§€à¦¤ à¦¹à¦¯à¦¼à§‡à¦›à§‡! à¦†à¦®à¦°à¦¾ à¦à¦Ÿà¦¿ à¦ªà¦°à§à¦¯à¦¾à¦²à§‹à¦šà¦¨à¦¾ à¦•à¦°à¦¬ à¦à¦¬à¦‚ à¦¸à¦¾à¦§à¦¾à¦°à¦£à¦¤ à§¨à§ª à¦˜à¦£à§à¦Ÿà¦¾à¦° à¦®à¦§à§à¦¯à§‡ à¦‡à¦®à§‡à¦‡à¦²à§‡à¦° à¦®à¦¾à¦§à§à¦¯à¦®à§‡ à¦†à¦ªà¦¨à¦¾à¦•à§‡ à¦œà¦¾à¦¨à¦¾à¦¬à¥¤',
-      yourStoreKey: 'à¦†à¦ªà¦¨à¦¾à¦° à¦¸à§à¦Ÿà§‹à¦° à¦•à§€',
-      downloadAgent: 'PrintIt by Inko Agent (.exe) à¦¡à¦¾à¦‰à¦¨à¦²à§‹à¦¡',
-      goToDashboard: 'à¦ªà¦¾à¦°à§à¦Ÿà¦¨à¦¾à¦° à¦¡à§à¦¯à¦¾à¦¶à¦¬à§‹à¦°à§à¦¡à§‡ à¦¯à¦¾à¦¨'
+      confirmTitle: 'রেজিস্টার করতে প্রস্তুত?',
+      confirmText: 'নিচে ক্লিক করে আপনার দোকানের রেজিস্ট্রেশন সম্পন্ন করুন এবং স্টোর কী তৈরি করুন।',
+      storeKeyPreview: 'স্টোর কী প্রিভিউ',
+      registerBtn: 'রেজিস্টার ও ডেস্কটপ এজেন্ট ডাউনলোড',
+      registering: 'রেজিস্টার হচ্ছে...',
+      close: 'উইজার্ডে ফিরে যান',
+      successTitle: 'আবেদন গৃহীত হয়েছে!',
+      successText: 'আবেদন গৃহীত হয়েছে! আমরা এটি পর্যালোচনা করব এবং সাধারণত ২৪ ঘণ্টার মধ্যে ইমেইলের মাধ্যমে আপনাকে জানাব।',
+      yourStoreKey: 'আপনার স্টোর কী',
+      downloadAgent: 'PrintIt by Inko Agent (.exe) ডাউনলোড',
+      goToDashboard: 'পার্টনার ড্যাশবোর্ডে যান'
     }
   };
   const t = copyMap[currentLang];
@@ -438,7 +382,7 @@ export default function PartnerSignup() {
         <div className="utility" aria-label="Language selector">
           <div className="lang-toggle">
             <button type="button" onClick={() => setCurrentLang('en')} aria-pressed={currentLang === 'en'}>English</button>
-            <button type="button" onClick={() => setCurrentLang('bn')} aria-pressed={currentLang === 'bn'}>à¦¬à¦¾à¦‚à¦²à¦¾</button>
+            <button type="button" onClick={() => setCurrentLang('bn')} aria-pressed={currentLang === 'bn'}>বাংলা</button>
           </div>
         </div>
 
@@ -473,9 +417,9 @@ export default function PartnerSignup() {
               </div>
               <p className="earnings-copy">
                 {currentLang === 'bn' ? (
-                  <>à¦‡à¦¨à¦•à§‹à¦° à¦®à¦¾à¦§à§à¦¯à¦®à§‡ à¦ªà§à¦°à¦¤à¦¿à¦¦à¦¿à¦¨ <strong>{expectedPages.toLocaleString('bn-BD')} à¦…à¦¤à¦¿à¦°à¦¿à¦•à§à¦¤ à¦ªà§ƒà¦·à§à¦ à¦¾</strong> à¦ªà§à¦°à¦¿à¦¨à§à¦Ÿ à¦•à¦°à¦²à§‡, à¦†à¦ªà¦¨à¦¾à¦° à¦†à¦¨à§à¦®à¦¾à¦¨à¦¿à¦• à¦…à¦¤à¦¿à¦°à¦¿à¦•à§à¦¤ à¦®à¦¾à¦¸à¦¿à¦• à¦¨à¦¿à¦Ÿ à¦²à¦¾à¦­ <strong className="profit">à§³ {monthlyProfit.toLocaleString('bn-BD')}à¥¤</strong></>
+                  <>ইনকোর মাধ্যমে প্রতিদিন <strong>{expectedPages.toLocaleString('bn-BD')} অতিরিক্ত পৃষ্ঠা</strong> প্রিন্ট করলে, আপনার আনুমানিক অতিরিক্ত মাসিক নিট লাভ <strong className="profit">৳ {monthlyProfit.toLocaleString('bn-BD')}।</strong></>
                 ) : (
-                  <>If you print <strong>{expectedPages.toLocaleString()} extra pages/day</strong> via Inko, your estimated additional monthly net profit is <strong className="profit">à§³ {monthlyProfit.toLocaleString()}.</strong></>
+                  <>If you print <strong>{expectedPages.toLocaleString()} extra pages/day</strong> via Inko, your estimated additional monthly net profit is <strong className="profit">৳ {monthlyProfit.toLocaleString()}.</strong></>
                 )}
               </p>
               <label className="earnings-note" htmlFor="dailyVolume">{t.sliderLabel}</label>
@@ -517,11 +461,11 @@ export default function PartnerSignup() {
               <div className="grid-2">
                 <div className="field">
                   <label htmlFor="shopName">{t.shopName}</label>
-                  <input id="shopName" type="text" placeholder={currentLang === 'bn' ? "à¦¯à§‡à¦®à¦¨: à¦¸à¦¿à¦Ÿà¦¿ à¦ªà§à¦°à¦¿à¦¨à§à¦Ÿ à¦…à§à¦¯à¦¾à¦¨à§à¦¡ à¦¸à§à¦Ÿà§‡à¦¶à¦¨à¦¾à¦°à¦¿" : "e.g. City Print & Stationery"} value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
+                  <input id="shopName" type="text" placeholder={currentLang === 'bn' ? "যেমন: সিটি প্রিন্ট অ্যান্ড স্টেশনারি" : "e.g. City Print & Stationery"} value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
                 </div>
                 <div className="field">
                   <label htmlFor="ownerName">{t.ownerName}</label>
-                  <input id="ownerName" type="text" placeholder={currentLang === 'bn' ? "à¦ªà§à¦°à§‹ à¦¨à¦¾à¦®" : "Full name"} value={formData.ownerName} onChange={(e) => setFormData({...formData, ownerName: e.target.value})} required />
+                  <input id="ownerName" type="text" placeholder={currentLang === 'bn' ? "পুরো নাম" : "Full name"} value={formData.ownerName} onChange={(e) => setFormData({...formData, ownerName: e.target.value})} required />
                 </div>
               </div>
               <div className="grid-2">
@@ -529,34 +473,9 @@ export default function PartnerSignup() {
                   <label htmlFor="phone">{t.phone}</label>
                   <div className="input-wrap">
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style={errors.phone ? { color: 'var(--danger)' } : {}}><path d="M8.5 3H6a2 2 0 0 0-2 2c0 8.28 6.72 15 15 15a2 2 0 0 0 2-2v-2.5l-4-1-1.2 2c-2.45-1.05-4.7-3.3-5.75-5.75l2-1.2L11 3.5 8.5 3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>
-                    <input id="phone" type="tel" placeholder="01XXXXXXXXX" value={formData.contactNumber} onChange={(e) => { setFormData({...formData, contactNumber: e.target.value}); setIsPhoneVerified(false); setVerificationId(null); }} required style={errors.phone ? { borderColor: 'var(--danger)', color: 'var(--danger)' } : {}} disabled={isPhoneVerified} />
-                    
-                    {!isPhoneVerified && !verificationId && (
-                      <button type="button" onClick={handleSendOtp} disabled={isVerifying || !!errors.phone || !formData.contactNumber} className="absolute right-2 top-2 bg-[#0b7250] text-white px-3 py-1 rounded text-sm disabled:opacity-50 z-10 hover:bg-[#095f43]">
-                        {isVerifying ? "..." : "Verify"}
-                      </button>
-                    )}
-                    {isPhoneVerified && (
-                      <span className="absolute right-3 top-3 text-[#0b7250] font-bold z-10">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                      </span>
-                    )}
+                    <input id="phone" type="tel" placeholder="01XXXXXXXXX" value={formData.contactNumber} onChange={(e) => setFormData({...formData, contactNumber: e.target.value})} required style={errors.phone ? { borderColor: 'var(--danger)', color: 'var(--danger)' } : {}} />
                   </div>
                   <div className="hint" style={errors.phone ? { color: 'var(--danger)', fontWeight: 600 } : {}}>{errors.phone || t.phoneHint}</div>
-                  
-                  {verificationId && !isPhoneVerified && (
-                    <div className="mt-2 p-3 bg-[var(--surface-2)] rounded-[10px] border border-[var(--line)]">
-                      <label className="text-sm font-medium mb-1 block text-[var(--muted)]">Enter OTP</label>
-                      <div className="flex gap-2">
-                        <input type="text" value={otp} onChange={(e) => setOtp(e.target.value)} className="flex-1 !pl-3" placeholder="123456" />
-                        <button type="button" onClick={handleVerifyOtp} disabled={isVerifying || !otp} className="bg-[#0b7250] text-white px-4 py-2 rounded font-medium disabled:opacity-50 hover:bg-[#095f43] border-0 cursor-pointer transition-colors">
-                          {isVerifying ? "..." : "Submit"}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                  <div id="recaptcha-container"></div>
-
                 </div>
                 <div className="field">
                   <label htmlFor="email">{t.email}</label>
@@ -584,7 +503,7 @@ export default function PartnerSignup() {
                 <label htmlFor="address">{t.address}</label>
                 <div className="input-wrap">
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="m20 20-4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-                  <input id="address" type="search" placeholder={currentLang === 'bn' ? "à¦°à¦¾à¦¸à§à¦¤à¦¾, à¦®à¦¾à¦°à§à¦•à§‡à¦Ÿ à¦¬à¦¾ à¦²à§à¦¯à¦¾à¦¨à§à¦¡à¦®à¦¾à¦°à§à¦• à¦–à§à¦à¦œà§à¦¨" : "Search road, market or landmark"} value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} onFocus={() => { if (searchResults.length > 0 || formData.address.length >= 3) setShowDropdown(true); }} onBlur={() => setTimeout(() => setShowDropdown(false), 150)} required />
+                  <input id="address" type="search" placeholder={currentLang === 'bn' ? "রাস্তা, মার্কেট বা ল্যান্ডমার্ক খুঁজুন" : "Search road, market or landmark"} value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} onFocus={() => { if (searchResults.length > 0 || formData.address.length >= 3) setShowDropdown(true); }} onBlur={() => setTimeout(() => setShowDropdown(false), 150)} required />
                 </div>
                 {isSearching && (
                   <div className="absolute right-3 top-9 flex items-center pointer-events-none">
@@ -621,11 +540,11 @@ export default function PartnerSignup() {
               <div className="location-details">
                 <div className="field">
                   <label htmlFor="city">{t.city}</label>
-                  <input id="city" type="text" placeholder={currentLang === 'bn' ? "à¦¯à§‡à¦®à¦¨: à¦¢à¦¾à¦•à¦¾" : "e.g. Dhaka"} value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} required />
+                  <input id="city" type="text" placeholder={currentLang === 'bn' ? "যেমন: ঢাকা" : "e.g. Dhaka"} value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} required />
                 </div>
                 <div className="field">
                   <label htmlFor="area">{t.area}</label>
-                  <input id="area" type="text" placeholder={currentLang === 'bn' ? "à¦¯à§‡à¦®à¦¨: à¦§à¦¾à¦¨à¦®à¦¨à§à¦¡à¦¿" : "e.g. Dhanmondi"} value={formData.area} onChange={(e) => setFormData({...formData, area: e.target.value})} required />
+                  <input id="area" type="text" placeholder={currentLang === 'bn' ? "যেমন: ধানমন্ডি" : "e.g. Dhanmondi"} value={formData.area} onChange={(e) => setFormData({...formData, area: e.target.value})} required />
                 </div>
                 <div className="field">
                   <span className="field-label">Plus Code</span>
@@ -658,7 +577,7 @@ export default function PartnerSignup() {
                 <div className="field">
                   <label htmlFor="basePrice">{t.basePrice}</label>
                   <div className="input-wrap">
-                    <span className="absolute left-[16px] top-[12px] font-bold text-[var(--muted)] pointer-events-none select-none text-[15px]">à§³</span>
+                    <span className="absolute left-[16px] top-[12px] font-bold text-[var(--muted)] pointer-events-none select-none text-[15px]">৳</span>
                     <input id="basePrice" type="number" min="0" placeholder="2.00" value={formData.basePrice} onChange={(e) => setFormData({...formData, basePrice: e.target.value})} required />
                   </div>
                 </div>
@@ -954,4 +873,3 @@ export default function PartnerSignup() {
     </>
   );
 }
-
