@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, Patch, Query, Headers, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { StoresService } from './stores.service';
 import { CreateStoreDto } from './create-store.dto';
-import admin from '../firebase';
+import { auth } from '../firebase';
 
 @Controller('stores')
 export class StoresController {
@@ -21,9 +21,13 @@ export class StoresController {
     const idToken = authHeader.split('Bearer ')[1];
     
     try {
-      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const decodedToken = await auth.verifyIdToken(idToken);
       const verifiedPhone = decodedToken.phone_number;
       
+      if (!data.contactNumber) {
+        throw new BadRequestException('Contact number is required');
+      }
+
       // We accept contactNumber formatted with or without the +88, but Firebase always returns with +880...
       const expectedPhone = data.contactNumber.startsWith('+88') 
         ? data.contactNumber 
