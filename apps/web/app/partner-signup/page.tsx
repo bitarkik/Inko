@@ -243,9 +243,20 @@ export default function PartnerSignup() {
   };
 
   const handleNext = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^01[3-9]\d{8}$/;
+
     if (currentStep === 0) {
       if (!formData.name || !formData.ownerName || !formData.contactNumber || !formData.email) {
         alert(currentLang === 'bn' ? "অনুগ্রহ করে সব তথ্য দিন" : "Please fill in all required fields.");
+        return;
+      }
+      if (!emailRegex.test(formData.email)) {
+        alert(currentLang === 'bn' ? "অনুগ্রহ করে একটি সঠিক ইমেইল ঠিকানা দিন।" : "Please enter a valid email address.");
+        return;
+      }
+      if (!phoneRegex.test(formData.contactNumber)) {
+        alert(currentLang === 'bn' ? "অনুগ্রহ করে একটি সঠিক ১১-ডিজিটের বাংলাদেশি ফোন নম্বর দিন (যেমন: 017...)।" : "Please enter a valid 11-digit Bangladeshi phone number (e.g., 017...).");
         return;
       }
     } else if (currentStep === 1) {
@@ -260,6 +271,16 @@ export default function PartnerSignup() {
     } else {
       if (!formData.name || !formData.ownerName || !formData.contactNumber || !formData.email) {
         alert(currentLang === 'bn' ? "অনুগ্রহ করে দোকানের প্রাথমিক তথ্য দিন (ধাপ ১)" : "Please fill in all shop details in Step 1.");
+        setCurrentStep(0);
+        return;
+      }
+      if (!emailRegex.test(formData.email)) {
+        alert(currentLang === 'bn' ? "অনুগ্রহ করে একটি সঠিক ইমেইল ঠিকানা দিন (ধাপ ১)।" : "Please enter a valid email address in Step 1.");
+        setCurrentStep(0);
+        return;
+      }
+      if (!phoneRegex.test(formData.contactNumber)) {
+        alert(currentLang === 'bn' ? "অনুগ্রহ করে একটি সঠিক ১১-ডিজিটের বাংলাদেশি ফোন নম্বর দিন (ধাপ ১)।" : "Please enter a valid 11-digit Bangladeshi phone number in Step 1.");
         setCurrentStep(0);
         return;
       }
