@@ -31,8 +31,11 @@ export default function App() {
 
   const fetchLiveData = async () => {
     try {
+      const currentPassword = localStorage.getItem('admin_password') || '';
+      if (!currentPassword) return;
+
       const res = await fetch('https://api.printitbyinko.com/admin/stats', {
-        headers: { 'x-admin-password': authPassword }
+        headers: { 'x-admin-password': currentPassword }
       });
       
       if (res.status === 401) {
@@ -153,9 +156,10 @@ export default function App() {
   const approveApp = async (id: string) => {
     if (!window.confirm("Are you sure you want to approve this store?")) return;
     try {
+      const currentPassword = localStorage.getItem('admin_password') || '';
       const res = await fetch(`https://api.printitbyinko.com/admin/stores/${id}/approve`, { 
         method: 'PATCH',
-        headers: { 'x-admin-password': authPassword }
+        headers: { 'x-admin-password': currentPassword }
       });
       if (res.ok) {
         showToast('Store approved!');
@@ -171,9 +175,10 @@ export default function App() {
   const revokeStore = async (id: string) => {
     if (!window.confirm("WARNING: Are you sure you want to revoke this partner? They will be instantly disconnected and unable to accept orders.")) return;
     try {
+      const currentPassword = localStorage.getItem('admin_password') || '';
       const res = await fetch(`https://api.printitbyinko.com/admin/stores/${id}/revoke`, { 
         method: 'PATCH',
-        headers: { 'x-admin-password': authPassword }
+        headers: { 'x-admin-password': currentPassword }
       });
       if (res.ok) {
         showToast('Store partnership revoked.');
