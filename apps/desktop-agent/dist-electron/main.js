@@ -19856,7 +19856,7 @@ var Pl = y.dirname(v(import.meta.url));
 process.env.APP_ROOT = y.join(Pl, "..");
 var Fl = process.env.VITE_DEV_SERVER_URL, Il = y.join(process.env.APP_ROOT, "dist-electron"), Ll = y.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = Fl ? y.join(process.env.APP_ROOT, "public") : Ll;
-var Rl, zl = "https://printpanda-api.onrender.com", Bl = 5e3, Vl = y.join(n.getPath("userData"), "temp-prints"), Hl = y.join(n.getPath("userData"), "printpanda-config.json");
+var Rl, zl = "https://api.printitbyinko.com", Bl = 5e3, Vl = y.join(n.getPath("userData"), "temp-prints"), Hl = y.join(n.getPath("userData"), "printpanda-config.json");
 i.existsSync(Vl) || i.mkdirSync(Vl, { recursive: !0 });
 function Ul() {
 	try {
