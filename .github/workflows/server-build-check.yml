@@ -1,0 +1,27 @@
+name: Server build check
+
+# Fast per-commit signal for the NestJS API. Render does not post commit
+# checks the way Vercel does, so without this a broken server build is only
+# discovered via Render's failure email. This never deploys and never touches
+# the database (it deliberately avoids `npm run build`, whose script runs
+# `prisma db push`).
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/server/**'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install, generate Prisma client, compile
+        run: |
+          cd apps/server
+          npm ci
+          npx prisma generate
+          npx nest build
