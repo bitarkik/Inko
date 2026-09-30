@@ -50,7 +50,10 @@ export class AdminService {
         createdAt: store.createdAt,
         lastPingAt: store.lastPingAt,
         isActive,
-        status: store.status,
+        dbStatus: store.status,
+        status: store.status === 'SUSPENDED' ? 'Revoked' : (isActive ? 'Live' : 'Offline'),
+        revokedAt: store.revokedAt,
+        revokeReason: store.revokeReason,
         revenue: storeRevenue,
         completedJobs: storeJobs,
       };
@@ -96,11 +99,44 @@ export class AdminService {
     return store;
   }
 
-  async revokeStore(storeId: string) {
+  async revokeStore(storeId: string, reason: string) {
     const store = await this.prisma.store.update({
       where: { id: storeId },
-      data: { status: 'SUSPENDED', isAcceptingOrders: false },
+      data: { 
+        status: 'SUSPENDED', 
+        isAcceptingOrders: false,
+        revokedAt: new Date(),
+        revokeReason: reason
+      },
     });
+    return store;
+  }
+
+  async declineStore(storeId: string, reason: string) {
+    const store = await this.prisma.store.update({
+      where: { id: storeId },
+      data: { 
+        status: 'DECLINED',
+        declineReason: reason
+      },
+    });
+
+    if (store.email && process.env.RESEND_API_KEY) {
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      resend.emails.send({
+        from: 'hello@printitbyinko.com',
+        to: store.email,
+        subject: 'Update on your PrintIt by Inko Application',
+        html: `
+          <p>Hi ${store.ownerName},</p>
+          <p>We have reviewed your application for <strong>${store.name}</strong>.</p>
+          <p>Unfortunately, we are unable to approve your store at this time.</p>
+          <p><strong>Reason:</strong> ${reason}</p>
+          <p>If you have any questions, please contact our support team.</p>
+        `
+      }).catch(err => console.error("Failed to send decline email", err));
+    }
+    
     return store;
   }
 }

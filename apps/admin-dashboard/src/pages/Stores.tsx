@@ -34,7 +34,7 @@ export function Stores({ stores, openDrawer, offlineCount }: { stores: Store[], 
             <input type="search" placeholder="Search store, ID, owner or area" value={q} onChange={e => setQ(e.target.value)} />
           </label>
           <select value={status} onChange={e => setStatus(e.target.value)}>
-            <option value="all">All statuses</option><option>Live</option><option>Busy</option><option>Offline</option><option>Suspended</option>
+            <option value="all">All statuses</option><option>Live</option><option>Busy</option><option>Offline</option><option>Cancelled</option>
           </select>
           <select value={zone} onChange={e => setZone(e.target.value)}>
             <option value="all">All zones</option><option>Zone A</option><option>Zone B</option><option>Zone C</option><option>Zone D</option>

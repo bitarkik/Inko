@@ -83,7 +83,8 @@ export default function App() {
         regSort: new Date(s.createdAt).getTime(),
         days: Math.floor((new Date().getTime() - new Date(s.createdAt).getTime()) / (1000 * 60 * 60 * 24)),
         online: 100,
-        status: s.isActive ? 'Live' : 'Offline',
+        status: s.status,
+        dbStatus: s.dbStatus,
         jobs: s.completedJobs,
         failed: 0,
         sales: s.revenue,
@@ -97,7 +98,9 @@ export default function App() {
         hardware: ['A4 & A3'],
         printers: [],
         settlement: 0,
-        lastPingAt: s.lastPingAt
+        lastPingAt: s.lastPingAt,
+        revokedAt: s.revokedAt,
+        revokeReason: s.revokeReason
       }));
       setStores(parsedStores);
       setOfflineStoreList(parsedStores.filter((s: Store) => s.status === 'Offline'));
@@ -173,19 +176,48 @@ export default function App() {
   };
 
   const revokeStore = async (id: string) => {
-    if (!window.confirm("WARNING: Are you sure you want to revoke this partner? They will be instantly disconnected and unable to accept orders.")) return;
+    const reason = window.prompt("WARNING: Are you sure you want to cancel this partnership? They will be instantly disconnected.\n\nPlease enter the reason for cancellation:");
+    if (reason === null) return;
     try {
       const currentPassword = localStorage.getItem('admin_password') || '';
       const res = await fetch(`https://api.printitbyinko.com/admin/stores/${id}/revoke`, { 
         method: 'PATCH',
-        headers: { 'x-admin-password': currentPassword }
+        headers: { 
+          'x-admin-password': currentPassword,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ reason })
       });
       if (res.ok) {
-        showToast('Store partnership revoked.');
-        setDrawerOpen(false);
+        showToast('Store partnership cancelled.');
+        closeDrawer();
         fetchLiveData();
       } else {
-        showToast('Failed to revoke store.');
+        showToast('Failed to cancel store partnership.');
+      }
+    } catch (e) {
+      showToast('Network error.');
+    }
+  };
+
+  const declineApp = async (id: string) => {
+    const reason = window.prompt("Decline application? Please provide a reason (this will be emailed to the owner):", "Store location is out of our current delivery zone.");
+    if (reason === null) return;
+    try {
+      const currentPassword = localStorage.getItem('admin_password') || '';
+      const res = await fetch(`https://api.printitbyinko.com/admin/stores/${id}/decline`, { 
+        method: 'PATCH',
+        headers: { 
+          'x-admin-password': currentPassword,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ reason })
+      });
+      if (res.ok) {
+        showToast('Application declined.');
+        fetchLiveData();
+      } else {
+        showToast('Failed to decline application.');
       }
     } catch (e) {
       showToast('Network error.');
@@ -221,7 +253,7 @@ export default function App() {
       case 'mapPage':
         return <MapPage stores={stores} mapContainer={mapContainer} />;
       case 'approvals':
-        return <Approvals applications={applications} approveApp={approveApp} />;
+        return <Approvals applications={applications} approveApp={approveApp} declineApp={declineApp} />;
       default: return null;
     }
   };
@@ -344,7 +376,14 @@ export default function App() {
                     <div className="fact"><small>Active duration</small><b>{currentStore.days} days · {currentStore.online}% online</b></div>
                     <div className="fact"><small>Customer quality</small><b className="rating">★ {currentStore.rating} · {currentStore.reviews} reviews</b></div>
                   </div>
-                  <button onClick={() => revokeStore(currentStore.id)} style={{marginTop: '16px', width: '100%', padding: '10px', background: 'var(--red-soft)', color: 'var(--red)', border: '1px solid #e09494', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer'}}>Revoke Partnership</button>
+                  {currentStore.dbStatus === 'SUSPENDED' ? (
+                    <div style={{marginTop: '16px', padding: '12px', background: 'var(--red-soft)', color: 'var(--red)', border: '1px solid #e09494', borderRadius: '8px'}}>
+                      <b style={{display: 'block', marginBottom: '4px'}}>Partnership Cancelled</b>
+                      <span style={{fontSize: '12px'}}>Reason: {currentStore.revokeReason || 'No reason provided'}</span>
+                    </div>
+                  ) : (
+                    <button onClick={() => revokeStore(currentStore.id)} style={{marginTop: '16px', width: '100%', padding: '10px', background: 'var(--red-soft)', color: 'var(--red)', border: '1px solid #e09494', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer'}}>Cancel Partnership</button>
+                  )}
                 </div>
                 <div className="detail-section">
                   <h3>Hardware & capabilities</h3>

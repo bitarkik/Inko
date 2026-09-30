@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, Headers, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Headers, UnauthorizedException, Body } from '@nestjs/common';
 import { AdminService } from './admin.service';
 
 @Controller('admin')
@@ -24,8 +24,14 @@ export class AdminController {
   }
 
   @Patch('stores/:id/revoke')
-  revokeStore(@Param('id') id: string, @Headers('x-admin-password') password: string) {
+  revokeStore(@Param('id') id: string, @Headers('x-admin-password') password: string, @Body() body: { reason: string }) {
     this.checkAuth(password);
-    return this.adminService.revokeStore(id);
+    return this.adminService.revokeStore(id, body.reason);
+  }
+
+  @Patch('stores/:id/decline')
+  declineStore(@Param('id') id: string, @Headers('x-admin-password') password: string, @Body() body: { reason: string }) {
+    this.checkAuth(password);
+    return this.adminService.declineStore(id, body.reason);
   }
 }

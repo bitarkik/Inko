@@ -1,7 +1,7 @@
 import type { Application } from '../types';
 import { StatusTag } from '../components/StatusTag';
 
-export function Approvals({ applications, approveApp }: { applications: Application[], approveApp: (id: string) => void }) {
+export function Approvals({ applications, approveApp, declineApp }: { applications: Application[], approveApp: (id: string) => void, declineApp: (id: string) => void }) {
   return (
     <section className="page active" id="approvals">
       <div className="status-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 3 4 7v5c0 4.8 3.3 7.7 8 9 4.7-1.3 8-4.2 8-9V7l-8-4Z"/><path d="m9 12 2 2 4-4"/></svg>
@@ -17,8 +17,9 @@ export function Approvals({ applications, approveApp }: { applications: Applicat
               <div className="fact"><small>Hardware</small><b>{a.hardware}</b></div>
               <div className="fact"><small>Documents</small><b>{a.docs}</b></div>
             </div>
-            <div className="approval-actions">
-              <button className="secondary-btn">Review file</button>
+            <div className="approval-actions" style={{gap: '8px', display: 'flex'}}>
+              <button className="secondary-btn" style={{color: 'var(--red)', border: '1px solid var(--red-soft)'}} onClick={() => declineApp(a.id)}>Decline</button>
+              <div style={{flex: 1}}></div>
               <button className="primary-btn" onClick={() => approveApp(a.id)}>Approve store</button>
             </div>
           </article>
