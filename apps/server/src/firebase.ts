@@ -1,0 +1,17 @@
+import * as admin from 'firebase-admin';
+
+const serviceAccount = {
+  type: "service_account",
+  project_id: "printit-auth",
+  private_key_id: "f13c4e2866e674c090c4fadedec2b166583321e1",
+  private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC0lfgpqKuR81gs\nv+HpDmwjM5UkO+NlOzzAqvnzjtY5s2QYSylOuF/ynIjCDn4ioRjTP7Dbp4LhWHIW\n3UXwzDMt1Aw/vd6fcAYnj0xvqGllCURq1xj8YTokKwwB2rtVKvH7Gb8fsGM9Uhkf\nS2QtgDUzAYzdNL+UcgjowAk/ZyGjfgtXkwN6+5iTLx0jnDUCu1IpySAJPxv40f5s\nB2pXR1eC/b7KKEUvrQXc7lGdgkORGnePA6XbUvagOryy8ZGxTU/McGlC9J/O+VHq\nM27VNw2gspOgKV3ted8tJ4UUJbK5Vty/CzaFpgWkM/hRTzoV0stMwWMfz0hwfq9K\nauNamW9FAgMBAAECggEAFZIgaDbUn691+zUZyBvyliswMnl7inkOow5eowA53f9B\nV+w1Ip5qykZ2c4UFqMnzdtsRxiXL6sevgRmspBHQPzYoFxPCsZV7trgARQop5L68\nTxgjIj/UO8PElb10nmdt1jUCG8fsYsPEFR/iodNsXLZfsYCpLb3dYJKnyCIKkPER\npL1EhWZHyHyCztE3n0SkYTylxozdAJKPwf+5Aws+8dcXKpr7U+kgczbvMEHGQYwl\nEGUl/73AW/yvy9mJMarTxJWQT8Cwc5iLZU5UYlzlt89NTBLG/N2/Eqr4W9GO8jUZ\n0m2MiZeQSEmZLu5znSg/HTplqvIUWeVeuo/4G+DuNQKBgQDjJimDYwANelcd3Zqw\nhlR3pHF1jQJ+hZlhd99SCf7AdIcj3NTkNVqaIbaIBXmXA4rfOBpNX8N95QxECPrQ\nISAjgN7JRdeFk/ZXSzKZOtxdXaww0Qr4U8IMGGKHZetceK/2cXVVkdu+uoahnc4t\nrlU4RmC79JimmEBVnTBv314+KwKBgQDLhckUOLk34Pf7EOXC3W4XmcqAy4dJp21n\nmVE7vIP3QxynRsVeSfUkykUbDvtvUydHQ+IP43CvYmJJ8sTUfafbDPeG5WpyPkr3\ndv8I9zI2SHaztjVfj/Lt8AAdYuhZugGq8Wt8zdpTpkhiSwBWo5nR2eiFa5m4OXEz\n7iEba6zATwKBgQCftVJU5cPAtjcQcaJ04U38fSulCgsp6Edqp3zmUs7ChGwMRBWP\niw/z9SZAxxCxpDT9M5YStvVdzDDumR24PsI5FEAQZkHd0qXOxLmD0UXlg5oxDJnY\n9hMmq/KC3p84ekbGUQm9q3tExCMq+ShhKAUVNy6GmLjH0Z7SU14eGoBJ1wKBgHWX\nZSkD5TB+EYnEp5xBqFyGhVSJRC+wRyw2j5L+RxlUc3fLEjp6bOPG4srRi0E1QFqS\nxEj91pvfMn8bf9Juj8+m3FXas/gyOcplvNGHUkG++Ka5PnlqiKglpUtVXH6LVG9a\ncgp4Pg9a4jO4tgdZG4T+bLS6COVCez/P9N0NB5FNAoGADTQGBuExPjYidGQaoWaY\nxCZf1jyFU2SQlpFMlbvshUdJl0di7CISZJk3I/s4nfElAjEgdwBBYUZKFP3xJtVg\n3MqyQFx0CfDMoxk5ViITnJjQSGs2GOc5TV9mjNwWO3Znu4rS38CVNzhtK07R+Erb\nqzIhoJVOeBhowV+Cte6dPoA=\n-----END PRIVATE KEY-----\n",
+  client_email: "firebase-adminsdk-fbsvc@printit-auth.iam.gserviceaccount.com",
+};
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+}
+
+export default admin;
