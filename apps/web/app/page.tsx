@@ -86,15 +86,13 @@ export default function LandingPage() {
   // File Handling
   const processFile = (fileToProcess: File) => {
     setFile(fileToProcess);
-    if (selectedStore) {
-      router.push("/studio");
-    } else {
-      const el = document.getElementById("store-finder");
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth" });
-      }
-      alert("Document selected! Please choose a pickup shop below to proceed.");
+    // Always clear the store if they upload on the main page, so they explicitly choose
+    setSelectedStore(null);
+    const el = document.getElementById("store-finder");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
     }
+    alert("Document selected! Please choose a pickup shop below to proceed.");
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -271,15 +269,7 @@ export default function LandingPage() {
                           : 'border-[var(--line)] bg-[var(--surface-2)] opacity-60'
                       }`}
                       onClick={() => {
-                        if (store.isAcceptingOrders) {
-                          setSelectedStore(store);
-                          if (file) {
-                             router.push('/studio');
-                          } else {
-                             window.scrollTo({ top: 0, behavior: 'smooth' });
-                             fileInputRef.current?.click();
-                          }
-                        }
+                        router.push(`/store/${store.id}`);
                       }}
                     >
                       <div>
