@@ -77,10 +77,12 @@ async function printWithElectron(filePath: string): Promise<void> {
   return new Promise((resolve, reject) => {
     // The window must not be fully hidden (show: false) — the PDF plugin
     // won't render in a completely offscreen context, producing blank pages.
-    // We create a small off-screen-positioned window instead.
+    // We create a small window positioned way off-screen.
     const printWin = new BrowserWindow({
       width: 800,
       height: 600,
+      x: -10000,
+      y: -10000,
       show: false,           // start hidden
       skipTaskbar: true,
       webPreferences: { plugins: true },
