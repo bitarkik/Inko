@@ -73,13 +73,16 @@ async function updateOrderStatus(orderId: string, status: string) {
 }
 
 // Use Electron's native webContents.print() to send a PDF to the printer.
-// This is far more reliable than exec + PowerShell. The callback fires once
-// the job has been handed off to the OS spooler.
 async function printWithElectron(filePath: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    // Create an invisible, offscreen window to load and print the PDF
+    // The window must not be fully hidden (show: false) — the PDF plugin
+    // won't render in a completely offscreen context, producing blank pages.
+    // We create a small off-screen-positioned window instead.
     const printWin = new BrowserWindow({
-      show: false,
+      width: 800,
+      height: 600,
+      show: false,           // start hidden
+      skipTaskbar: true,
       webPreferences: { plugins: true },
     });
 
@@ -87,14 +90,19 @@ async function printWithElectron(filePath: string): Promise<void> {
     printWin.loadURL(fileUrl);
 
     printWin.webContents.on('did-finish-load', () => {
-      printWin.webContents.print({ silent: true, printBackground: true }, (success, errorType) => {
-        printWin.destroy();
-        if (success) {
-          resolve();
-        } else {
-          reject(new Error(`Print failed: ${errorType}`));
-        }
-      });
+      // Show the window briefly so Chromium's PDF plugin renders properly,
+      // then immediately print. Without this the output is a blank page.
+      printWin.show();
+      setTimeout(() => {
+        printWin.webContents.print({ silent: true, printBackground: true }, (success, errorType) => {
+          printWin.destroy();
+          if (success) {
+            resolve();
+          } else {
+            reject(new Error(`Print failed: ${errorType}`));
+          }
+        });
+      }, 1500); // give the PDF renderer time to paint
     });
 
     printWin.webContents.on('did-fail-load', (_e, code, desc) => {
@@ -152,11 +160,10 @@ async function processOrder(order: any, isAuto: boolean) {
   sendLog(`[Agent] Print job dispatched for order: ${id}. Waiting for staff to mark as ready.`);
   
   // Notify the UI that the job has been sent to the printer.
-  // The order will STAY as "PRINTING" in the queue until the owner clicks "Mark as Ready".
-  // This is intentional — we don't know how long the physical printer will take.
+  // The order STAYS visible in the queue with "Mark as Ready" button.
+  // Do NOT call triggerManualFetch here — that would wipe the order from the
+  // UI since it's now in PRINTING status (not READY_TO_PRINT).
   win?.webContents.send('order-print-dispatched', order);
-  
-  triggerManualFetch();
 }
 
 
