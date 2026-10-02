@@ -167,13 +167,28 @@ export const DetailPane = React.memo(({ order, apiUrl, t, formatMoney, printSele
               Mark as Ready for Pickup
             </button>
           ) : (
-            <button 
-              className="print-btn" 
-              onClick={printSelected}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
-              Print
-            </button>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+              <button 
+                className="secondary-btn" 
+                onClick={async () => {
+                  if (confirm('Are you sure you want to reject this order? This cannot be undone.')) {
+                    await window.ipcRenderer.invoke('reject-order', order.id);
+                  }
+                }}
+                style={{ flex: '0 0 auto', padding: '0 16px', border: '1px solid #fee2e2', color: '#ef4444', background: '#fef2f2', borderRadius: '10px' }}
+                title="Reject Order"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width: 20, height: 20}}><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
+              <button 
+                className="print-btn" 
+                onClick={printSelected}
+                style={{ flex: 1, marginTop: 0 }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+                Print
+              </button>
+            </div>
           )}
         </div>
       </div>

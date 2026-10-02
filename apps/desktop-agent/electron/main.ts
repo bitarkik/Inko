@@ -302,6 +302,15 @@ ipcMain.handle('mark-order-ready', async (event, orderId: string) => {
   return true;
 });
 
+// Owner presses "Reject" in the UI
+ipcMain.handle('reject-order', async (event, orderId: string) => {
+  sendLog(`[Manual] Staff rejected order ${orderId}`);
+  await updateOrderStatus(orderId, 'CANCELLED');
+  win?.webContents.send('order-rejected', { id: orderId });
+  await triggerManualFetch();
+  return true;
+});
+
 
 ipcMain.handle('refresh-orders', async () => {
   await triggerManualFetch();
