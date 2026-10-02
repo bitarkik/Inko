@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Patch, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Query,
+} from '@nestjs/common';
 import { StoresService } from './stores.service';
 import { CreateStoreDto } from './create-store.dto';
 
@@ -17,7 +25,10 @@ export class StoresController {
   }
 
   @Get('status')
-  checkStatus(@Query('storeId') storeId: string, @Query('phone') phone: string) {
+  checkStatus(
+    @Query('storeId') storeId: string,
+    @Query('phone') phone: string,
+  ) {
     return this.storesService.checkStatus(storeId, phone);
   }
 
@@ -28,8 +39,8 @@ export class StoresController {
 
   @Patch(':storeId/accepting-orders')
   toggleAcceptingOrders(
-    @Param('storeId') storeId: string, 
-    @Body('isAccepting') isAccepting: boolean
+    @Param('storeId') storeId: string,
+    @Body('isAccepting') isAccepting: boolean,
   ) {
     return this.storesService.toggleAcceptingOrders(storeId, isAccepting);
   }

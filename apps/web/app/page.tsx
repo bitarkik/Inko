@@ -29,7 +29,7 @@ export default function LandingPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [lang, setLang] = useState<"en" | "bn">("en");
   
-  const { setFile, setSelectedStore } = useFile();
+  const { file, setFile, selectedStore, setSelectedStore } = useFile();
   
   // Store logic
   const [stores, setStores] = useState<Store[]>([]);
@@ -84,13 +84,17 @@ export default function LandingPage() {
   const calcTotal = Math.round(pages * calcBase + calcAdd);
 
   // File Handling
-  const processFile = (file: File) => {
-    setFile(file);
-    if (displayStores.length > 0) {
-      // Default to the first available store in the filtered list
-      setSelectedStore(displayStores[0]);
+  const processFile = (fileToProcess: File) => {
+    setFile(fileToProcess);
+    if (selectedStore) {
+      router.push("/studio");
+    } else {
+      const el = document.getElementById("store-finder");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+      alert("Document selected! Please choose a pickup shop below to proceed.");
     }
-    router.push("/studio");
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -197,7 +201,7 @@ export default function LandingPage() {
         </div>
 
         {/* Store Finder Section */}
-        <section className="mb-[90px] md:mb-[110px]">
+        <section id="store-finder" className="mb-[90px] md:mb-[110px]">
           <div className="bg-[var(--surface)] border border-[var(--line)] rounded-[24px] shadow-sm overflow-hidden">
             {/* Store Finder Header / Search Bar */}
             <div className="p-6 md:p-8 border-b border-[var(--line)] bg-[var(--surface-2)]">
@@ -263,15 +267,18 @@ export default function LandingPage() {
                       key={store.id} 
                       className={`border p-5 rounded-[16px] flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 transition-all cursor-pointer ${
                         store.isAcceptingOrders 
-                          ? 'border-[var(--line)] bg-[var(--bg)] hover:border-[var(--green)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]' 
+                          ? (selectedStore?.id === store.id ? 'border-[var(--green)] bg-[var(--mint)] shadow-md' : 'border-[var(--line)] bg-[var(--bg)] hover:border-[var(--green)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]')
                           : 'border-[var(--line)] bg-[var(--surface-2)] opacity-60'
                       }`}
                       onClick={() => {
                         if (store.isAcceptingOrders) {
                           setSelectedStore(store);
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                          // Provide simple visual feedback that shop was selected
-                          alert(`Selected ${store.name} as your pickup location. Please upload a file to proceed.`);
+                          if (file) {
+                             router.push('/studio');
+                          } else {
+                             window.scrollTo({ top: 0, behavior: 'smooth' });
+                             fileInputRef.current?.click();
+                          }
                         }
                       }}
                     >

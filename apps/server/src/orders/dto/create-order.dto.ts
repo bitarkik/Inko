@@ -1,4 +1,10 @@
-import { IsInt, IsArray, IsNumber, IsString, IsOptional } from 'class-validator';
+import {
+  IsInt,
+  IsArray,
+  IsNumber,
+  IsString,
+  IsOptional,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
 export class CreateOrderDto {
@@ -15,7 +21,9 @@ export class CreateOrderDto {
 
   @Transform(({ value }) => {
     if (!value) return [];
-    return Array.isArray(value) ? value.map(Number) : String(value).split(',').map(Number);
+    return Array.isArray(value)
+      ? value.map(Number)
+      : String(value).split(',').map(Number);
   })
   @IsArray()
   @IsInt({ each: true })
@@ -23,7 +31,9 @@ export class CreateOrderDto {
 
   @Transform(({ value }) => {
     if (!value) return [];
-    return Array.isArray(value) ? value.map(Number) : String(value).split(',').map(Number);
+    return Array.isArray(value)
+      ? value.map(Number)
+      : String(value).split(',').map(Number);
   })
   @IsArray()
   @IsInt({ each: true })

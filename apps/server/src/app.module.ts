@@ -14,15 +14,17 @@ import { AuthController } from './auth/auth.controller';
     PrismaModule,
     OrdersModule,
     BullModule.forRoot({
-      connection: process.env.REDIS_URL ? {
-        host: new URL(process.env.REDIS_URL).hostname,
-        port: Number(new URL(process.env.REDIS_URL).port),
-        username: new URL(process.env.REDIS_URL).username || undefined,
-        password: new URL(process.env.REDIS_URL).password || undefined,
-      } : {
-        host: 'localhost',
-        port: 6379,
-      },
+      connection: process.env.REDIS_URL
+        ? {
+            host: new URL(process.env.REDIS_URL).hostname,
+            port: Number(new URL(process.env.REDIS_URL).port),
+            username: new URL(process.env.REDIS_URL).username || undefined,
+            password: new URL(process.env.REDIS_URL).password || undefined,
+          }
+        : {
+            host: 'localhost',
+            port: 6379,
+          },
     }),
     DocumentAnalysisModule,
     StoresModule,

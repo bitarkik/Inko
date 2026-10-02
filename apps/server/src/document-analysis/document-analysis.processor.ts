@@ -10,7 +10,7 @@ export class DocumentAnalysisProcessor extends WorkerHost {
 
   async process(job: Job<any, any, string>): Promise<any> {
     const { orderId } = job.data;
-    
+
     // Update to PROCESSING
     await this.prisma.order.update({
       where: { id: orderId },

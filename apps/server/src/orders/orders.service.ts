@@ -16,13 +16,17 @@ export class OrdersService {
     const store = await this.prisma.store.findUnique({
       where: { id: createOrderDto.storeId },
     });
-    
+
     if (!store) {
-      throw new NotFoundException(`Store with ID ${createOrderDto.storeId} not found`);
+      throw new NotFoundException(
+        `Store with ID ${createOrderDto.storeId} not found`,
+      );
     }
-    
+
     if (store.status !== 'ACTIVE') {
-      throw new Error('This shop is pending approval and cannot accept orders yet.');
+      throw new Error(
+        'This shop is pending approval and cannot accept orders yet.',
+      );
     }
 
     if (!store.isAcceptingOrders) {
@@ -43,7 +47,10 @@ export class OrdersService {
     return order;
   }
 
-  async updatePrintingStatus(id: string, updateOrderStatusDto: UpdateOrderStatusDto) {
+  async updatePrintingStatus(
+    id: string,
+    updateOrderStatusDto: UpdateOrderStatusDto,
+  ) {
     const order = await this.prisma.order.findUnique({ where: { id } });
     if (!order) {
       throw new NotFoundException(`Order with ID ${id} not found`);
@@ -74,7 +81,12 @@ export class OrdersService {
     }
 
     // Only allow cancellation if not yet printing
-    const uncancelableStatuses = ['PRINTING', 'READY_TO_PICKUP', 'COMPLETED', 'CANCELLED'];
+    const uncancelableStatuses = [
+      'PRINTING',
+      'READY_TO_PICKUP',
+      'COMPLETED',
+      'CANCELLED',
+    ];
     if (uncancelableStatuses.includes(order.status)) {
       throw new Error(`Order cannot be cancelled in status ${order.status}`);
     }
@@ -93,9 +105,9 @@ export class OrdersService {
     });
 
     return this.prisma.order.findMany({
-      where: { 
+      where: {
         status: 'READY_TO_PRINT',
-        storeId 
+        storeId,
       },
       include: { user: true },
       orderBy: { createdAt: 'asc' },
@@ -105,12 +117,12 @@ export class OrdersService {
   async getHistory(storeId: string, days: number = 7) {
     const date = new Date();
     date.setDate(date.getDate() - days);
-    
+
     return this.prisma.order.findMany({
       where: {
         storeId,
         status: { in: ['READY_TO_PICKUP', 'COMPLETED'] },
-        createdAt: { gte: date }
+        createdAt: { gte: date },
       },
       include: { user: true },
       orderBy: { createdAt: 'desc' },

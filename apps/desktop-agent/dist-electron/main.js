@@ -19891,12 +19891,21 @@ async function Xl(e, t) {
 		$(`[Error] Failed to update order ${e} to ${t}: ${n.message}`);
 	}
 }
-async function Zl(e, t = !1) {
+async function Zl(e) {
 	return new Promise((n, r) => {
-		let i = "";
-		i = t ? `notepad /p "${e}"` : `powershell.exe -Command "Start-Process -FilePath '${e}' -Verb Print -PassThru | %{sleep 30;$_} | kill"`, l(i, (t, i, a) => {
-			if (t) return $(`[Error] Failed to print document ${e}: ${t.message}`), r(t);
-			n();
+		let i = new t({
+			show: !1,
+			webPreferences: { plugins: !0 }
+		}), a = `file:///${e.replace(/\\/g, "/")}`;
+		i.loadURL(a), i.webContents.on("did-finish-load", () => {
+			i.webContents.print({
+				silent: !0,
+				printBackground: !0
+			}, (e, t) => {
+				i.destroy(), e ? n() : r(/* @__PURE__ */ Error(`Print failed: ${t}`));
+			});
+		}), i.webContents.on("did-fail-load", (e, t, n) => {
+			i.destroy(), r(/* @__PURE__ */ Error(`Failed to load PDF for printing: ${n}`));
 		});
 	});
 }
@@ -19918,27 +19927,18 @@ async function Ql(e, t) {
 		$(`[Error] Failed to download PDF for order ${n}: ${e.message}`);
 		return;
 	}
-	if (t) {
-		$(`[Print Spooler] Printing cover page for order ${n}...`);
-		let t = y.join(Vl, `cover-${n}.txt`), r = `PRINTPANDA AUTOMATED ORDER\n\nOrder ID: ${n}\nPages: ${e.totalPages}\nPrice: BDT ${e.totalPrice}\n\n======================\nEnd of Cover Page\n`;
-		i.writeFileSync(t, r);
-		try {
-			await Zl(t, !0), i.unlinkSync(t);
-		} catch {
-			$("[Error] Failed to print cover page.");
-		}
-	}
-	$(`[Print Spooler] Sending job to Windows Print Spooler: ${r}`);
+	$(`[Print Spooler] Sending job to printer: ${r}`);
 	try {
-		await Zl(r, !1);
-	} catch {}
-	await Xl(n, "READY_TO_PICKUP");
+		await Zl(r), $(`[Print Spooler] Job successfully sent to printer for order ${n}.`);
+	} catch (e) {
+		$(`[Error] Print failed for order ${n}: ${e.message}`);
+	}
 	try {
 		i.unlinkSync(r), $("[Agent] Cleaned up temporary file");
 	} catch (e) {
 		$(`[Error] Failed to delete file ${r}: ${e.message}`);
 	}
-	$(`[Agent] Finished processing order: ${n}`), Rl?.webContents.send("order-completed", e), $l();
+	$(`[Agent] Print job dispatched for order: ${n}. Waiting for staff to mark as ready.`), Rl?.webContents.send("order-print-dispatched", e), $l();
 }
 async function $l() {
 	if (Kl) try {
@@ -19985,7 +19985,7 @@ r.handle("get-config", () => ({
 } : (ql = !0, $(`[System] Started polling for Store: ${Kl}`), eu(), { success: !0 }) : {
 	success: !1,
 	error: "Store ID not set"
-}), r.handle("stop-polling", (e) => (ql = !1, Yl && clearTimeout(Yl), $("[System] Stopped polling."), { success: !0 })), r.handle("set-auto-print", (e, t) => (Jl = t, Wl({ isAutoPrintEnabled: Jl }), $(`[System] Auto-Print is now ${t ? "ENABLED" : "DISABLED"}`), !0)), r.handle("get-auto-print", () => Jl), r.handle("print-order", async (e, t) => ($(`[Manual Print] Staff triggered print for ${t.id}`), Ql(t, !1).catch((e) => console.error(e)), !0)), r.handle("refresh-orders", async () => (await $l(), !0)), r.handle("get-history", async (e, t = 7) => {
+}), r.handle("stop-polling", (e) => (ql = !1, Yl && clearTimeout(Yl), $("[System] Stopped polling."), { success: !0 })), r.handle("set-auto-print", (e, t) => (Jl = t, Wl({ isAutoPrintEnabled: Jl }), $(`[System] Auto-Print is now ${t ? "ENABLED" : "DISABLED"}`), !0)), r.handle("get-auto-print", () => Jl), r.handle("print-order", async (e, t) => ($(`[Manual Print] Staff triggered print for ${t.id}`), Ql(t, !1).catch((e) => console.error(e)), !0)), r.handle("mark-order-ready", async (e, t) => ($(`[Manual] Staff marked order ${t} as ready for pickup`), await Xl(t, "READY_TO_PICKUP"), Rl?.webContents.send("order-completed", { id: t }), await $l(), !0)), r.handle("refresh-orders", async () => (await $l(), !0)), r.handle("get-history", async (e, t = 7) => {
 	if (!Kl) return [];
 	try {
 		return (await Q.get(`${zl}/orders/history?storeId=${Kl}&days=${t}`)).data;

@@ -44,7 +44,7 @@ export class StoresService {
 
   async findAll() {
     return this.prisma.store.findMany({
-      where: { status: 'ACTIVE' }
+      where: { status: 'ACTIVE' },
     });
   }
 
@@ -54,7 +54,9 @@ export class StoresService {
       select: { status: true },
     });
     if (!store) {
-      throw new NotFoundException('Store not found or phone number does not match');
+      throw new NotFoundException(
+        'Store not found or phone number does not match',
+      );
     }
     return store;
   }
@@ -69,13 +71,14 @@ export class StoresService {
 
     if (process.env.RESEND_API_KEY) {
       const resend = new Resend(process.env.RESEND_API_KEY);
-      
+
       if (store.email) {
-        resend.emails.send({
-          from: 'hello@printitbyinko.com',
-          to: store.email,
-          subject: 'Application Received - PrintIt by Inko Partner',
-          html: `
+        resend.emails
+          .send({
+            from: 'hello@printitbyinko.com',
+            to: store.email,
+            subject: 'Application Received - PrintIt by Inko Partner',
+            html: `
             <h3>Application Received!</h3>
             <p>Hi ${store.ownerName},</p>
             <p>We have received your application for <strong>${store.name}</strong>.</p>
@@ -89,15 +92,19 @@ export class StoresService {
               <li>Keep the agent running in the background.</li>
             </ol>
             <p>We will notify you once your store is approved and active.</p>
-          `
-        }).catch(err => console.error("Failed to send signup email to store owner", err));
+          `,
+          })
+          .catch((err) =>
+            console.error('Failed to send signup email to store owner', err),
+          );
       }
 
-      resend.emails.send({
-        from: 'hello@printitbyinko.com',
-        to: 'info@printitbyinko.com',
-        subject: 'New Partner Application - ' + store.name,
-        html: `
+      resend.emails
+        .send({
+          from: 'hello@printitbyinko.com',
+          to: 'info@printitbyinko.com',
+          subject: 'New Partner Application - ' + store.name,
+          html: `
           <h3>New Partner Application</h3>
           <p><strong>Store Name:</strong> ${store.name}</p>
           <p><strong>Store ID:</strong> ${store.id}</p>
@@ -105,8 +112,11 @@ export class StoresService {
           <p><strong>Phone:</strong> ${store.contactNumber}</p>
           <p><strong>Email:</strong> ${store.email || 'N/A'}</p>
           <p><strong>Address:</strong> ${store.address}</p>
-        `
-      }).catch(err => console.error("Failed to send signup email to admin", err));
+        `,
+        })
+        .catch((err) =>
+          console.error('Failed to send signup email to admin', err),
+        );
     }
 
     return store;

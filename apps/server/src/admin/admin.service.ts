@@ -11,9 +11,14 @@ export class AdminService {
       include: {
         orders: {
           where: { status: 'COMPLETED' },
-          select: { totalPrice: true, totalPages: true, colorPages: true, bwPages: true }
-        }
-      }
+          select: {
+            totalPrice: true,
+            totalPages: true,
+            colorPages: true,
+            bwPages: true,
+          },
+        },
+      },
     });
 
     let totalRevenue = 0;
@@ -21,11 +26,11 @@ export class AdminService {
     let totalColorPages = 0;
     let totalBwPages = 0;
 
-    const storesStats = stores.map(store => {
+    const storesStats = stores.map((store) => {
       let storeRevenue = 0;
       let storeJobs = 0;
 
-      store.orders.forEach(order => {
+      store.orders.forEach((order) => {
         storeRevenue += Number(order.totalPrice || 0);
         storeJobs += 1;
         totalColorPages += order.colorPages.length;
@@ -36,7 +41,9 @@ export class AdminService {
       totalCompletedJobs += storeJobs;
 
       // Determine active status: if pinged within last 2 minutes (120000 ms)
-      const isActive = store.lastPingAt && (new Date().getTime() - new Date(store.lastPingAt).getTime() < 120000);
+      const isActive =
+        store.lastPingAt &&
+        new Date().getTime() - new Date(store.lastPingAt).getTime() < 120000;
 
       return {
         id: store.id,
@@ -51,7 +58,12 @@ export class AdminService {
         lastPingAt: store.lastPingAt,
         isActive,
         dbStatus: store.status,
-        status: store.status === 'SUSPENDED' ? 'Cancelled' : (isActive ? 'Live' : 'Offline'),
+        status:
+          store.status === 'SUSPENDED'
+            ? 'Cancelled'
+            : isActive
+              ? 'Live'
+              : 'Offline',
         revokedAt: store.revokedAt,
         revokeReason: store.revokeReason,
         revenue: storeRevenue,
@@ -60,7 +72,9 @@ export class AdminService {
     });
 
     // Sort top performers by revenue
-    const topPerformers = [...storesStats].sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+    const topPerformers = [...storesStats]
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
 
     return {
       platformStats: {
@@ -79,34 +93,36 @@ export class AdminService {
       where: { id: storeId },
       data: { status: 'ACTIVE' },
     });
-    
+
     if (store.email && process.env.RESEND_API_KEY) {
       const resend = new Resend(process.env.RESEND_API_KEY);
-      resend.emails.send({
-        from: 'hello@printitbyinko.com',
-        to: store.email,
-        subject: 'Your PrintIt by Inko Shop is Live!',
-        html: `
+      resend.emails
+        .send({
+          from: 'hello@printitbyinko.com',
+          to: store.email,
+          subject: 'Your PrintIt by Inko Shop is Live!',
+          html: `
           <h3>Congratulations!</h3>
           <p>Hi ${store.ownerName},</p>
           <p>Your store <strong>${store.name}</strong> has been approved and is now ACTIVE.</p>
           <p>If you haven't already, please ensure the PrintIt by Inko Agent is running on your desktop with your Store ID: <strong>${store.id}</strong>.</p>
           <p>You are now ready to receive print orders from customers.</p>
-        `
-      }).catch(err => console.error("Failed to send approval email", err));
+        `,
+        })
+        .catch((err) => console.error('Failed to send approval email', err));
     }
-    
+
     return store;
   }
 
   async revokeStore(storeId: string, reason: string) {
     const store = await this.prisma.store.update({
       where: { id: storeId },
-      data: { 
-        status: 'SUSPENDED', 
+      data: {
+        status: 'SUSPENDED',
         isAcceptingOrders: false,
         revokedAt: new Date(),
-        revokeReason: reason
+        revokeReason: reason,
       },
     });
     return store;
@@ -115,28 +131,30 @@ export class AdminService {
   async declineStore(storeId: string, reason: string) {
     const store = await this.prisma.store.update({
       where: { id: storeId },
-      data: { 
+      data: {
         status: 'DECLINED',
-        declineReason: reason
+        declineReason: reason,
       },
     });
 
     if (store.email && process.env.RESEND_API_KEY) {
       const resend = new Resend(process.env.RESEND_API_KEY);
-      resend.emails.send({
-        from: 'hello@printitbyinko.com',
-        to: store.email,
-        subject: 'Update on your PrintIt by Inko Application',
-        html: `
+      resend.emails
+        .send({
+          from: 'hello@printitbyinko.com',
+          to: store.email,
+          subject: 'Update on your PrintIt by Inko Application',
+          html: `
           <p>Hi ${store.ownerName},</p>
           <p>We have reviewed your application for <strong>${store.name}</strong>.</p>
           <p>Unfortunately, we are unable to approve your store at this time.</p>
           <p><strong>Reason:</strong> ${reason}</p>
           <p>If you have any questions, please contact our support team.</p>
-        `
-      }).catch(err => console.error("Failed to send decline email", err));
+        `,
+        })
+        .catch((err) => console.error('Failed to send decline email', err));
     }
-    
+
     return store;
   }
 }

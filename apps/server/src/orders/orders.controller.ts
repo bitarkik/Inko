@@ -1,4 +1,18 @@
-import { Controller, Post, Body, Param, Patch, Get, UseInterceptors, UploadedFile, Res, NotFoundException, Query, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Get,
+  UseInterceptors,
+  UploadedFile,
+  Res,
+  NotFoundException,
+  Query,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -6,7 +20,11 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import type { Response } from 'express';
 import { createReadStream } from 'fs';
 import { join } from 'path';
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { memoryStorage } from 'multer';
 
@@ -30,10 +48,12 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('document', {
-    storage: memoryStorage(),
-    limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max
-  }))
+  @UseInterceptors(
+    FileInterceptor('document', {
+      storage: memoryStorage(),
+      limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max
+    }),
+  )
   async createOrder(
     @UploadedFile() file: Express.Multer.File,
     @Body() createOrderDto: CreateOrderDto,
@@ -47,18 +67,22 @@ export class OrdersController {
       const key = `orders/${Date.now()}-${Math.round(Math.random() * 1e9)}-${file.originalname}`;
       console.log('[R2] Uploading file to key:', key);
 
-      await s3.send(new PutObjectCommand({
-        Bucket: process.env.R2_BUCKET_NAME || 'printpanda-uploads',
-        Key: key,
-        Body: file.buffer,
-        ContentType: file.mimetype,
-      }));
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: process.env.R2_BUCKET_NAME || 'printpanda-uploads',
+          Key: key,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+        }),
+      );
 
       console.log('[R2] Upload successful');
       return this.ordersService.createOrder(createOrderDto, key);
     } catch (err: any) {
       console.error('[R2] Upload failed:', err?.message, err?.code);
-      throw new InternalServerErrorException('Failed to upload document: ' + err?.message);
+      throw new InternalServerErrorException(
+        'Failed to upload document: ' + err?.message,
+      );
     }
   }
 
@@ -118,29 +142,29 @@ export class OrdersController {
     }
 
     if (order.fileUrl.startsWith('orders/')) {
-       // It's an R2 key, generate a short-lived presigned URL
-       const command = new GetObjectCommand({
-         Bucket: process.env.R2_BUCKET_NAME || 'printpanda-uploads',
-         Key: order.fileUrl,
-         ResponseContentDisposition: `inline; filename="order-${id}.pdf"`,
-         ResponseContentType: 'application/pdf',
-       });
-       
-       try {
-         const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
-         return res.redirect(url);
-       } catch (error) {
-         console.error('Error generating presigned URL:', error);
-         throw new BadRequestException('Could not access document file');
-       }
+      // It's an R2 key, generate a short-lived presigned URL
+      const command = new GetObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME || 'printpanda-uploads',
+        Key: order.fileUrl,
+        ResponseContentDisposition: `inline; filename="order-${id}.pdf"`,
+        ResponseContentType: 'application/pdf',
+      });
+
+      try {
+        const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+        return res.redirect(url);
+      } catch (error) {
+        console.error('Error generating presigned URL:', error);
+        throw new BadRequestException('Could not access document file');
+      }
     } else {
-       // Legacy local files (if any still exist)
-       const file = createReadStream(join(process.cwd(), order.fileUrl));
-       res.set({
-         'Content-Type': 'application/pdf',
-         'Content-Disposition': `inline; filename="order-${id}.pdf"`,
-       });
-       file.pipe(res);
+      // Legacy local files (if any still exist)
+      const file = createReadStream(join(process.cwd(), order.fileUrl));
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename="order-${id}.pdf"`,
+      });
+      file.pipe(res);
     }
   }
 }

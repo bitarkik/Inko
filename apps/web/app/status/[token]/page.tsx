@@ -10,6 +10,7 @@ export default function StatusTrackerPage() {
   const params = useParams();
   const router = useRouter();
   const token = params.token as string;
+  const displayToken = `#${token.slice(-4).toUpperCase()}`;
   
   const [status, setStatus] = useState<OrderStatus>("queued");
   const [storeName, setStoreName] = useState<string>("");
@@ -70,7 +71,7 @@ export default function StatusTrackerPage() {
         <div className="text-center mb-12">
           <p className="text-[11px] uppercase tracking-wider text-[var(--muted)] font-bold mb-3">Your Pickup Token</p>
           <div className="inline-block bg-[var(--surface)] border-2 border-[var(--ink)] rounded-2xl px-8 py-4 shadow-[4px_4px_0_var(--ink)]">
-            <h1 className="text-4xl md:text-5xl font-[family:var(--font-dm-mono)] font-black tracking-tight m-0">{token}</h1>
+            <h1 className="text-4xl md:text-5xl font-[family:var(--font-dm-mono)] font-black tracking-tight m-0">{displayToken}</h1>
           </div>
           <p className="text-[13px] text-[var(--muted)] mt-5 max-w-[300px] mx-auto font-medium">
             Show this token at the counter to collect your printed document.
