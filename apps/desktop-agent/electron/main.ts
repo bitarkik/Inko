@@ -329,6 +329,7 @@ ipcMain.handle('reject-order', async (event, orderId: string) => {
 
 ipcMain.handle('refresh-orders', async () => {
   await triggerManualFetch();
+  autoUpdater.checkForUpdates();
   return true;
 });
 
@@ -408,12 +409,12 @@ app.whenReady().then(() => {
   createWindow();
 
   autoUpdater.autoDownload = true;
-  autoUpdater.checkForUpdatesAndNotify();
+  autoUpdater.checkForUpdates();
   
   // Check for updates every 15 minutes while the app is running
   setInterval(() => {
     sendLog('[System] Checking for updates in the background...');
-    autoUpdater.checkForUpdatesAndNotify();
+    autoUpdater.checkForUpdates();
   }, 15 * 60 * 1000);
 
   autoUpdater.on('update-available', (info) => {
