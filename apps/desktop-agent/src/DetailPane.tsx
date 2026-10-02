@@ -171,9 +171,7 @@ export const DetailPane = React.memo(({ order, apiUrl, t, formatMoney, printSele
               <button 
                 className="secondary-btn" 
                 onClick={async () => {
-                  if (confirm('Are you sure you want to reject this order? This cannot be undone.')) {
-                    await window.ipcRenderer.invoke('reject-order', order.id);
-                  }
+                  await window.ipcRenderer.invoke('reject-order', order.id);
                 }}
                 style={{ flex: '0 0 auto', padding: '0 16px', border: '1px solid #fee2e2', color: '#ef4444', background: '#fef2f2', borderRadius: '10px' }}
                 title="Reject Order"

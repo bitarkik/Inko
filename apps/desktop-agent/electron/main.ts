@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
@@ -304,6 +304,21 @@ ipcMain.handle('mark-order-ready', async (event, orderId: string) => {
 
 // Owner presses "Reject" in the UI
 ipcMain.handle('reject-order', async (event, orderId: string) => {
+  if (win) {
+    const result = await dialog.showMessageBox(win, {
+      type: 'warning',
+      buttons: ['Cancel', 'Reject Order'],
+      defaultId: 0,
+      title: 'Confirm Rejection',
+      message: 'Are you sure you want to reject this order?',
+      detail: 'This cannot be undone and the customer will be notified.',
+    });
+
+    if (result.response !== 1) {
+      return false; // User cancelled
+    }
+  }
+
   sendLog(`[Manual] Staff rejected order ${orderId}`);
   await updateOrderStatus(orderId, 'CANCELLED');
   win?.webContents.send('order-rejected', { id: orderId });
