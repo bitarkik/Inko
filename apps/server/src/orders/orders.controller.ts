@@ -18,7 +18,7 @@ import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import type { Response } from 'express';
-import { createReadStream } from 'fs';
+import { createReadStream, existsSync } from 'fs';
 import { join } from 'path';
 import {
   S3Client,
@@ -159,7 +159,12 @@ export class OrdersController {
       }
     } else {
       // Legacy local files (if any still exist)
-      const file = createReadStream(join(process.cwd(), order.fileUrl));
+      const filePath = join(process.cwd(), order.fileUrl);
+      if (!existsSync(filePath)) {
+        throw new NotFoundException('Local document file not found');
+      }
+      
+      const file = createReadStream(filePath);
       res.set({
         'Content-Type': 'application/pdf',
         'Content-Disposition': `inline; filename="order-${id}.pdf"`,
