@@ -156,17 +156,25 @@ export const DetailPane = React.memo(({ order, apiUrl, t, formatMoney, printSele
             <span>{t.orderTotal}</span>
             <strong>{formatMoney(order.totalPrice || order.price || 0)}</strong>
           </div>
-          <button 
-            className="print-btn" 
-            onClick={printSelected} 
-            disabled={order.status === 'printing'}
-          >
-            {order.status === 'printing' ? (
-              <><span className="btn-spinner"></span>{t.printing}...</>
-            ) : (
-              <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg> Print</>
-            )}
-          </button>
+          {order.status === 'printing' ? (
+            // Job is in the printer queue — show "Mark as Ready" for owner to confirm
+            <button 
+              className="print-btn done"
+              onClick={() => window.ipcRenderer.invoke('mark-order-ready', order.id)}
+              style={{ background: '#2563eb' }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6 9 17l-5-5"/></svg>
+              Mark as Ready for Pickup
+            </button>
+          ) : (
+            <button 
+              className="print-btn" 
+              onClick={printSelected}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+              Print
+            </button>
+          )}
         </div>
       </div>
     </article>

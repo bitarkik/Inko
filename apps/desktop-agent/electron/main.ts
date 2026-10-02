@@ -72,21 +72,34 @@ async function updateOrderStatus(orderId: string, status: string) {
   }
 }
 
-async function printFile(filePath: string, isTextFile = false) {
-  return new Promise<void>((resolve, reject) => {
-    let printCommand = "";
-    if (isTextFile) {
-      printCommand = `notepad /p "${filePath}"`;
-    } else {
-      printCommand = `powershell.exe -Command "Start-Process -FilePath '${filePath}' -Verb Print -PassThru | %{sleep 30;$_} | kill"`;
-    }
-    
-    exec(printCommand, (error, stdout, stderr) => {
-      if (error) {
-        sendLog(`[Error] Failed to print document ${filePath}: ${error.message}`);
-        return reject(error);
-      }
-      resolve();
+// Use Electron's native webContents.print() to send a PDF to the printer.
+// This is far more reliable than exec + PowerShell. The callback fires once
+// the job has been handed off to the OS spooler.
+async function printWithElectron(filePath: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    // Create an invisible, offscreen window to load and print the PDF
+    const printWin = new BrowserWindow({
+      show: false,
+      webPreferences: { plugins: true },
+    });
+
+    const fileUrl = `file:///${filePath.replace(/\\/g, '/')}`;
+    printWin.loadURL(fileUrl);
+
+    printWin.webContents.on('did-finish-load', () => {
+      printWin.webContents.print({ silent: true, printBackground: true }, (success, errorType) => {
+        printWin.destroy();
+        if (success) {
+          resolve();
+        } else {
+          reject(new Error(`Print failed: ${errorType}`));
+        }
+      });
+    });
+
+    printWin.webContents.on('did-fail-load', (_e, code, desc) => {
+      printWin.destroy();
+      reject(new Error(`Failed to load PDF for printing: ${desc}`));
     });
   });
 }
@@ -120,27 +133,15 @@ async function processOrder(order: any, isAuto: boolean) {
     return;
   }
 
-  if (isAuto) {
-    sendLog(`[Print Spooler] Printing cover page for order ${id}...`);
-    const coverPagePath = path.join(TEMP_DIR, `cover-${id}.txt`);
-    const coverText = `PRINTPANDA AUTOMATED ORDER\n\nOrder ID: ${id}\nPages: ${order.totalPages}\nPrice: BDT ${order.totalPrice}\n\n======================\nEnd of Cover Page\n`;
-    fs.writeFileSync(coverPagePath, coverText);
-    try {
-      await printFile(coverPagePath, true);
-      fs.unlinkSync(coverPagePath);
-    } catch (e) {
-      sendLog(`[Error] Failed to print cover page.`);
-    }
-  }
-
-  sendLog(`[Print Spooler] Sending job to Windows Print Spooler: ${localFilePath}`);
+  sendLog(`[Print Spooler] Sending job to printer: ${localFilePath}`);
   try {
-    await printFile(localFilePath, false);
-  } catch (error) {
+    await printWithElectron(localFilePath);
+    sendLog(`[Print Spooler] Job successfully sent to printer for order ${id}.`);
+  } catch (error: any) {
+    sendLog(`[Error] Print failed for order ${id}: ${error.message}`);
   }
 
-  await updateOrderStatus(id, 'READY_TO_PICKUP');
-  
+  // Clean up the temp file — the job is now in the printer queue.
   try {
     fs.unlinkSync(localFilePath);
     sendLog(`[Agent] Cleaned up temporary file`);
@@ -148,12 +149,16 @@ async function processOrder(order: any, isAuto: boolean) {
     sendLog(`[Error] Failed to delete file ${localFilePath}: ${err.message}`);
   }
 
-  sendLog(`[Agent] Finished processing order: ${id}`);
+  sendLog(`[Agent] Print job dispatched for order: ${id}. Waiting for staff to mark as ready.`);
   
-  win?.webContents.send('order-completed', order);
+  // Notify the UI that the job has been sent to the printer.
+  // The order will STAY as "PRINTING" in the queue until the owner clicks "Mark as Ready".
+  // This is intentional — we don't know how long the physical printer will take.
+  win?.webContents.send('order-print-dispatched', order);
   
   triggerManualFetch();
 }
+
 
 async function triggerManualFetch() {
   if (!storeId) return;
@@ -278,6 +283,16 @@ ipcMain.handle('print-order', async (event, order: any) => {
   processOrder(order, false).catch(e => console.error(e));
   return true;
 });
+
+// Owner presses "Mark as Ready" in the UI after confirming paper came out of the printer
+ipcMain.handle('mark-order-ready', async (event, orderId: string) => {
+  sendLog(`[Manual] Staff marked order ${orderId} as ready for pickup`);
+  await updateOrderStatus(orderId, 'READY_TO_PICKUP');
+  win?.webContents.send('order-completed', { id: orderId });
+  await triggerManualFetch();
+  return true;
+});
+
 
 ipcMain.handle('refresh-orders', async () => {
   await triggerManualFetch();
