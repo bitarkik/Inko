@@ -34,9 +34,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "image": "./assets/images/printit-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#07120d",
+          "image": "./assets/images/printit-p.png",
+          "imageWidth": 120
         }
       ],
       ["react-native-maps", { "androidGoogleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY" }]

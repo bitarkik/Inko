@@ -101,7 +101,7 @@ export default function OrdersScreen() {
             <TouchableOpacity 
               key={order.id} 
               style={styles.orderCard}
-              onPress={() => router.push({ pathname: `/order/${order.id}`, params: { payment: order.paymentMethod } })}
+              onPress={() => router.push({ pathname: `/order/${order.id}` as any, params: { payment: order.paymentMethod } })}
             >
               <View style={styles.orderHeader}>
                 <Text style={styles.storeName}>{order.store?.name || 'PrintIt by Inko Shop'}</Text>

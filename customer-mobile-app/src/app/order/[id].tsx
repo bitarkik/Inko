@@ -17,7 +17,7 @@ export default function OrderTrackerScreen() {
   const [isCancelled, setIsCancelled] = useState(false);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setTimeout>;
     
     const fetchOrder = async () => {
       if (isCancelled) return;

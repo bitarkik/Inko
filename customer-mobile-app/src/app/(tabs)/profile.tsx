@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   },
   avatar: {
     width: 80, height: 80, borderRadius: 40,
-    backgroundColor: theme.colors.brandLight,
+    backgroundColor: theme.colors.soft,
     justifyContent: 'center', alignItems: 'center',
     marginBottom: 16,
   },
