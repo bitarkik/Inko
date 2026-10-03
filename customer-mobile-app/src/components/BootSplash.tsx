@@ -110,7 +110,7 @@ export default function BootSplash({ onDone }: { onDone: () => void }) {
             ))}
           </View>
           <Animated.Text entering={bylineIn} style={styles.byline}>
-            by Inko
+            BY INKO
           </Animated.Text>
         </View>
         <Animated.Text entering={FadeInUp.delay(1650).duration(700)} style={styles.tagline}>
@@ -142,14 +142,14 @@ const styles = StyleSheet.create({
   content: { alignItems: 'center', paddingHorizontal: 28 },
   logo: {
     width: 104,
-    height: 104,
+    height: 124,
     filter: [{ dropShadow: '0px 12px 28px rgba(16,185,129,0.45)' }],
   },
-  brand: { marginTop: 6, alignItems: 'center' },
+  brand: { marginTop: 6, alignItems: 'flex-end' },
   wordRow: { flexDirection: 'row' },
   word: { fontSize: 34, fontWeight: '800', letterSpacing: 1, lineHeight: 36 },
   wordPrint: { color: '#ffffff' },
   wordIt: { color: '#6ee7b7' },
-  byline: { marginTop: 3, fontSize: 11, fontWeight: '500', letterSpacing: 0.2, color: 'rgba(255,255,255,0.62)' },
-  tagline: { marginTop: 8, fontSize: 11, fontWeight: '500', letterSpacing: 0.2, color: 'rgba(255,255,255,0.62)', includeFontPadding: false },
+  byline: { marginTop: 3, marginRight: -3, fontSize: 11, fontWeight: '600', letterSpacing: 3, color: 'rgba(255,255,255,0.55)' },
+  tagline: { marginTop: 8, fontSize: 15, fontWeight: '500', letterSpacing: 0.2, color: 'rgba(255,255,255,0.62)', includeFontPadding: false },
 });
