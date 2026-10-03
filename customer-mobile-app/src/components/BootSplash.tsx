@@ -76,17 +76,19 @@ export default function BootSplash({ onDone }: { onDone: () => void }) {
             <Stop offset="55%" stopColor="#07120d" />
             <Stop offset="100%" stopColor="#030705" />
           </RadialGradient>
-          <RadialGradient id="emeraldGlow">
-            <Stop offset="0%" stopColor="#10b981" stopOpacity="0.55" />
-            <Stop offset="55%" stopColor="#10b981" stopOpacity="0.22" />
-            <Stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-          </RadialGradient>
         </Defs>
         <Rect width="100%" height="100%" fill="url(#midnightBackground)" />
       </Svg>
 
       <Animated.View pointerEvents="none" style={[styles.glow, glowStyle]}>
         <Svg width="100%" height="100%">
+          <Defs>
+            <RadialGradient id="emeraldGlow">
+              <Stop offset="0%" stopColor="#10b981" stopOpacity="0.55" />
+              <Stop offset="55%" stopColor="#10b981" stopOpacity="0.22" />
+              <Stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+            </RadialGradient>
+          </Defs>
           <Rect width="100%" height="100%" fill="url(#emeraldGlow)" />
         </Svg>
       </Animated.View>
