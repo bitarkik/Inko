@@ -26,7 +26,7 @@ export class AgentGuard implements CanActivate {
     request.store = deviceToken.store;
     request.deviceToken = deviceToken;
 
-    const clientStoreId = request.query.storeId || request.params.storeId || request.body.storeId;
+    const clientStoreId = request.query?.storeId || request.params?.storeId || request.body?.storeId;
     if (clientStoreId && clientStoreId !== deviceToken.storeId) {
       throw new UnauthorizedException('Token is not valid for the requested store');
     }

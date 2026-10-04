@@ -27,12 +27,15 @@ export const DetailPane = React.memo(({ order, apiUrl, t, formatMoney, printSele
     
     const loadPdf = async () => {
       try {
-        const response = await fetch(`${apiUrl}/orders/${order.id}/download`);
-        if (!response.ok) {
-           throw new Error('File not found or server error');
+        const response = await window.ipcRenderer.invoke('fetch-order-pdf', order.id);
+        if (!response.success) {
+          if (response.status === 401 || response.status === 403) {
+            throw new Error('Not authorized — please re-pair the agent');
+          }
+          throw new Error(response.error || 'File not found or server error');
         }
         
-        const arrayBuffer = await response.arrayBuffer();
+        const arrayBuffer = response.data;
         const doc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         if (isMounted) {
           setPdfDoc(doc);

@@ -384,6 +384,21 @@ ipcMain.handle('refresh-orders', async () => {
   return true;
 });
 
+ipcMain.handle('fetch-order-pdf', async (event, orderId: string) => {
+  try {
+    const response = await axios.get(`${API_URL}/orders/${orderId}/download`, {
+      responseType: 'arraybuffer'
+    });
+    return { success: true, data: response.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      status: error.response?.status,
+      error: error.response?.data?.message || error.message
+    };
+  }
+});
+
 ipcMain.handle('get-history', async (event, days: number = 7) => {
   if (!storeId) return [];
   try {
