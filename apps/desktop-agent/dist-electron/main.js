@@ -19894,16 +19894,23 @@ async function Xl(e, t) {
 async function Zl(e) {
 	return new Promise((n, r) => {
 		let i = new t({
+			width: 800,
+			height: 600,
+			x: -1e4,
+			y: -1e4,
 			show: !1,
+			skipTaskbar: !0,
 			webPreferences: { plugins: !0 }
 		}), a = `file:///${e.replace(/\\/g, "/")}`;
 		i.loadURL(a), i.webContents.on("did-finish-load", () => {
-			i.webContents.print({
-				silent: !0,
-				printBackground: !0
-			}, (e, t) => {
-				i.destroy(), e ? n() : r(/* @__PURE__ */ Error(`Print failed: ${t}`));
-			});
+			i.show(), setTimeout(() => {
+				i.webContents.print({
+					silent: !0,
+					printBackground: !0
+				}, (e, t) => {
+					i.destroy(), e ? n() : r(/* @__PURE__ */ Error(`Print failed: ${t}`));
+				});
+			}, 1500);
 		}), i.webContents.on("did-fail-load", (e, t, n) => {
 			i.destroy(), r(/* @__PURE__ */ Error(`Failed to load PDF for printing: ${n}`));
 		});
@@ -19938,7 +19945,7 @@ async function Ql(e, t) {
 	} catch (e) {
 		$(`[Error] Failed to delete file ${r}: ${e.message}`);
 	}
-	$(`[Agent] Print job dispatched for order: ${n}. Waiting for staff to mark as ready.`), Rl?.webContents.send("order-print-dispatched", e), $l();
+	$(`[Agent] Print job dispatched for order: ${n}. Waiting for staff to mark as ready.`), Rl?.webContents.send("order-print-dispatched", e);
 }
 async function $l() {
 	if (Kl) try {
@@ -19985,7 +19992,7 @@ r.handle("get-config", () => ({
 } : (ql = !0, $(`[System] Started polling for Store: ${Kl}`), eu(), { success: !0 }) : {
 	success: !1,
 	error: "Store ID not set"
-}), r.handle("stop-polling", (e) => (ql = !1, Yl && clearTimeout(Yl), $("[System] Stopped polling."), { success: !0 })), r.handle("set-auto-print", (e, t) => (Jl = t, Wl({ isAutoPrintEnabled: Jl }), $(`[System] Auto-Print is now ${t ? "ENABLED" : "DISABLED"}`), !0)), r.handle("get-auto-print", () => Jl), r.handle("print-order", async (e, t) => ($(`[Manual Print] Staff triggered print for ${t.id}`), Ql(t, !1).catch((e) => console.error(e)), !0)), r.handle("mark-order-ready", async (e, t) => ($(`[Manual] Staff marked order ${t} as ready for pickup`), await Xl(t, "READY_TO_PICKUP"), Rl?.webContents.send("order-completed", { id: t }), await $l(), !0)), r.handle("refresh-orders", async () => (await $l(), !0)), r.handle("get-history", async (e, t = 7) => {
+}), r.handle("stop-polling", (e) => (ql = !1, Yl && clearTimeout(Yl), $("[System] Stopped polling."), { success: !0 })), r.handle("set-auto-print", (e, t) => (Jl = t, Wl({ isAutoPrintEnabled: Jl }), $(`[System] Auto-Print is now ${t ? "ENABLED" : "DISABLED"}`), !0)), r.handle("get-auto-print", () => Jl), r.handle("print-order", async (e, t) => ($(`[Manual Print] Staff triggered print for ${t.id}`), Ql(t, !1).catch((e) => console.error(e)), !0)), r.handle("mark-order-ready", async (e, t) => ($(`[Manual] Staff marked order ${t} as ready for pickup`), await Xl(t, "READY_TO_PICKUP"), Rl?.webContents.send("order-completed", { id: t }), await $l(), !0)), r.handle("reject-order", async (e, t) => ($(`[Manual] Staff rejected order ${t}`), await Xl(t, "CANCELLED"), Rl?.webContents.send("order-rejected", { id: t }), await $l(), !0)), r.handle("refresh-orders", async () => (await $l(), Nl.autoUpdater.checkForUpdates(), !0)), r.handle("get-history", async (e, t = 7) => {
 	if (!Kl) return [];
 	try {
 		return (await Q.get(`${zl}/orders/history?storeId=${Kl}&days=${t}`)).data;
@@ -20044,8 +20051,8 @@ n.on("window-all-closed", () => {
 }), n.on("activate", () => {
 	t.getAllWindows().length === 0 && tu();
 }), n.whenReady().then(() => {
-	tu(), Nl.autoUpdater.autoDownload = !0, Nl.autoUpdater.checkForUpdatesAndNotify(), setInterval(() => {
-		$("[System] Checking for updates in the background..."), Nl.autoUpdater.checkForUpdatesAndNotify();
+	tu(), Nl.autoUpdater.autoDownload = !0, Nl.autoUpdater.checkForUpdates(), setInterval(() => {
+		$("[System] Checking for updates in the background..."), Nl.autoUpdater.checkForUpdates();
 	}, 9e5), Nl.autoUpdater.on("update-available", (e) => {
 		$(`[System] Update v${e.version} is available. Downloading...`), Rl?.webContents.send("update-available", e);
 	}), Nl.autoUpdater.on("download-progress", (e) => {
