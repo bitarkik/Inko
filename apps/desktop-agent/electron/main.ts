@@ -427,7 +427,7 @@ function createWindow() {
     icon: path.join(process.env.VITE_PUBLIC, 'vite.svg'),
     autoHideMenuBar: true, 
     webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
+      preload: path.join(__dirname, 'preload.cjs'),
       plugins: true
     },
   })
