@@ -47,7 +47,7 @@ const i18n = {
     firstRun: "First-run experience",
     previewSetup: "Preview first-run setup",
     connectShop: "Connect your shop",
-    storeIdText: "Store ID",
+    storeIdText: "Setup Code",
     cancel: "Cancel",
     continueOrders: "Continue to orders",
     shopConnected: "Shop connected",
@@ -361,15 +361,13 @@ export default function App() {
   };
 
   const connectShop = async () => {
-    if (!storeId) return showToast('Enter Store ID');
+    if (!storeId) return showToast('Enter Setup Code');
     
-    const isValid = await window.ipcRenderer.invoke('validate-store', storeId);
-    if (!isValid) {
-      return showToast('Invalid Store ID. Store not found.');
-    }
-
-    await window.ipcRenderer.invoke('set-store-id', storeId);
-    setSavedStoreId(storeId);
+    const result = await window.ipcRenderer.invoke('setup-agent', storeId);
+      if (!result.success) {
+        return showToast(result.error || 'Invalid Setup Code');
+      }
+      setSavedStoreId(result.storeId);
     setSetupStep(2);
   };
 
@@ -672,7 +670,7 @@ export default function App() {
                 <div className="setup-steps"><span className="active"></span><span></span><span></span></div>
                 <div className="field">
                   <label>{t.storeIdText}</label>
-                  <input value={storeId} onChange={e => setStoreId(e.target.value)} placeholder="e.g. PP-DHK-118" />
+                  <input value={storeId} onChange={e => setStoreId(e.target.value)} placeholder="e.g. A1B2C3D4" />
                 </div>
                 <div className="modal-actions">
                   <button className="ghost-btn" onClick={() => setIsModalOpen(false)}>{t.cancel}</button>
@@ -770,3 +768,5 @@ export default function App() {
     </div>
   );
 }
+
+

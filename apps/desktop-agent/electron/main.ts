@@ -54,6 +54,8 @@ function saveConfig(data: any) {
 // PrintIt by Inko Agent State
 const initialConfig = loadConfig();
 let storeId: string | null = initialConfig.storeId || null;
+let agentToken: string | null = initialConfig.agentToken || null;
+if (agentToken) { axios.defaults.headers.common['X-Agent-Token'] = agentToken; }
 let isPolling = false;
 let isAutoPrintEnabled = initialConfig.isAutoPrintEnabled || false;
 let pollTimeout: NodeJS.Timeout | null = null;
@@ -241,7 +243,7 @@ ipcMain.handle('set-store-id', (event, newStoreId: string) => {
 
 ipcMain.handle('clear-store-id', () => {
   storeId = '';
-  saveConfig({ storeId: '' });
+  saveConfig({ storeId: '', agentToken: '' }); agentToken = ''; delete axios.defaults.headers.common['X-Agent-Token'];
   sendLog(`[System] Store ID cleared`);
   return true;
 });
@@ -420,6 +422,8 @@ ipcMain.handle('install-update', () => {
   sendLog('[System] User initiated update install.');
   autoUpdater.quitAndInstall();
 });
+
+
 
 
 

@@ -128,4 +128,52 @@ export class StoresService {
       data: { isAcceptingOrders: isAccepting },
     });
   }
+
+  async setupAgent(setupCode: string) {
+    const codeRec = await this.prisma.setupCode.findUnique({
+      where: { code: setupCode },
+      include: { store: true }
+    });
+
+    if (!codeRec) {
+      throw new NotFoundException('Invalid setup code');
+    }
+
+    if (codeRec.expiresAt < new Date()) {
+      throw new NotFoundException('Setup code has expired');
+    }
+
+    const { randomBytes } = require('crypto');
+    const token = randomBytes(32).toString('hex'); // 64 char token
+
+    const deviceToken = await this.prisma.deviceToken.create({
+      data: {
+        token,
+        storeId: codeRec.storeId,
+      }
+    });
+
+    await this.prisma.setupCode.delete({
+      where: { id: codeRec.id }
+    });
+
+    return {
+      token: deviceToken.token,
+      storeId: codeRec.store.id,
+      storeName: codeRec.store.name,
+    };
+  }
+
+  async generatePairingCode(storeId: string) {
+    const { randomInt } = require('crypto');
+    const code = randomInt(100000, 999999).toString();
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 10);
+
+    await this.prisma.setupCode.create({
+      data: { code, storeId, expiresAt }
+    });
+
+    return { code, expiresAt };
+  }
 }

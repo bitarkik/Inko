@@ -1,4 +1,5 @@
 import {
+  UseGuards,
   Controller,
   Get,
   Post,
@@ -9,6 +10,8 @@ import {
 } from '@nestjs/common';
 import { StoresService } from './stores.service';
 import { CreateStoreDto } from './create-store.dto';
+
+import { AgentGuard } from '../auth/agent.guard';
 
 @Controller('stores')
 export class StoresController {
@@ -33,15 +36,28 @@ export class StoresController {
   }
 
   @Get(':storeId/dashboard')
+  @UseGuards(AgentGuard)
   getDashboardData(@Param('storeId') storeId: string) {
     return this.storesService.getDashboardData(storeId);
   }
 
   @Patch(':storeId/accepting-orders')
+  @UseGuards(AgentGuard)
   toggleAcceptingOrders(
     @Param('storeId') storeId: string,
     @Body('isAccepting') isAccepting: boolean,
   ) {
     return this.storesService.toggleAcceptingOrders(storeId, isAccepting);
+  }
+
+  @Post('setup')
+  setupAgent(@Body('setupCode') setupCode: string) {
+    return this.storesService.setupAgent(setupCode);
+  }
+
+  @Post('pairing-code')
+  @UseGuards(AgentGuard)
+  generatePairingCode(@Body('storeId') storeId: string) {
+    return this.storesService.generatePairingCode(storeId);
   }
 }

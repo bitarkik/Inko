@@ -111,7 +111,7 @@ export class OrdersService {
         },
         storeId,
       },
-      include: { user: true },
+      include: { user: { select: { id: true, name: true, phone: true } } },
       orderBy: { createdAt: 'asc' },
     });
   }
@@ -126,7 +126,7 @@ export class OrdersService {
         status: { in: ['READY_TO_PICKUP', 'COMPLETED'] },
         createdAt: { gte: date },
       },
-      include: { user: true },
+      include: { user: { select: { id: true, name: true, phone: true } } },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -139,4 +139,5 @@ export class OrdersService {
     return order;
   }
 }
+
 

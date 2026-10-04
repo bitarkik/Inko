@@ -1,4 +1,5 @@
 import {
+  UseGuards,
   Controller,
   Post,
   Body,
@@ -42,6 +43,8 @@ const s3 = new S3Client({
   },
   requestHandler: undefined,
 });
+
+import { AgentGuard } from '../auth/agent.guard';
 
 @Controller('orders')
 export class OrdersController {
@@ -87,6 +90,7 @@ export class OrdersController {
   }
 
   @Patch(':id/status')
+  @UseGuards(AgentGuard)
   updatePrintingStatus(
     @Param('id') id: string,
     @Body() updateOrderStatusDto: UpdateOrderStatusDto,
@@ -108,6 +112,7 @@ export class OrdersController {
   }
 
   @Get('ready-to-print')
+  @UseGuards(AgentGuard)
   getReadyToPrintOrders(@Query('storeId') storeId: string) {
     if (!storeId) {
       throw new BadRequestException('storeId query parameter is required');
@@ -121,6 +126,7 @@ export class OrdersController {
   }
 
   @Get('history')
+  @UseGuards(AgentGuard)
   getHistory(@Query('storeId') storeId: string, @Query('days') days?: string) {
     if (!storeId) {
       throw new BadRequestException('storeId query parameter is required');
@@ -135,6 +141,7 @@ export class OrdersController {
   }
 
   @Get(':id/download')
+  @UseGuards(AgentGuard)
   async downloadOrderFile(@Param('id') id: string, @Res() res: Response) {
     const order = await this.ordersService.findOne(id);
     if (!order || !order.fileUrl) {

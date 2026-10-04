@@ -88,10 +88,19 @@ export class AdminService {
     };
   }
 
-  async approveStore(storeId: string) {
+    async approveStore(storeId: string) {
     const store = await this.prisma.store.update({
       where: { id: storeId },
       data: { status: 'ACTIVE' },
+    });
+
+    const { randomBytes } = require('crypto');
+    const code = randomBytes(4).toString('hex').toUpperCase();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    await this.prisma.setupCode.create({
+      data: { code, storeId, expiresAt }
     });
 
     if (store.email && process.env.RESEND_API_KEY) {
@@ -105,8 +114,11 @@ export class AdminService {
           <h3>Congratulations!</h3>
           <p>Hi ${store.ownerName},</p>
           <p>Your store <strong>${store.name}</strong> has been approved and is now ACTIVE.</p>
-          <p>If you haven't already, please ensure the PrintIt by Inko Agent is running on your desktop with your Store ID: <strong>${store.id}</strong>.</p>
-          <p>You are now ready to receive print orders from customers.</p>
+          <p>Please download and install the PrintIt by Inko Agent on your store's computer:</p>
+          <p><a href="https://github.com/bitarkik/Inko/releases/latest/download/PrintIt-by-Inko-Agent-Setup.exe">Download PrintIt by Inko Agent</a></p>
+          <p>When you open the agent, enter your one-time Setup Code:</p>
+          <h2 style="padding: 10px; background: #f0f0f0; display: inline-block;">${code}</h2>
+          <p><em>Note: This code expires in 7 days and can only be used once.</em></p>
         `,
         })
         .catch((err) => console.error('Failed to send approval email', err));
