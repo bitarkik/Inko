@@ -6,6 +6,7 @@ import path from 'node:path'
 import axios from 'axios'
 import fs from 'fs'
 import { exec } from 'child_process'
+import ptp from 'pdf-to-printer'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -72,49 +73,6 @@ async function updateOrderStatus(orderId: string, status: string) {
     throw error;
   }
 }
-
-// Use Electron's native webContents.print() to send a PDF to the printer.
-async function printWithElectron(filePath: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    // The window must not be fully hidden (show: false) — the PDF plugin
-    // won't render in a completely offscreen context, producing blank pages.
-    // We create a small window positioned way off-screen.
-    const printWin = new BrowserWindow({
-      width: 800,
-      height: 600,
-      x: -10000,
-      y: -10000,
-      show: false,           // start hidden
-      skipTaskbar: true,
-      webPreferences: { plugins: true },
-    });
-
-    const fileUrl = `file:///${filePath.replace(/\\/g, '/')}`;
-    printWin.loadURL(fileUrl);
-
-    printWin.webContents.on('did-finish-load', () => {
-      // Show the window briefly so Chromium's PDF plugin renders properly,
-      // then immediately print. Without this the output is a blank page.
-      printWin.show();
-      setTimeout(() => {
-        printWin.webContents.print({ silent: true, printBackground: true }, (success, errorType) => {
-          printWin.destroy();
-          if (success) {
-            resolve();
-          } else {
-            reject(new Error(`Print failed: ${errorType}`));
-          }
-        });
-      }, 1500); // give the PDF renderer time to paint
-    });
-
-    printWin.webContents.on('did-fail-load', (_e, code, desc) => {
-      printWin.destroy();
-      reject(new Error(`Failed to load PDF for printing: ${desc}`));
-    });
-  });
-}
-
 const printAttempts = new Map<string, number>();
 
 async function handlePrintFailure(orderId: string) {
@@ -172,7 +130,7 @@ async function processOrder(order: any, isAuto: boolean) {
 
   sendLog(`[Print Spooler] Sending job to printer: ${localFilePath}`);
   try {
-    await printWithElectron(localFilePath);
+    await ptp.print(localFilePath, { copies: order.copies || 1, sides: order.sidedMode === 'Double side' ? 'duplex' : undefined });
     sendLog(`[Print Spooler] Job successfully sent to printer for order ${id}.`);
   } catch (error: any) {
     sendLog(`[Error] Print failed for order ${id}: ${error.message}`);
@@ -462,4 +420,8 @@ ipcMain.handle('install-update', () => {
   sendLog('[System] User initiated update install.');
   autoUpdater.quitAndInstall();
 });
+
+
+
+
 

@@ -1,3 +1,4 @@
+import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Platform, TextInput, Modal, FlatList, TouchableWithoutFeedback, Image } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -163,6 +164,41 @@ export default function HomeScreen() {
 
   const renderHeader = () => (
     <>
+      <LinearGradient 
+        colors={['#0f2f20', '#07120d', 'rgba(7,18,13,0)']}
+        locations={[0, 0.65, 1]}
+        style={{ paddingTop: Math.max(insets.top, 20) + 12, paddingHorizontal: 16, paddingBottom: 44, marginTop: -16, marginHorizontal: -16 }}
+      >
+        <View style={[styles.topline, { marginBottom: 12 }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Image 
+              source={require('../../../assets/images/printit-p.png')} 
+              style={{ width: 44, height: 52 }} 
+              resizeMode="contain" 
+            />
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', marginLeft: 8 }}>
+              <Text style={{ fontSize: 26, fontWeight: '800', letterSpacing: 0.5 }}>
+                <Text style={{ color: '#ffffff' }}>Print</Text>
+                <Text style={{ color: '#34d399' }}>It</Text>
+              </Text>
+              <Text style={{ fontSize: 10, fontWeight: '600', letterSpacing: 1.5, color: 'rgba(255,255,255,0.55)', marginLeft: 6 }}>
+                BY INKO
+              </Text>
+            </View>
+          </View>
+          
+          <TouchableOpacity style={[styles.langBtn, { borderColor: 'rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.05)' }]} onPress={toggleLang}>
+            <Text style={[styles.langText, { color: 'rgba(255,255,255,0.8)' }]}>
+              {lang === 'en' ? <Text style={{ color: '#34d399' }}>EN</Text> : 'EN'} / {lang === 'bn' ? <Text style={{ color: '#34d399' }}>বাংলা</Text> : 'বাংলা'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={[styles.location, { marginBottom: 0 }]}>
+          <Ionicons name="location" size={14} color="#34d399" />
+          <Text style={[styles.locationText, { color: 'rgba(255,255,255,0.7)' }]}>{addressText}</Text>
+        </View>
+      </LinearGradient>
 
 
         {viewMode === 'list' && (
@@ -219,40 +255,8 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient 
-        colors={['#0f2f20', '#07120d', '#030705']}
-        style={{ paddingTop: Math.max(insets.top, 20) + 12, paddingHorizontal: 16, paddingBottom: 16 }}
-      >
-        <View style={[styles.topline, { marginBottom: 12 }]}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Image 
-              source={require('../../../assets/images/printit-p.png')} 
-              style={{ width: 44, height: 52 }} 
-              resizeMode="contain" 
-            />
-            <View style={{ flexDirection: 'row', alignItems: 'baseline', marginLeft: 8 }}>
-              <Text style={{ fontSize: 26, fontWeight: '800', letterSpacing: 0.5 }}>
-                <Text style={{ color: '#ffffff' }}>Print</Text>
-                <Text style={{ color: '#34d399' }}>It</Text>
-              </Text>
-              <Text style={{ fontSize: 10, fontWeight: '600', letterSpacing: 1.5, color: 'rgba(255,255,255,0.55)', marginLeft: 6 }}>
-                BY INKO
-              </Text>
-            </View>
-          </View>
-          
-          <TouchableOpacity style={[styles.langBtn, { borderColor: 'rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.05)' }]} onPress={toggleLang}>
-            <Text style={[styles.langText, { color: 'rgba(255,255,255,0.8)' }]}>
-              {lang === 'en' ? <Text style={{ color: '#34d399' }}>EN</Text> : 'EN'} / {lang === 'bn' ? <Text style={{ color: '#34d399' }}>বাংলা</Text> : 'বাংলা'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={[styles.location, { marginBottom: 0 }]}>
-          <Ionicons name="location" size={14} color="#34d399" />
-          <Text style={[styles.locationText, { color: 'rgba(255,255,255,0.7)' }]}>{addressText}</Text>
-        </View>
-      </LinearGradient>
+      <StatusBar style="light" />
+      
       
       {viewMode === 'list' ? (
         <ScrollView 

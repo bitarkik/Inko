@@ -46,4 +46,21 @@ export class CreateOrderDto {
   @IsString()
   @IsOptional()
   paymentMethod?: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @IsOptional()
+  copies?: number;
+
+  @IsString()
+  @IsOptional()
+  sidedMode?: string;
+
+  @IsString()
+  @IsOptional()
+  paperSize?: string;
+
+  @IsString()
+  @IsOptional()
+  colorMode?: string;
 }

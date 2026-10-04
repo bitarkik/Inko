@@ -62,6 +62,10 @@ export default function CheckoutScreen() {
       formData.append('paymentMethod', payment);
       formData.append('totalPages', totalPages as string);
       formData.append('totalPrice', totalPrice as string);
+      formData.append('copies', (copies as string) || '1');
+      formData.append('sidedMode', (sidedMode as string) || 'Single side');
+      formData.append('colorMode', (colorMode as string) || 'B&W');
+      formData.append('paperSize', 'A4'); // assuming A4 for now, add to searchParams if dynamic
       
       const tPages = parseInt(totalPages as string, 10) || 1;
       const colorPagesArray = colorMode === 'Color' ? Array.from({ length: tPages }, (_, i) => i + 1) : [];

@@ -1,3 +1,4 @@
+import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -46,6 +47,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
+      <StatusBar style="dark" />
       <View style={[styles.header, { paddingTop: Platform.OS === 'android' ? insets.top + 20 : 60 }]}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</Text>

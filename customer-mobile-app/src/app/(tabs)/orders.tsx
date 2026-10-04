@@ -1,3 +1,4 @@
+import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, RefreshControl, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -79,6 +80,7 @@ export default function OrdersScreen() {
 
   return (
     <View style={styles.container}>
+      <StatusBar style="dark" />
       <View style={[styles.header, { paddingTop: Platform.OS === 'android' ? insets.top + 10 : 50 }]}>
         <Text style={styles.headerTitle}>Order History</Text>
         <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
