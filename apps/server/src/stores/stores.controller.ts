@@ -12,6 +12,7 @@ import { StoresService } from './stores.service';
 import { CreateStoreDto } from './create-store.dto';
 
 import { AgentGuard } from '../auth/agent.guard';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
 @Controller('stores')
 export class StoresController {
@@ -51,8 +52,13 @@ export class StoresController {
   }
 
   @Post('setup')
-  setupAgent(@Body('setupCode') setupCode: string) {
-    return this.storesService.setupAgent(setupCode);
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  setupAgent(
+    @Body('setupCode') setupCode: string,
+    @Body('label') label?: string,
+  ) {
+    return this.storesService.setupAgent(setupCode, label);
   }
 
   @Delete(':storeId/device-tokens/:tokenId')

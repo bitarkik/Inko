@@ -69,7 +69,6 @@ model Order {
   bwPages       Int[]
   totalPrice    Decimal
   paymentMethod String      @default("bKash")
-  printAttempts Int         @default(0)
   copies        Int         @default(1)
   sidedMode     String      @default("Single side")
   paperSize     String      @default("A4")
@@ -99,6 +98,7 @@ model DeviceToken {
   token     String   @unique
   storeId   String
   store     Store    @relation(fields: [storeId], references: [id])
+  label     String?
   createdAt DateTime @default(now())
   lastUsedAt DateTime?
 }

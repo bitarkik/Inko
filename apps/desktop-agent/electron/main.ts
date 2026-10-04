@@ -86,7 +86,7 @@ async function handlePrintFailure(orderId: string) {
     sendLog(`[System] Order ${orderId} failed 3 times. Marking as NEEDS_ATTENTION.`);
     try {
       await updateOrderStatus(orderId, "NEEDS_ATTENTION");
-    } catch (e: any) { sendLog(`[Error] Failed to revert status for ${orderId}: ${e.message}`); }
+    } catch (e: any) { sendLog(`[Error] Failed to mark ${orderId} as NEEDS_ATTENTION: ${e.message}`); }
   } else {
     sendLog(`[System] Reverting order ${orderId} to READY_TO_PRINT (Attempt ${attempts}/3).`);
     try {
@@ -180,7 +180,7 @@ async function processOrder(order: any, isAuto: boolean) {
 
     sendLog(`[Print Spooler] Sending job to printer: ${localFilePath}`);
     try {
-      await ptp.print(localFilePath, { copies: order.copies || 1, sides: (order.sidedMode === 'Duplex' || order.sidedMode === 'Double side') ? 'duplex' : undefined });
+      await ptp.print(localFilePath, { copies: order.copies || 1, side: (order.sidedMode === 'Duplex' || order.sidedMode === 'Double side') ? 'duplex' : 'simplex' });
       sendLog(`[Print Spooler] Job successfully sent to printer for order ${id}.`);
     } catch (error: any) {
       sendLog(`[Error] Print failed for order ${id}: ${error.message}`);
@@ -211,7 +211,7 @@ async function triggerManualFetch() {
     const orders = response.data;
     sendLog(`[Diagnostic] Fetched ${orders.length} ready-to-print orders!`); 
     win?.webContents.send("orders-updated", orders);
-  } catch (e: any) { sendLog(`[Error] Failed to revert status for ${orderId}: ${e.message}`); }
+  } catch (e: any) { sendLog(`[Error] Failed to fetch orders: ${e.message}`); }
 }
 
 async function poll() {
@@ -321,7 +321,7 @@ ipcMain.handle('clear-store-id', () => {
   return true;
 });
 
-ipcMain.handle('start-polling', (event) => {
+function startPolling() {
   if (!storeId) return { success: false, error: 'Store ID not set' };
   if (isPolling) return { success: true, message: 'Already polling' };
   
@@ -329,6 +329,10 @@ ipcMain.handle('start-polling', (event) => {
   sendLog(`[System] Started polling for Store: ${storeId}`);
   poll();
   return { success: true };
+}
+
+ipcMain.handle('start-polling', (event) => {
+  return startPolling();
 });
 
 ipcMain.handle('stop-polling', (event) => {

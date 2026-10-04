@@ -140,7 +140,7 @@ export class StoresService {
     });
   }
 
-  async setupAgent(setupCode: string) {
+  async setupAgent(setupCode: string, label?: string) {
     const codeRec = await this.prisma.setupCode.findUnique({
       where: { code: setupCode },
       include: { store: true }
@@ -157,10 +157,14 @@ export class StoresService {
     const { randomBytes } = require('crypto');
     const token = randomBytes(32).toString('hex'); // 64 char token
 
+    const safeLabel =
+      typeof label === 'string' && label.trim() ? label.trim().slice(0, 100) : null;
+
     const deviceToken = await this.prisma.deviceToken.create({
       data: {
         token,
         storeId: codeRec.storeId,
+        label: safeLabel,
       }
     });
 
