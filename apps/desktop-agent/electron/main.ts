@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, Notification } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
@@ -7,6 +7,7 @@ import axios from 'axios'
 import fs from 'fs'
 import { exec } from 'child_process'
 import ptp from 'pdf-to-printer'
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -94,7 +95,15 @@ async function handlePrintFailure(orderId: string) {
   }
 }
 
+let isPrinting = false;
 async function processOrder(order: any, isAuto: boolean) {
+  if (isPrinting) {
+    sendLog(`[System] Printer busy, waiting to process ${order.id}...`);
+    while (isPrinting) {
+      await new Promise(r => setTimeout(r, 1000));
+    }
+  }
+  isPrinting = true;
   const { id } = order;
   sendLog(`[Agent] Processing order: ${id}`);
   
@@ -102,6 +111,7 @@ async function processOrder(order: any, isAuto: boolean) {
     await updateOrderStatus(id, "PRINTING");
   } catch (e) {
     sendLog(`[Error] Aborting processOrder for ${id} because status update failed.`);
+    isPrinting = false;
     return;
   }
 
@@ -113,7 +123,7 @@ async function processOrder(order: any, isAuto: boolean) {
       method: "GET",
       url: `${API_URL}/orders/${id}/download`,
       responseType: "stream",
-      timeout: 15000,
+      timeout: 30000,
     });
 
     const writer = fs.createWriteStream(localFilePath);
@@ -127,16 +137,56 @@ async function processOrder(order: any, isAuto: boolean) {
   } catch (error: any) {
     sendLog(`[Error] Failed to download PDF for order ${id}: ${error.message}`);
     await handlePrintFailure(id);
+    isPrinting = false;
     return;
   }
 
-  sendLog(`[Print Spooler] Sending job to printer: ${localFilePath}`);
+  
+    // --- COVER PAGE LOGIC ---
+    try {
+      const coverPath = path.join(TEMP_DIR, "cover-${id}.pdf");
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage();
+      const { width, height } = page.getSize();
+      
+      const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      
+      page.drawText('PrintIt by Inko', { x: 50, y: height - 100, size: 40, font });
+      page.drawText("Order Number: ${id}", { x: 50, y: height - 180, size: 24, font });
+      
+      const details = [
+        "Customer: ${order.user?.name || order.customerName || 'Guest'}",
+        "Copies: ${order.copies || 1}",
+        "Side: ${order.sidedMode || 'Single'}",
+        "Color: ${order.colorMode || 'B&W'}"
+      ];
+      
+      details.forEach((text, idx) => {
+        page.drawText(text, { x: 50, y: height - 240 - (idx * 30), size: 18, font: fontRegular });
+      });
+      
+      const pdfBytes = await pdfDoc.save();
+      fs.writeFileSync(coverPath, pdfBytes);
+      
+      sendLog(`[Print Spooler] Printing cover page for ${id}...`);
+      await ptp.print(coverPath);
+      
+      // Give the spooler a brief moment
+      await new Promise(r => setTimeout(r, 1000));
+      if (fs.existsSync(coverPath)) fs.unlinkSync(coverPath);
+    } catch (coverErr: any) {
+      sendLog(`[Warning] Failed to print cover page for ${id}: ${coverErr.message}`);
+    }
+    // ------------------------
+    sendLog(`[Print Spooler] Sending job to printer: ${localFilePath}`);
   try {
     await ptp.print(localFilePath, { copies: order.copies || 1, sides: order.sidedMode === 'Double side' ? 'duplex' : undefined });
     sendLog(`[Print Spooler] Job successfully sent to printer for order ${id}.`);
   } catch (error: any) {
     sendLog(`[Error] Print failed for order ${id}: ${error.message}`);
     await handlePrintFailure(id);
+    isPrinting = false;
   }
 
   // Clean up the temp file
@@ -192,6 +242,21 @@ async function poll() {
 }
 
 // --- IPC Handlers ---
+ipcMain.handle('set-startup', (event, enabled: boolean) => {
+  app.setLoginItemSettings({ openAtLogin: enabled });
+  saveConfig({ startup: enabled });
+  return true;
+});
+ipcMain.handle('get-startup', () => {
+  return app.getLoginItemSettings().openAtLogin;
+});
+
+ipcMain.handle('show-notification', (event, title: string, body: string) => {
+  if (Notification.isSupported()) {
+    new Notification({ title, body }).show();
+  }
+});
+
 
 ipcMain.handle('get-config', () => {
   return { storeId, isAutoPrintEnabled };
@@ -379,6 +444,17 @@ app.on('activate', () => {
   }
 })
 
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    if (win) {
+      if (win.isMinimized()) win.restore();
+      win.focus();
+    }
+  });
+
 app.whenReady().then(() => {
   createWindow();
 
@@ -400,22 +476,30 @@ app.whenReady().then(() => {
     win?.webContents.send('update-progress', progressObj.percent);
   });
 
+  let pendingForceUpdate = false;
   autoUpdater.on('update-downloaded', (info) => {
     sendLog(`[System] Update v${info.version} downloaded.`);
     
-    // Check if the developer put [FORCE_UPDATE] in the github release notes
     const releaseNotes = (info.releaseNotes || '').toString().toUpperCase();
     const isForceUpdate = releaseNotes.includes('[FORCE_UPDATE]');
     
     win?.webContents.send('update-downloaded', { version: info.version, force: isForceUpdate });
 
     if (isForceUpdate) {
-      sendLog('[System] FORCE UPDATE detected. Installing in 5 seconds...');
-      setTimeout(() => {
-        autoUpdater.quitAndInstall();
-      }, 5000);
+      sendLog('[System] FORCE UPDATE detected. Will install when idle.');
+      pendingForceUpdate = true;
+      checkAndInstallUpdate();
     }
   });
+
+  function checkAndInstallUpdate() {
+    if (pendingForceUpdate && !isPrinting) {
+      sendLog('[System] Installing force update now...');
+      autoUpdater.quitAndInstall();
+    } else if (pendingForceUpdate) {
+      setTimeout(checkAndInstallUpdate, 5000);
+    }
+  }
 })
 
 ipcMain.handle('install-update', () => {
@@ -428,4 +512,14 @@ ipcMain.handle('install-update', () => {
 
 
 
+
+
+
+
+
+
+
+
+
+}
 

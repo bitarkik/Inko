@@ -199,11 +199,11 @@ export default function App() {
         }
       });
 
-      const mapped = updatedOrders.map((o: any, idx: number) => ({
+      const mapped = updatedOrders.map((o: any) => ({
         ...o,
         name: o.user?.name || o.customerName || `Customer #${o.id.slice(-4).toUpperCase()}`,
         paper: o.paperSize || 'A4',
-        color: o.colorMode || (idx % 2 === 0 ? 'Color' : 'B&W'),
+        color: o.colorMode || 'B&W',
         side: o.sides || 'Single side',
         copies: o.copies || 1,
         ago: 'Just now',
@@ -768,5 +768,7 @@ export default function App() {
     </div>
   );
 }
+
+
 
 
