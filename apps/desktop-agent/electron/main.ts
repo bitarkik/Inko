@@ -10,7 +10,12 @@ import ptp from 'pdf-to-printer'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 
 const require = createRequire(import.meta.url)
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const MAIN_DIR = path.dirname(fileURLToPath(import.meta.url))
+const __dirname = MAIN_DIR
+
+const sumatraPdfPath = app.isPackaged
+  ? path.join(process.resourcesPath, 'SumatraPDF-3.4.6-32.exe')
+  : path.join(MAIN_DIR, '..', 'node_modules', 'pdf-to-printer', 'dist', 'SumatraPDF-3.4.6-32.exe');
 
 process.env.APP_ROOT = path.join(__dirname, '..')
 
@@ -168,7 +173,7 @@ async function processOrder(order: any, isAuto: boolean) {
       fs.writeFileSync(coverPath, pdfBytes);
       
       sendLog(`[Print Spooler] Printing cover page for ${id}...`);
-      await ptp.print(coverPath);
+      await ptp.print(coverPath, { sumatraPdfPath });
       
       // Give the spooler a brief moment
       await new Promise(r => setTimeout(r, 1000));
@@ -180,7 +185,7 @@ async function processOrder(order: any, isAuto: boolean) {
 
     sendLog(`[Print Spooler] Sending job to printer: ${localFilePath}`);
     try {
-      await ptp.print(localFilePath, { copies: order.copies || 1, side: (order.sidedMode === 'Duplex' || order.sidedMode === 'Double side') ? 'duplex' : 'simplex' });
+      await ptp.print(localFilePath, { copies: order.copies || 1, side: (order.sidedMode === 'Duplex' || order.sidedMode === 'Double side') ? 'duplex' : 'simplex', sumatraPdfPath });
       sendLog(`[Print Spooler] Job successfully sent to printer for order ${id}.`);
     } catch (error: any) {
       sendLog(`[Error] Print failed for order ${id}: ${error.message}`);

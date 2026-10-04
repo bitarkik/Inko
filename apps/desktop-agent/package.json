@@ -1,7 +1,7 @@
 {
   "name": "desktop-agent",
   "private": true,
-  "version": "2.2.13",
+  "version": "2.2.14",
   "type": "module",
   "main": "dist-electron/main.js",
   "repository": "https://github.com/bitarkik/Inko",
@@ -34,6 +34,12 @@
     "files": [
       "dist/**/*",
       "dist-electron/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/pdf-to-printer/dist/SumatraPDF-3.4.6-32.exe",
+        "to": "SumatraPDF-3.4.6-32.exe"
+      }
     ]
   },
   "dependencies": {
