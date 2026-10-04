@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
   FadeInUp,
@@ -36,10 +36,9 @@ const bylineIn = new Keyframe({
   0: {
     opacity: 0,
     transform: [{ translateY: 8 }],
-    letterSpacing: 8,
     easing: Easing.bezier(0.22, 1, 0.36, 1) as any,
   },
-  100: { opacity: 1, transform: [{ translateY: 0 }], letterSpacing: 3 },
+  100: { opacity: 1, transform: [{ translateY: 0 }] },
 }).duration(800).delay(1400);
 
 export default function BootSplash({ onDone }: { onDone: () => void }) {
@@ -111,9 +110,9 @@ export default function BootSplash({ onDone }: { onDone: () => void }) {
               </Animated.Text>
             ))}
           </View>
-          <Animated.Text entering={bylineIn} style={styles.byline}>
-            BY INKO
-          </Animated.Text>
+          <Animated.View entering={bylineIn}>
+            <Text style={styles.byline}>BY INKO</Text>
+          </Animated.View>
         </View>
         <Animated.Text entering={FadeInUp.delay(1650).duration(700)} style={styles.tagline}>
           Print from anywhere. Pick up nearby.
