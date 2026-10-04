@@ -1,6 +1,6 @@
 import {
   UseGuards,
-  Controller,
+  Controller, Delete,
   Get,
   Post,
   Body,
@@ -55,9 +55,17 @@ export class StoresController {
     return this.storesService.setupAgent(setupCode);
   }
 
+  @Delete(':storeId/device-tokens/:tokenId')
+  @UseGuards(AgentGuard)
+  revokeDeviceToken(@Param('storeId') storeId: string, @Param('tokenId') tokenId: string) {
+    return this.storesService.revokeDeviceToken(tokenId, storeId);
+  }
+
   @Post('pairing-code')
   @UseGuards(AgentGuard)
   generatePairingCode(@Body('storeId') storeId: string) {
     return this.storesService.generatePairingCode(storeId);
   }
 }
+
+

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
@@ -62,10 +63,6 @@ export class OrdersService {
     });
   }
 
-  async findAll() {
-    return this.prisma.order.findMany();
-  }
-
   async getOrdersByUser(userId: string) {
     return this.prisma.order.findMany({
       where: { userId },
@@ -116,6 +113,18 @@ export class OrdersService {
     });
   }
 
+  @Cron(CronExpression.EVERY_MINUTE)
+  async sweepStuckOrders() {
+    const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000);
+    await this.prisma.order.updateMany({
+      where: {
+        status: 'PRINTING',
+        updatedAt: { lt: tenMinsAgo }
+      },
+      data: { status: 'NEEDS_ATTENTION' }
+    });
+  }
+
   async getHistory(storeId: string, days: number = 7) {
     const date = new Date();
     date.setDate(date.getDate() - days);
@@ -139,5 +148,7 @@ export class OrdersService {
     return order;
   }
 }
+
+
 
 

@@ -98,11 +98,6 @@ export class OrdersController {
     return this.ordersService.updatePrintingStatus(id, updateOrderStatusDto);
   }
 
-  @Get()
-  findAll() {
-    return this.ordersService.findAll();
-  }
-
   @Get('me')
   getMyOrders(@Query('userId') userId: string) {
     if (!userId) {

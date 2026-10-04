@@ -86,12 +86,12 @@ async function handlePrintFailure(orderId: string) {
     sendLog(`[System] Order ${orderId} failed 3 times. Marking as NEEDS_ATTENTION.`);
     try {
       await updateOrderStatus(orderId, "NEEDS_ATTENTION");
-    } catch (e) {}
+    } catch (e: any) { sendLog(`[Error] Failed to revert status for ${orderId}: ${e.message}`); }
   } else {
     sendLog(`[System] Reverting order ${orderId} to READY_TO_PRINT (Attempt ${attempts}/3).`);
     try {
       await updateOrderStatus(orderId, "READY_TO_PRINT");
-    } catch (e) {}
+    } catch (e: any) { sendLog(`[Error] Failed to revert status for ${orderId}: ${e.message}`); }
   }
 }
 
@@ -104,47 +104,45 @@ async function processOrder(order: any, isAuto: boolean) {
     }
   }
   isPrinting = true;
-  const { id } = order;
-  sendLog(`[Agent] Processing order: ${id}`);
-  
   try {
-    await updateOrderStatus(id, "PRINTING");
-  } catch (e) {
-    sendLog(`[Error] Aborting processOrder for ${id} because status update failed.`);
-    isPrinting = false;
-    return;
-  }
+    const { id } = order;
+    sendLog(`[Agent] Processing order: ${id}`);
+    
+    try {
+      await updateOrderStatus(id, "PRINTING");
+    } catch (e) {
+      sendLog(`[Error] Aborting processOrder for ${id} because status update failed.`);
+      return;
+    }
 
-  const localFilePath = path.join(TEMP_DIR, `order-${id}.pdf`);
+    const localFilePath = path.join(TEMP_DIR, `order-${id}.pdf`);
 
-  sendLog(`[Agent] Downloading PDF for order ${id}...`);
-  try {
-    const response = await axios({
-      method: "GET",
-      url: `${API_URL}/orders/${id}/download`,
-      responseType: "stream",
-      timeout: 30000,
-    });
+    sendLog(`[Agent] Downloading PDF for order ${id}...`);
+    try {
+      const response = await axios({
+        method: "GET",
+        url: `${API_URL}/orders/${id}/download`,
+        responseType: "stream",
+        timeout: 30000,
+      });
 
-    const writer = fs.createWriteStream(localFilePath);
-    response.data.pipe(writer);
+      const writer = fs.createWriteStream(localFilePath);
+      response.data.pipe(writer);
 
-    await new Promise<void>((resolve, reject) => {
-      writer.on("finish", resolve);
-      writer.on("error", reject);
-    });
-    sendLog(`[Agent] Download complete: ${localFilePath}`);
-  } catch (error: any) {
-    sendLog(`[Error] Failed to download PDF for order ${id}: ${error.message}`);
-    await handlePrintFailure(id);
-    isPrinting = false;
-    return;
-  }
+      await new Promise((resolve, reject) => {
+        writer.on("finish", resolve);
+        writer.on("error", reject);
+      });
+      sendLog(`[Agent] Download complete: ${localFilePath}`);
+    } catch (error: any) {
+      sendLog(`[Error] Failed to download PDF for order ${id}: ${error.message}`);
+      await handlePrintFailure(id);
+      return;
+    }
 
-  
     // --- COVER PAGE LOGIC ---
     try {
-      const coverPath = path.join(TEMP_DIR, "cover-${id}.pdf");
+      const coverPath = path.join(TEMP_DIR, `cover-${id}.pdf`);
       const pdfDoc = await PDFDocument.create();
       const page = pdfDoc.addPage();
       const { width, height } = page.getSize();
@@ -153,13 +151,13 @@ async function processOrder(order: any, isAuto: boolean) {
       const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
       
       page.drawText('PrintIt by Inko', { x: 50, y: height - 100, size: 40, font });
-      page.drawText("Order Number: ${id}", { x: 50, y: height - 180, size: 24, font });
+      page.drawText(`Order Number: ${id}`, { x: 50, y: height - 180, size: 24, font });
       
       const details = [
-        "Customer: ${order.user?.name || order.customerName || 'Guest'}",
-        "Copies: ${order.copies || 1}",
-        "Side: ${order.sidedMode || 'Single'}",
-        "Color: ${order.colorMode || 'B&W'}"
+        `Customer: ${order.user?.name || order.customerName || 'Guest'}`,
+        `Copies: ${order.copies || 1}`,
+        `Side: ${order.sidedMode || 'Single'}`,
+        `Color: ${order.colorMode || 'B&W'}`
       ];
       
       details.forEach((text, idx) => {
@@ -179,29 +177,31 @@ async function processOrder(order: any, isAuto: boolean) {
       sendLog(`[Warning] Failed to print cover page for ${id}: ${coverErr.message}`);
     }
     // ------------------------
+
     sendLog(`[Print Spooler] Sending job to printer: ${localFilePath}`);
-  try {
-    await ptp.print(localFilePath, { copies: order.copies || 1, sides: order.sidedMode === 'Double side' ? 'duplex' : undefined });
-    sendLog(`[Print Spooler] Job successfully sent to printer for order ${id}.`);
-  } catch (error: any) {
-    sendLog(`[Error] Print failed for order ${id}: ${error.message}`);
-    await handlePrintFailure(id);
+    try {
+      await ptp.print(localFilePath, { copies: order.copies || 1, sides: (order.sidedMode === 'Duplex' || order.sidedMode === 'Double side') ? 'duplex' : undefined });
+      sendLog(`[Print Spooler] Job successfully sent to printer for order ${id}.`);
+    } catch (error: any) {
+      sendLog(`[Error] Print failed for order ${id}: ${error.message}`);
+      await handlePrintFailure(id);
+    }
+
+    // Clean up the temp file
+    fs.unlink(localFilePath, (err) => {
+      if (err) {
+        sendLog(`[Error] Failed to delete file ${localFilePath}: ${err.message}`);
+      } else {
+        sendLog(`[Agent] Cleaned up temporary file`);
+      }
+    });
+
+    if (isAuto) {
+      sendLog(`[Agent] Print job dispatched for order: ${id}. Waiting for staff to mark as ready.`);
+    }
+  } finally {
     isPrinting = false;
   }
-
-  // Clean up the temp file
-  try {
-    if (fs.existsSync(localFilePath)) {
-      fs.unlinkSync(localFilePath);
-      sendLog(`[Agent] Cleaned up temporary file`);
-    }
-  } catch (err: any) {
-    sendLog(`[Error] Failed to delete file ${localFilePath}: ${err.message}`);
-  }
-
-  sendLog(`[Agent] Print job dispatched for order: ${id}. Waiting for staff to mark as ready.`);
-  
-  win?.webContents.send("order-print-dispatched", order);
 }
 
 async function triggerManualFetch() {
@@ -211,7 +211,7 @@ async function triggerManualFetch() {
     const orders = response.data;
     sendLog(`[Diagnostic] Fetched ${orders.length} ready-to-print orders!`); 
     win?.webContents.send("orders-updated", orders);
-  } catch (e) {}
+  } catch (e: any) { sendLog(`[Error] Failed to revert status for ${orderId}: ${e.message}`); }
 }
 
 async function poll() {
@@ -242,6 +242,21 @@ async function poll() {
 }
 
 // --- IPC Handlers ---
+ipcMain.handle('setup-agent', async (event, setupCode: string) => {
+  try {
+    const os = require('os');
+    const response = await axios.post(`${API_URL}/stores/setup`, { setupCode, label: os.hostname() });
+    const { token, storeId: newStoreId } = response.data;
+    storeId = newStoreId;
+    axios.defaults.headers.common['X-Agent-Token'] = token;
+    saveConfig({ storeId, agentToken: token });
+    sendLog(`[System] Store ID set to: ${storeId}`);
+    startPolling();
+    return { success: true, storeId };
+  } catch (error: any) {
+    return { success: false, error: error.response?.data?.message || error.message };
+  }
+});
 ipcMain.handle('set-startup', (event, enabled: boolean) => {
   app.setLoginItemSettings({ openAtLogin: enabled });
   saveConfig({ startup: enabled });
@@ -266,14 +281,7 @@ ipcMain.handle('get-api-url', () => {
   return API_URL;
 });
 
-ipcMain.handle('validate-store', async (event, checkStoreId: string) => {
-  try {
-    const response = await axios.get(`${API_URL}/stores/${checkStoreId}/dashboard`);
-    return response.data.store ? true : false;
-  } catch (e) {
-    return false;
-  }
-});
+
 
 ipcMain.handle('get-store-info', async () => {
   if (!storeId) return null;

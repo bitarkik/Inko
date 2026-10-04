@@ -45,6 +45,17 @@ export class StoresService {
   async findAll() {
     return this.prisma.store.findMany({
       where: { status: 'ACTIVE' },
+      select: {
+        id: true,
+        name: true,
+        address: true,
+        contactNumber: true,
+        email: true,
+        latitude: true,
+        longitude: true,
+        isAcceptingOrders: true,
+        status: true,
+      }
     });
   }
 
@@ -162,6 +173,16 @@ export class StoresService {
       storeId: codeRec.store.id,
       storeName: codeRec.store.name,
     };
+  }
+
+  
+  async revokeDeviceToken(tokenId: string, storeId: string) {
+    const token = await this.prisma.deviceToken.findUnique({ where: { id: tokenId } });
+    if (!token || token.storeId !== storeId) {
+      throw new NotFoundException('Device token not found for this store');
+    }
+    await this.prisma.deviceToken.delete({ where: { id: tokenId } });
+    return { success: true };
   }
 
   async generatePairingCode(storeId: string) {
