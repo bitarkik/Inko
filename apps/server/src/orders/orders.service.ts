@@ -107,7 +107,7 @@ export class OrdersService {
     return this.prisma.order.findMany({
       where: {
         status: {
-          in: ['READY_TO_PRINT', 'PRINTING']
+          in: ['READY_TO_PRINT', 'PRINTING', 'NEEDS_ATTENTION']
         },
         storeId,
       },
@@ -139,3 +139,4 @@ export class OrdersService {
     return order;
   }
 }
+

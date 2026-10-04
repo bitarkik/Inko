@@ -98,7 +98,7 @@ export const DetailPane = React.memo(({ order, apiUrl, t, formatMoney, printSele
           <div className="detail-title">Token #{order.id.slice(-4).toUpperCase()}</div>
           <div className="detail-meta">{order.name} &bull; {t.pdfDocument}</div>
         </div>
-        {order.status === 'printing' ? <span className="status printing"><span className="mini-spinner"></span>{t.printing}</span> : <span className="status new">{t.new}</span>}
+        {order.status === 'printing' ? <span className="status printing"><span className="mini-spinner"></span>{t.printing}</span> : order.status === 'NEEDS_ATTENTION' ? <span className="status" style={{background: '#fee2e2', color: '#ef4444'}}>Needs Attention</span> : <span className="status new">{t.new}</span>}
       </div>
       <div className="detail-body">
         <div className="preview-stage" style={{ padding: 0, overflow: 'hidden', background: '#e5e7eb', position: 'relative' }}>
@@ -234,3 +234,5 @@ export const DetailPane = React.memo(({ order, apiUrl, t, formatMoney, printSele
     </article>
   );
 });
+
+

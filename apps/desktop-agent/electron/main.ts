@@ -69,6 +69,7 @@ async function updateOrderStatus(orderId: string, status: string) {
     sendLog(`[Status] Order ${orderId} updated to ${status}`);
   } catch (error: any) {
     sendLog(`[Error] Failed to update order ${orderId} to ${status}: ${error.message}`);
+    throw error;
   }
 }
 
@@ -114,32 +115,58 @@ async function printWithElectron(filePath: string): Promise<void> {
   });
 }
 
+const printAttempts = new Map<string, number>();
+
+async function handlePrintFailure(orderId: string) {
+  const attempts = (printAttempts.get(orderId) || 0) + 1;
+  printAttempts.set(orderId, attempts);
+  
+  if (attempts >= 3) {
+    sendLog(`[System] Order ${orderId} failed 3 times. Marking as NEEDS_ATTENTION.`);
+    try {
+      await updateOrderStatus(orderId, "NEEDS_ATTENTION");
+    } catch (e) {}
+  } else {
+    sendLog(`[System] Reverting order ${orderId} to READY_TO_PRINT (Attempt ${attempts}/3).`);
+    try {
+      await updateOrderStatus(orderId, "READY_TO_PRINT");
+    } catch (e) {}
+  }
+}
+
 async function processOrder(order: any, isAuto: boolean) {
   const { id } = order;
   sendLog(`[Agent] Processing order: ${id}`);
   
-  await updateOrderStatus(id, 'PRINTING');
+  try {
+    await updateOrderStatus(id, "PRINTING");
+  } catch (e) {
+    sendLog(`[Error] Aborting processOrder for ${id} because status update failed.`);
+    return;
+  }
 
   const localFilePath = path.join(TEMP_DIR, `order-${id}.pdf`);
 
   sendLog(`[Agent] Downloading PDF for order ${id}...`);
   try {
     const response = await axios({
-      method: 'GET',
+      method: "GET",
       url: `${API_URL}/orders/${id}/download`,
-      responseType: 'stream',
+      responseType: "stream",
+      timeout: 15000,
     });
 
     const writer = fs.createWriteStream(localFilePath);
     response.data.pipe(writer);
 
     await new Promise<void>((resolve, reject) => {
-      writer.on('finish', resolve);
-      writer.on('error', reject);
+      writer.on("finish", resolve);
+      writer.on("error", reject);
     });
     sendLog(`[Agent] Download complete: ${localFilePath}`);
   } catch (error: any) {
     sendLog(`[Error] Failed to download PDF for order ${id}: ${error.message}`);
+    await handlePrintFailure(id);
     return;
   }
 
@@ -149,32 +176,31 @@ async function processOrder(order: any, isAuto: boolean) {
     sendLog(`[Print Spooler] Job successfully sent to printer for order ${id}.`);
   } catch (error: any) {
     sendLog(`[Error] Print failed for order ${id}: ${error.message}`);
+    await handlePrintFailure(id);
   }
 
-  // Clean up the temp file — the job is now in the printer queue.
+  // Clean up the temp file
   try {
-    fs.unlinkSync(localFilePath);
-    sendLog(`[Agent] Cleaned up temporary file`);
+    if (fs.existsSync(localFilePath)) {
+      fs.unlinkSync(localFilePath);
+      sendLog(`[Agent] Cleaned up temporary file`);
+    }
   } catch (err: any) {
     sendLog(`[Error] Failed to delete file ${localFilePath}: ${err.message}`);
   }
 
   sendLog(`[Agent] Print job dispatched for order: ${id}. Waiting for staff to mark as ready.`);
   
-  // Notify the UI that the job has been sent to the printer.
-  // The order STAYS visible in the queue with "Mark as Ready" button.
-  // Do NOT call triggerManualFetch here — that would wipe the order from the
-  // UI since it's now in PRINTING status (not READY_TO_PRINT).
-  win?.webContents.send('order-print-dispatched', order);
+  win?.webContents.send("order-print-dispatched", order);
 }
-
 
 async function triggerManualFetch() {
   if (!storeId) return;
   try {
     const response = await axios.get(`${API_URL}/orders/ready-to-print?storeId=${storeId}`);
     const orders = response.data;
-    sendLog("[Diagnostic] Fetched $($orders.length) ready-to-print orders!"); win?.webContents.send('orders-updated', orders);
+    sendLog(`[Diagnostic] Fetched ${orders.length} ready-to-print orders!`); 
+    win?.webContents.send("orders-updated", orders);
   } catch (e) {}
 }
 
@@ -185,12 +211,15 @@ async function poll() {
     const response = await axios.get(`${API_URL}/orders/ready-to-print?storeId=${storeId}`);
     const orders = response.data;
     
-    sendLog("[Diagnostic] Fetched $($orders.length) ready-to-print orders!"); win?.webContents.send('orders-updated', orders);
+    win?.webContents.send("orders-updated", orders);
 
     if (orders && orders.length > 0) {
       if (isAutoPrintEnabled) {
-        sendLog(`[Auto-Print] Processing oldest order in queue...`);
-        await processOrder(orders[0], true);
+        const nextOrder = orders.find((o: any) => o.status === "READY_TO_PRINT");
+        if (nextOrder) {
+          sendLog(`[Auto-Print] Processing oldest READY_TO_PRINT order...`);
+          await processOrder(nextOrder, true);
+        }
       }
     }
   } catch (error: any) {
@@ -433,3 +462,4 @@ ipcMain.handle('install-update', () => {
   sendLog('[System] User initiated update install.');
   autoUpdater.quitAndInstall();
 });
+

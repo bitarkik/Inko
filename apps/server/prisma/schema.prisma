@@ -16,6 +16,7 @@ enum OrderStatus {
   READY_TO_PICKUP
   COMPLETED
   CANCELLED
+  NEEDS_ATTENTION
 }
 
 model User {
@@ -66,6 +67,7 @@ model Order {
   bwPages       Int[]
   totalPrice    Decimal
   paymentMethod String      @default("bKash")
+  printAttempts Int         @default(0)
 
   userId String?
   user   User?   @relation(fields: [userId], references: [id])
