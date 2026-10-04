@@ -43,6 +43,8 @@ const i18n = {
     completedText: "Completed",
     storeConnection: "Store connection",
     autoPrint: "Auto-print",
+    startupText: "Start with Windows",
+    startupDesc: "Automatically run this app in the background.",
     autoPrintDesc: "Print new orders automatically as they arrive, with a cover page showing the order number.",
     firstRun: "First-run experience",
     previewSetup: "Preview first-run setup",
@@ -95,6 +97,8 @@ const i18n = {
     completedText: "সম্পন্ন হয়েছে",
     storeConnection: "স্টোর কানেকশন",
     autoPrint: "অটো-প্রিন্ট",
+    startupText: "উইন্ডোজের সাথে শুরু করুন",
+    startupDesc: "ব্যাকগ্রাউন্ডে এই অ্যাপটি স্বয়ংক্রিয়ভাবে চালান।",
     autoPrintDesc: "অর্ডার আসার সাথে সাথে স্বয়ংক্রিয়ভাবে প্রিন্ট করুন কভার পেজ সহ।",
     firstRun: "প্রথম সেটআপ",
     previewSetup: "সেটআপ প্রিভিউ দেখুন",
@@ -120,6 +124,7 @@ export default function App() {
   const [savedStoreId, setSavedStoreId] = useState('');
   const [isPolling, setIsPolling] = useState(false);
   const [isAutoPrintEnabled, setIsAutoPrintEnabled] = useState(false);
+    const [isStartupEnabled, setIsStartupEnabled] = useState(false);
   
   const [orders, setOrders] = useState<any[]>([]);
   const [completed, setCompleted] = useState<any[]>([]);
@@ -171,6 +176,7 @@ export default function App() {
       setSavedStoreId(config.storeId || '');
       setStoreId(config.storeId || '');
       setIsAutoPrintEnabled(config.isAutoPrintEnabled || false);
+        setIsStartupEnabled(config.isStartupEnabled || false);
       
       // Auto-open modal if store is not connected
       if (!config.storeId) {
@@ -339,26 +345,6 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [orders, selected, isModalOpen, currentView]);
 
-  const simulateOrder = () => {
-    const n = Math.floor(Math.random() * 1000) + 2000;
-    const o = {
-      id: `PP-${n}`, name: 'Simulated User', totalPages: 4, totalPrice: 80, paperSize: 'A4', colorMode: 'Color', sides: 'Single', status: 'NEW'
-    };
-    const mapped = {
-      ...o,
-      name: o.name,
-      paper: o.paperSize,
-      color: o.colorMode,
-      side: o.sides,
-      copies: 1,
-      ago: 'Just now',
-      status: 'new',
-      fresh: true
-    };
-    setOrders(prev => [mapped, ...prev]);
-    setSelected(0);
-    playChime();
-  };
 
   const connectShop = async () => {
     if (!storeId) return showToast('Enter Setup Code');
@@ -479,10 +465,7 @@ export default function App() {
                 <button className="secondary-btn" onClick={() => { window.ipcRenderer.invoke('refresh-orders'); }}>
                   {t.refresh}
                 </button>
-                <button className="secondary-btn" onClick={simulateOrder}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
-                  {t.simulateOrder}
-                </button>
+                
               </div>
             )}
           </header>
@@ -575,6 +558,21 @@ export default function App() {
           {currentView === 'settings' && (
             <section className="view active">
               <div className="settings-grid">
+                <article className="setting-card">
+                  <div className="setting-head">
+                    <div className="setting-symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+                    <div><h2>{t.startupText || "Start with Windows"}</h2><p>{t.startupDesc || "Automatically run this app in the background."}</p></div>
+                    <label className="switch" style={{marginLeft: 'auto'}}>
+                      <input type="checkbox" checked={isStartupEnabled} onChange={async (e) => {
+                        const val = e.target.checked;
+                        await window.ipcRenderer.invoke('set-startup', val);
+                        setIsStartupEnabled(val);
+                      }} />
+                      <span className="track"></span>
+                    </label>
+                  </div>
+                </article>
+
                 <article className="setting-card">
                   <div className="setting-head">
                     <div className="setting-symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 10V5h16v5M6 18H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><path d="M6 15h12v7H6z"/></svg></div>
